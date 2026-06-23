@@ -35,7 +35,7 @@
 # SMART full clean GPU sweep:
 #   (1) full TCGA ablation suite -> results/*.json
 #   (2) single-cell generalization (4 datasets) -> results_singlecell/*.json
-#   (3) regenerate the AAAI paper .tex from the fresh JSONs
+#   (3) regenerate the paper .tex from the fresh JSONs
 #   (4) compile the PDF
 # Data is already cached under data/ (no network needed on the compute node).
 #   sbatch run_sweep.sbatch

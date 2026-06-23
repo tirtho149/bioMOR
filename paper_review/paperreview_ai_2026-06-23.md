@@ -1,4 +1,4 @@
-# PaperReview.ai (Stanford ML Group) — SMART, AAAI — submitted 2026-06-23
+# PaperReview.ai (Stanford ML Group) — SMART — submitted 2026-06-23
 
 > AI-generated review (may contain errors). Archived verbatim for the record.
 > Companion: `action_items.md` tracks how each point was resolved.

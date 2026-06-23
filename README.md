@@ -6,7 +6,7 @@
 
 ¹ Iowa State University &nbsp;&nbsp; ² Stanford University
 
-*Reference implementation and full reproduction harness. Manuscript currently under review (AAAI); not yet accepted.*
+*Reference implementation and full reproduction harness. Manuscript currently under review; not yet accepted.*
 
 </div>
 
@@ -101,7 +101,7 @@ genomic_dataloader/      # TCGA loader (downloads/caches UCSC Xena RNA-seq)
 tools/convert_capsule_to_csv.py   # genomap capsule .mat/.csv -> readable CSVs (deterministic)
 data/                    # SINGLE home for all data (tcga/ + singlecell/) — git-ignored, regenerable
 results*/                # experiment JSONs that feed the paper (tracked)
-paper/                   # generated .tex/.bib + compiled PDF + AAAI style files
+paper/                   # generated .tex/.bib + compiled PDF + conference style files
 assets/                  # rendered figures used by this README
 run_all.sh               # local one-command: TCGA suite -> paper -> PDF
 run_*.sbatch             # one Slurm job per experiment (GPU, scavenger partition)
@@ -317,7 +317,7 @@ python -m recursive_marker_transformer.tune \
 
 ## Building the paper
 
-After any run, regenerate the AAAI `.tex` (every metric injected from `results*/`) and compile:
+After any run, regenerate the paper `.tex` (every metric injected from `results*/`) and compile:
 
 ```bash
 python -m recursive_marker_transformer.make_paper --results results --outdir paper
@@ -359,9 +359,8 @@ each pass, so a gene's realized recursion depth is an adaptive, compute-allocati
 
 ## Citation
 
-> **Status:** this manuscript is **under review** (submitted to AAAI); it has **not** been
-> accepted or published yet. Please cite it as an unpublished manuscript until a venue is
-> confirmed.
+> **Status:** this manuscript is **under review**; it has **not** been accepted or published
+> yet. Please cite it as an unpublished manuscript until a venue is confirmed.
 
 ```bibtex
 @unpublished{howlader2026smart,

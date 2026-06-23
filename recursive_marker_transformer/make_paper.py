@@ -16,7 +16,7 @@
 # the fullest extent permitted by law. See the LICENSE file for full terms.
 # ============================================================================
 
-"""Generate the AAAI paper (.tex + .bib) directly from experiment results.
+"""Generate the conference paper (.tex + .bib) directly from experiment results.
 
 This module *is* the paper source: the prose lives here as a template, and the
 numbers / tables are injected from the JSON written by ``experiments.py``. Run
@@ -56,7 +56,7 @@ def _fmt(n):
 
 
 def _flops(n):
-    """Compact FLOPs (G/M/K) so values fit the narrow AAAI two-column tables."""
+    """Compact FLOPs (G/M/K) so values fit the narrow two-column tables."""
     n = float(n)
     if n >= 1e9:
         return f"{n / 1e9:.2f}G"

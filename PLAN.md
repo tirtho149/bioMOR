@@ -6,12 +6,12 @@
 
 ## Goal
 Deliver a **fully functional, reproducible pipeline** that (1) trains the
-SMART model, (2) runs the ablation suite, (3) emits an AAAI
+SMART model, (2) runs the ablation suite, (3) emits a conference
 `.tex` paper with **every number injected from real experiment results**, and
 (4) compiles it to PDF — all from **one shell script** (`run_all.sh`).
 
 The paper is written in confident first-person plural ("we") at the level of a
-strong 4th-year PhD student, using the AAAI LaTeX class, with **25+ verified,
+strong 4th-year PhD student, using a conference LaTeX class, with **25+ verified,
 highly connected citations**.
 
 ## The idea (punch line)
@@ -48,7 +48,7 @@ recursive_marker_transformer/
   ablate.py        ad-hoc ablation presets
 run_all.sh         one command: experiments -> paper -> PDF
 PLAN.md            this file
-aaai_template/     AAAI style files (aaai.sty/.bst, fixbib.sty)
+aaai_template/     conference LaTeX style files (.sty/.bst, fixbib.sty)
 results/           generated JSON (numbers feed the paper)
 paper/             generated .tex/.bib + compiled PDF
 ```
@@ -70,7 +70,7 @@ Abstract · Introduction (contributions) · Related Work (foundation models;
 parameter-efficient/recursive transformers; markers/pathways) · Method (5 stages +
 objective + complexity) · Experiments (setup; main table; per-class table; param
 table; ablation table; biological enrichment) · Discussion/Limitations · Conclusion ·
-References (`refs.bib`, aaai.bst).
+References (`refs.bib`, conference `.bst`).
 
 Tables auto-built: `main_results_table`, `per_class_table`, `ablation_table`,
 `param_table`. No number hand-typed.
@@ -197,5 +197,5 @@ Transfer the repo **without `.venv/`** (recreate from `requirements.txt`).
 - [ ] Run `singlecell.py` on a GPU → fill the single-cell table.
 - [ ] Sanity-check the genomap-derived datasets (common_class/pancreas may be lower,
       as features are genomap images, not raw gene panels); soften the table prose if so.
-- [ ] Address the AAAI reviewer asks (see memory `aaai-review-action-items`):
+- [ ] Address the reviewer asks (see memory `review-action-items`):
       external baselines, 20k-gene scaling, multi-seed ± std, real enrichment.
