@@ -232,18 +232,18 @@ provide the broader context for our task.
 \draw[flow] (emb) -- (router);
 \draw[flow] (router) -- (mtok);
 
-\node[stage, below=52mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
+\node[stage, below=34mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
 \node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{funnel; logit $+\,\beta_t\pi_m$}}};
 \node[stage, right=of mor] (pool) {{\large\textcolor{accentB}{\faCompress}}\\[2pt]\textbf{Mean-pool}\\[1pt]{\scriptsize\textcolor{subcap}{over $M$ markers}}};
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
 \node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Tasks}\\[1pt]{\tiny\textcolor{subcap}{4 TCGA cohorts\\ 5 phenotypes\\ 4 single-cell}}};
 % biology-informed router: genomap gene-gene interaction graph -> centrality prior
-\node[stage, below=13mm of inp, text width=22mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
+\node[stage, right=of mtok] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[2pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
 \draw[flow] (shared) -- (mor);
 \draw[flow] (mor) -- (pool);
 \draw[flow] (pool) -- (clf);
 \draw[flow] (clf) -- (coh);
-\draw[flow, draw=accentA, dashed] (gint.east) -| (mor.north);
+\draw[flow, draw=accentA, dashed] (gint.south) -- ++(0,-6mm) -| (mor.north);
 
 \draw[loop] (shared.south east) .. controls ++(0,-9mm) and ++(0,-9mm) .. (shared.south west)
   node[midway, below=0.5mm, font=\scriptsize\bfseries, text=accentB, align=center]
