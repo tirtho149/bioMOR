@@ -174,12 +174,30 @@ def run_task(task: str, X: np.ndarray, labels: pd.DataFrame,
         model.load_state_dict(best_state)
 
     yt, yp = evaluate(model, dl_te, device, dtypes)[task]
+
+    # Realised per-token recursion depth + token-aware FLOP saving on the test
+    # set (identical estimator to train.run, so cohort and phenotype tasks are
+    # directly comparable). Early-exited tokens skip the quadratic attention of
+    # later steps, so the FLOP saving exceeds the linear depth ratio.
+    from .train import _depth_stats
+    M = min(cfg.n_markers, G)
+    mean_slot_depth, _midx, active = _depth_stats(model, dl_te, device, cfg)
+
+    def _step_flops(a):    # attention O(a^2) + FFN O(a)
+        return 4.0 * a * a * cfg.d_model + 4.0 * a * cfg.d_model * cfg.d_ff
+
+    flops_nominal = cfg.recursion_depth * _step_flops(M)
+    flops_eff = float(sum(_step_flops(float(active[t])) for t in range(cfg.recursion_depth)))
+    saving = flops_eff / flops_nominal if flops_nominal else 1.0
+
     res = {
         "task": task,
         "n_samples": int(len(y)), "n_genes": int(G), "n_classes": int(K),
         "n_train": int(len(tr)), "n_test": int(len(te)),
         "transformer_params": int(model.transformer_param_count()),
         "total_params": int(model.total_param_count()),
+        "mean_recursion_depth": float(mean_slot_depth.mean()),
+        "compute_saving_ratio": saving,
         "config": cfg.as_dict(),
         "heads": {task: {
             "accuracy": float(accuracy_score(yt, yp)),

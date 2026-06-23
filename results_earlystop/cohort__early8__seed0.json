@@ -1,0 +1,9 @@
+{
+ "macro_f1": 0.9856032273555797,
+ "accuracy": 0.9866156787762906,
+ "mean_recursion_depth": 4.749999523162842,
+ "compute_saving_ratio": 0.48828125,
+ "task": "cohort",
+ "mode": "early8",
+ "seed": 0
+}

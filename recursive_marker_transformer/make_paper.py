@@ -501,7 +501,7 @@ def earlystop_table(_results=None):
             except Exception:
                 continue
             acc.setdefault((r["task"], r["mode"]), []).append(r["macro_f1"])
-            if r["task"] == "cohort" and r.get("mean_recursion_depth") is not None:
+            if r.get("mean_recursion_depth") is not None:
                 depth.setdefault(r["mode"], []).append(r["mean_recursion_depth"])
                 if r.get("compute_saving_ratio") is not None:
                     save.setdefault(r["mode"], []).append(r["compute_saving_ratio"])

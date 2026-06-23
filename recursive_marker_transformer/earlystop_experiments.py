@@ -70,7 +70,8 @@ def _run_hard(task, X, labels, mode, seed, scratch):
     h = r["heads"][task]
     return {"macro_f1": h["macro_f1"], "accuracy": h["accuracy"],
             "n_classes": r["n_classes"],
-            "mean_recursion_depth": None, "compute_saving_ratio": None}
+            "mean_recursion_depth": r.get("mean_recursion_depth"),
+            "compute_saving_ratio": r.get("compute_saving_ratio")}
 
 
 def main():

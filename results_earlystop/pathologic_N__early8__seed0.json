@@ -1,0 +1,10 @@
+{
+ "macro_f1": 0.2541494988546336,
+ "accuracy": 0.41605839416058393,
+ "n_classes": 4,
+ "mean_recursion_depth": 4.75,
+ "compute_saving_ratio": 0.48828125,
+ "task": "pathologic_N",
+ "mode": "early8",
+ "seed": 0
+}
