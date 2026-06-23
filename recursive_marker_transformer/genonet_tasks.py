@@ -128,6 +128,18 @@ def run_task(task: str, X: np.ndarray, labels: pd.DataFrame,
 
     model = RecursiveMarkerTransformer(cfg, G, {task: K}, dtypes).to(device)
     model.set_gene_variance(torch.from_numpy(Xs[tr].var(0).astype(np.float32)))
+
+    # Biology-informed router: genomap gene-gene-interaction centrality prior,
+    # built (label-free) on the train split of this task.
+    if getattr(cfg, "gene_interaction", None) not in (None, "none"):
+        from .interaction import build_interaction
+        inter = build_interaction(Xs[tr], G, mode=cfg.gene_interaction,
+                                  knn=cfg.interaction_knn, seed=cfg.seed)
+        model.set_gene_interaction(inter.centrality)
+        print(f"  gene_interaction={cfg.gene_interaction} prior installed "
+              f"(beta0={cfg.router_prior_beta}, anneal={cfg.router_prior_anneal})",
+              flush=True)
+
     cw = _class_weights(torch.from_numpy(y[tr]), K).to(device)
     criterion = RMTLoss(cfg, dtypes, {task: cw})
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)

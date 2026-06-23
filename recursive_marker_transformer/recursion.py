@@ -138,12 +138,15 @@ class RecursiveStack(nn.Module):
         self,
         tokens: torch.Tensor,                               # (B, M, d)
         refine_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+        prior: Optional[torch.Tensor] = None,               # (M,) biological prior
+        prior_weight: float = 0.0,                          # beta_t (annealed)
     ) -> Tuple[torch.Tensor, Dict[str, object]]:
         if self.router is not None:
             # Pass the step-indexed block picker: _block(t) is the shared block
             # when share_weights, else the t-th independent block -- so routing
             # composes with both weight-sharing and the independent ablation.
-            return self.router(tokens, lambda t, x: self._block(t)(x), refine_fn)
+            return self.router(tokens, lambda t, x: self._block(t)(x), refine_fn,
+                               prior=prior, prior_weight=prior_weight)
 
         remaining = torch.ones(tokens.shape[:2], device=tokens.device)  # (B, M)
         for t in range(self.depth):

@@ -159,6 +159,19 @@ def run(cfg: RMTConfig, markers_path: str = "markers_top.csv") -> dict:
         cfg, data.n_genes, data.head_n_classes, data.head_dtypes).to(device)
     model.set_gene_variance(torch.from_numpy(data.gene_variance))
 
+    # Biology-informed router: build the genomap gene-gene-interaction centrality
+    # prior on the train split (label-free) and install it on the model.
+    if getattr(cfg, "gene_interaction", None) not in (None, "none"):
+        from .interaction import build_interaction
+        t1 = time.time()
+        inter = build_interaction(data.loaders["train"], data.n_genes,
+                                  mode=cfg.gene_interaction, knn=cfg.interaction_knn,
+                                  seed=cfg.seed)
+        model.set_gene_interaction(inter.centrality)
+        print(f"[rmt] gene_interaction={cfg.gene_interaction} prior built in "
+              f"{time.time()-t1:.1f}s (beta0={cfg.router_prior_beta}, "
+              f"anneal={cfg.router_prior_anneal})")
+
     # Class weights for multiclass heads (inverse frequency on train split).
     class_weights = {}
     for h in cfg.heads:

@@ -70,6 +70,16 @@ class RMTConfig:
     router_z_coeff: float = 1e-3                 # weight of router z-loss
     router_balance_coeff: float = 0.1            # weight of token-choice balancing loss
 
+    # ---- biology-informed router (genomap gene-gene interaction prior) -----
+    gene_interaction: str = "none"               # "none" | "coexpr" | "random"
+                                                 # coexpr = genomap correlation graph;
+                                                 # random = degree-matched control
+    interaction_knn: int = 16                    # k nearest co-expression neighbours
+    router_prior_beta: float = 1.0               # beta_0: additive centrality-bias
+                                                 # strength on the depth-router logits
+    router_prior_anneal: bool = True             # decay beta_t -> 0 over training
+                                                 # (warm-start prior; data takes over)
+
     # ---- loss weights --------------------------------------------------
     lambda_marker: float = 0.1
     gamma_diversity: float = 0.05

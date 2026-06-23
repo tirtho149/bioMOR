@@ -68,7 +68,11 @@ datasets. A controlled selection study shows the learned selectors beat random
 and variance selection when a marker signal is present, and the per-gene recursion
 depth yields an interpretable, compute-allocated gene panel; multi-seed ablations
 report, transparently, that on the weakly-determined clinical labels the
-architectural choices are statistically within noise. The whole
+architectural choices are statistically within noise. We further make routing
+\emph{biology-informed} by injecting a label-free genomap gene-gene interaction prior
+into the recursion router, and test it against a degree-matched random-graph control;
+on these datasets it does not separate from that control, a negative result we report
+transparently alongside its mathematical and biological foundation. The whole
 pipeline, including training, ablations, baselines, and this paper itself,
 regenerates from a single shell script.
 \end{quote}
@@ -140,6 +144,11 @@ to four single-cell datasets.
 honestly that on the weakly-determined clinical labels the architectural choices are
 within noise: the marker-learning advantage requires a genuine marker signal in the
 label, as on the cohort task.
+\item We propose a \emph{biology-informed router} that injects a label-free genomap
+gene-gene interaction prior (network centrality) into the recursion router as an
+annealed additive bias, and we evaluate it against a degree-matched random-graph
+control; on the present datasets it does not separate from that control, a negative
+result we report transparently alongside the mechanism and its theory.
 \item We release a fully reproducible pipeline in which a single shell script
 runs all experiments, baselines, and regenerates this paper, numbers and tables
 included.
@@ -224,14 +233,17 @@ provide the broader context for our task.
 \draw[flow] (router) -- (mtok);
 
 \node[stage, below=19mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
-\node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{capacity funnel, depth $d_m$}}};
+\node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{funnel; logit $+\,\beta_t\pi_m$}}};
 \node[stage, right=of mor] (pool) {{\large\textcolor{accentB}{\faCompress}}\\[2pt]\textbf{Mean-pool}\\[1pt]{\scriptsize\textcolor{subcap}{over $M$ markers}}};
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
-\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{4 Cohorts}\\[1pt]{\tiny\textcolor{subcap}{BRCA / HNSC\\ LUNG / THCA}}};
+\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Tasks}\\[1pt]{\tiny\textcolor{subcap}{4 TCGA cohorts\\ 5 phenotypes\\ 4 single-cell}}};
+% biology-informed router: genomap gene-gene interaction graph -> centrality prior
+\node[stage, below=11mm of mor, text width=24mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[2pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap co-expression\\ centrality prior $\pi$}}};
 \draw[flow] (shared) -- (mor);
 \draw[flow] (mor) -- (pool);
 \draw[flow] (pool) -- (clf);
 \draw[flow] (clf) -- (coh);
+\draw[flow, draw=accentA, dashed] (gint) -- (mor);
 
 \draw[loop] (shared.south east) .. controls ++(0,-9mm) and ++(0,-9mm) .. (shared.south west)
   node[midway, below=0.5mm, font=\scriptsize\bfseries, text=accentB, align=center]
@@ -242,7 +254,7 @@ provide the broader context for our task.
 
 \begin{scope}[on background layer]
 \node[panel, fill=panelA, fit=(inp)(mtok)] (pA){};
-\node[panel, fill=panelB, fit=(shared)(coh)] (pB){};
+\node[panel, fill=panelB, fit=(shared)(coh)(gint)] (pB){};
 \end{scope}
 \node[ptab=accentA, anchor=west] at ([xshift=2mm]pA.north west)
   {A\; $\cdot$\; Marker Selection (Q-Former router)};
@@ -258,7 +270,12 @@ Q-Former-style router. \textbf{Panel B (recursive refinement \& classification):
 \emph{single} weight-shared block $f_\theta$ is applied up to $K$ times (loop-back arrow)
 with a per-marker refinement gate between passes; a Mixture-of-Recursions router funnels
 capacity so each marker gets an \emph{adaptive} depth $d_m$ (deeply routed genes are
-candidate drivers). Tokens are mean-pooled and classified into the four TCGA cohorts.}
+candidate drivers). \textbf{Biology-informed routing:} a genomap gene-gene co-expression
+graph supplies a network-centrality prior $\pi$ that is added (annealed by $\beta_t$) to
+the depth-router logit (dashed arrow), so co-expression hub genes get a head start in the
+funnel without any label leakage. Tokens are mean-pooled and classified; the \emph{same}
+pipeline serves all datasets, the four TCGA cohorts, five clinical phenotype tasks, and
+four single-cell cell-type datasets.}
 \label{fig:overview}
 \end{figure*}
 
@@ -415,6 +432,55 @@ expert-choice the stronger of the two. Both share the block $f_\theta$, so the
 parameter-efficiency claim is untouched, and both reduce to the uniform fixed-depth
 recursion when routing is disabled. The router is trained with a small
 logit $z$-loss (and, for token-choice, the balancing term) added to the objective.
+
+\subsection{Biology-Informed Routing}
+\label{sec:biorouter}
+So far the router decides depth from data alone, and biology only enters afterwards,
+when we cross-check the deepest-routed genes against curated markers. We instead move
+a biological prior \emph{into} the routing decision. For marker token $m$ at step
+$t$, the expert-choice logit becomes
+\begin{equation}
+\tilde r^{(t)}_m \;=\; \underbrace{\tfrac{1}{\tau}\,\mathbf{w}_r^{\top}\mathbf{H}^{(t)}_m}_{\text{data-driven (learned)}}
+\;+\; \underbrace{\beta_t\,\pi_m}_{\text{biological prior}},
+\label{eq:biorouter}
+\end{equation}
+and the keep/drop top-$\lceil c_t M\rceil$ and the gate
+$g^{(t)}_m=\sigma(\tilde r^{(t)}_m)$ run exactly as before, so the recursion-depth
+definition is unchanged but now reflects prior and data together. This is the same
+loss-free additive-bias slot used by Switch routing \cite{shazeer2017outrageously},
+except the bias is a per-gene \emph{biological} score, not a load-balancing scalar.
+
+\paragraph{The prior $\pi_m$ from gene-gene interactions.}
+We obtain $\pi_m$ from genomap's gene-gene \emph{interaction} identification
+\cite{islam2023cartography}: genomap's \texttt{createInteractionMatrix} defines
+interaction as the pairwise correlation distance between genes across samples
+(which it then feeds to optimal transport for an image layout). We call that
+function on the training split and reuse only its interaction matrix, taking the
+co-expression affinity $\mathbf{W}_{ij}=|\mathrm{corr}(g_i,g_j)|=|1-d_{ij}|$ from
+genomap's distance $d_{ij}$, sparsifying it to each gene's $k$ nearest neighbours,
+symmetrising it, and reading off the network centrality
+\begin{equation}
+\pi \;=\; \mathrm{zscore}\big(\text{eigvec-centrality}(\mathbf{W})\big),
+\end{equation}
+so co-expression \emph{hub} genes, the master-regulator-like nodes whose perturbation
+propagates widely, receive a larger prior and are nudged to recurse deeper. Crucially
+$\mathbf{W}$ is built from \emph{expression alone, with no labels}, so the prior
+injects biological network structure without leaking the cohort labels; this is what
+keeps the gene-discovery claim honest.
+
+\paragraph{Annealing $\beta_t$.}
+A fixed strong prior would behave like hard routing, pinning compute to known hubs and
+unable to discover new genes, exactly the failure mode of our uniform-init router. We
+therefore warm-start: $\beta_t=\beta_0(1-\text{progress})$ decays to $0$ over training,
+so the prior dominates early, when hidden states are still random and biology gives a
+sensible starting allocation, and the data-driven term takes over late. This is an
+empirical-Bayes shrinkage / curriculum: a strong prior when evidence is weak, fading
+as evidence accumulates. Because $\pi_m$ is a constant additive bias, $\tilde r^{(t)}_m$
+stays smooth in $\mathbf{w}_r$ and the gate $g^{(t)}_m$ still carries gradient, so
+nothing about trainability or the parameter-efficiency claim changes. We validate the
+component against a degree-matched \emph{random}-graph control: only if the real
+co-expression graph beats the random one is it the biology, not mere smoothing, that
+helps (Sec.~\ref{sec:interaction}).
 
 \subsection{Training Objective}
 We minimise a composite loss
@@ -683,6 +749,57 @@ Uniform & 57.0\,$\pm$\,5.7 & 58.0\,$\pm$\,10.5 \\
 \%, mean\,$\pm$\,std over 3 seeds). Peaked initialisation is decisive;
 temperature annealing is a minor refinement on top of it.}
 \label{tab:initanneal}
+\end{table}
+
+\subsection{Biology-Informed Routing}
+\label{sec:interaction}
+Section~\ref{sec:biorouter} adds a genomap gene-gene-interaction centrality prior to
+the depth router. We test whether it helps, and whether it is the \emph{real}
+co-expression structure that matters, by comparing three router priors under
+otherwise identical training: \emph{none} (the data-only router), \emph{co-expression}
+(the genomap correlation-graph centrality), and a degree-matched \emph{random graph}
+control with the same sparsity but shuffled edges (Table~\ref{tab:interaction}). We
+evaluate on the cohort task and the three hard phenotype tasks, since the prior is an
+empirical-Bayes shrinkage that should help most where the label signal is weak. The
+comparison of interest is co-expression versus random: a gain there, not merely over
+\emph{none}, is what would show that biological network structure rather than any
+additive bias drives the effect.
+
+\paragraph{Finding (reported as a negative result).}
+Across all four tasks the three router priors are statistically indistinguishable:
+every co-expression cell lies within one standard deviation of both its
+degree-matched random-graph control and the no-prior baseline
+(Table~\ref{tab:interaction}). On the near-saturated cohort task the prior is mildly
+negative, as expected once the label signal is already strong. On the
+weakly-determined phenotype tasks it neither helps nor hurts on the mean, and
+crucially it does not separate from the random graph, so on these labels we cannot
+attribute any effect to biological co-expression structure rather than to generic
+additive bias. The one consistent trend is lower seed-to-seed variance under the
+co-expression prior on stage and tumour-T, consistent with its intended role as a
+shrinkage regulariser, but we do not promote a variance effect that does not reach an
+accuracy gain. We therefore present biology-informed routing as a principled,
+label-free mechanism whose benefit is \emph{not} realised on the present datasets, and
+scope its promise to settings with a stronger or more explicitly network-structured
+signal (Discussion).
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Router prior & Cohort & Stage & T & N \\
+\midrule
+None (baseline) & 97.0\,$\pm$\,1.4 & 45.7\,$\pm$\,3.0 & 40.8\,$\pm$\,5.1 & 31.0\,$\pm$\,3.6 \\
+Co-expression (ours) & 95.6\,$\pm$\,0.5 & 46.8\,$\pm$\,1.7 & 40.1\,$\pm$\,2.4 & 30.9\,$\pm$\,5.0 \\
+Random graph & 95.1\,$\pm$\,1.3 & 46.9\,$\pm$\,3.5 & 40.4\,$\pm$\,1.3 & 31.6\,$\pm$\,3.2 \\
+\bottomrule
+\end{tabular}}
+\caption{Biology-informed routing ablation (macro-F1 \%, mean\,$\pm$\,std over seeds):
+the genomap gene-gene-interaction centrality prior (co-expression) vs.\ a
+degree-matched random-graph control vs.\ no prior, on the cohort and hard phenotype
+tasks. The co-expression-vs-random gap isolates the contribution of real biological
+network structure.}
+\label{tab:interaction}
 \end{table}
 
 \subsection{Architecture Ablations}
@@ -1033,20 +1150,31 @@ reflect statistical prominence rather than biology. We do not disentangle the tw
 here; a rank correlation of $d_m$ against per-gene variance and mean $|z|$ on a
 held-out split, together with the Reactome enrichment above, is the test needed to
 establish that depth carries information beyond variance, and we leave it to future
-work. We report these so the trade-offs are not overstated.
+work. (vi) \emph{Biology-informed routing is not yet realised.} The genomap
+interaction prior is principled and label-free, but on our four tasks it does not
+separate from a degree-matched random-graph control (Sec.~\ref{sec:interaction}), so
+we cannot claim a benefit from biological structure here; testing it where the prior
+should bite, datasets with stronger or explicitly network-mediated signal, with
+richer priors (pathway membership, regulatory-network centrality) and the optional
+logit Laplacian smoothing of Appendix~\ref{app:theory}, is the natural next step. We
+report these so the trade-offs are not overstated.
 
 \section{Conclusion}
 We presented SMART, a recursive marker-guided transformer that makes parameter
 efficiency an architectural property of transcriptomic models. By learning marker
 genes, compressing around them, and sharing one block across recursive refinement
 steps, it matches strong cohort-classification accuracy with several times fewer
-parameters and recovers biologically meaningful genes. Evaluated on the full
-transcriptome across five clinical phenotype tasks it achieves the best mean
-macro-F1 against ten strong nonlinear baselines while remaining far smaller, and it
-transfers unchanged to single-cell data; our multi-seed study also delineates,
-honestly, where the marker-learning advantage does and does not hold. The complete
-pipeline, including all experiments, baselines, and this paper, regenerates from a
-single command.
+parameters and exposes an interpretable, compute-allocated recursion-depth gene panel.
+Evaluated on the full transcriptome across five clinical phenotype tasks it achieves
+the best mean macro-F1 against ten strong nonlinear baselines while remaining far
+smaller, and it transfers unchanged to single-cell data; our multi-seed study also
+delineates, honestly, where the marker-learning advantage does and does not hold. We
+additionally formulate a biology-informed router that folds a label-free genomap
+gene-gene interaction prior into the recursion decision, with full mathematical and
+biological grounding; that it does not yet beat a random-graph control on these
+datasets is reported as an honest negative result and a clear direction for stronger,
+network-structured settings. The complete pipeline, including all experiments,
+baselines, and this paper, regenerates from a single command.
 
 \bibliographystyle{aaai}
 \bibliography{refs}
@@ -1166,5 +1294,95 @@ routing study is $\Phi_{\mathrm{eff}}/\Phi_{\mathrm{nom}}$. Gene embedding and m
 selection are $\mathcal{O}(Nd)$, run once before the stack and are identical across
 all routing modes, so they are excluded from this stack-level comparison; total
 parameter counts (Table~\ref{tab:cost}) do include them.
+
+\section{Theoretical Foundation of the Router}
+\label{app:theory}
+This appendix gives the mathematical and biological grounding for SMART's router,
+both the data-driven Mixture-of-Recursions core and the biology-informed prior of
+Sec.~\ref{sec:biorouter}.
+
+\paragraph{Routing as conditional computation.}
+The router implements \emph{conditional computation}: rather than sending every token
+through a fixed stack, a learned policy routes each token to a token-specific amount
+of compute. This is the gating principle of sparsely-gated mixtures of experts
+\cite{shazeer2017outrageously}, reused by Mixture-of-Depths \cite{raposo2024mixture}
+and Mixture-of-Recursions \cite{bae2025mixture}; the ``experts'' here are recursion
+\emph{depths} of one shared block rather than separate sub-networks, which is what
+couples adaptive computation \cite{graves2016adaptive} to weight sharing.
+
+\paragraph{Token-choice math.}
+Let $\mathbf{h}_m\in\mathbb{R}^d$ be a marker token and $\mathbf{W}_r\in\mathbb{R}^{K\times d}$
+the router. The token is scored over the $K$ candidate depths, softmaxed, and assigned
+the arg-max depth:
+\begin{equation}
+\mathbf{z}_m=\tfrac{1}{\tau}\mathbf{W}_r\mathbf{h}_m,\quad
+\mathbf{p}_m=\alpha\,\mathrm{softmax}(\mathbf{z}_m),\quad
+i_m=\arg\max_i p_{m,i},
+\end{equation}
+so token $m$ rides the shared block through steps $0,\dots,i_m$ and exits. The
+realised depth is $d_m=i_m{+}1$.
+
+\paragraph{Expert-choice math.}
+Here a per-step scalar router scores the currently active tokens and a capacity
+$c_t$ keeps the top-$\lceil c_t M\rceil$; survivors are the only candidates at the
+next step. A token's depth $d_m$ is the deepest step it survived. Expert-choice is
+load-balanced by construction (each step keeps a fixed fraction), so it needs no
+balancing loss; token-choice does not balance itself and adds the Switch term
+$\mathcal{L}_{\mathrm{bal}}=K\sum_i P_i f_i$ (mean routing probability $P_i$ times
+dispatch fraction $f_i$ at depth $i$) \cite{shazeer2017outrageously}. Both add the
+$z$-loss $\mathcal{L}_z=\mathbb{E}[(\mathrm{logsumexp}\,\mathbf{z})^2]$ to keep logits
+bounded.
+
+\paragraph{The differentiable handle.}
+The discrete choice ($\arg\max$ / top-$k$) has zero gradient almost everywhere, so a
+bare router could not learn. SMART, like MoR, keeps the soft probability of the chosen
+route as a multiplicative \emph{gate} on the block output,
+$\mathbf{o}_m=g_m\,f_\theta(\mathbf{h}_m)$ with $g_m=\sigma(\tilde r_m)$ (or
+$p_{m,i_m}$). Because $g_m$ is smooth in $\mathbf{W}_r$, the chain
+$\mathcal{L}\!\leftarrow\!\mathbf{o}_m\!\leftarrow\!g_m\!\leftarrow\!\mathbf{W}_r$ is
+unbroken: the hard choice does the routing, the soft gate carries the gradient (a
+straight-through-style estimator). The biological prior of
+Eq.~\eqref{eq:biorouter} is an additive constant in this logit, so it shifts the
+decision without breaking this path.
+
+\paragraph{Biological foundation of the prior.}
+Three decades of single-cell biology rest on two facts the prior encodes. (i) A small
+set of \emph{marker} genes carries most discriminative signal
+\cite{ianevski2022fully,franzen2019panglaodb,hu2023cellmarker}, so compute should be
+unevenly allocated. (ii) Gene regulatory and protein-interaction networks are
+approximately scale-free: a few high-degree \emph{hub} genes (master regulators)
+exert outsized influence, and perturbing a hub propagates across the network. We
+operationalise ``hub'' as eigenvector centrality on the genomap co-expression graph
+$\mathbf{W}$: the leading eigenvector $\mathbf{v}$ of $\mathbf{W}\mathbf{v}=\lambda\mathbf{v}$
+scores each gene by the centrality of its neighbours, recursively, so a gene is
+central if it co-expresses with other central genes. We $z$-score $\mathbf{v}$ to form
+$\pi$. The prior thus tells the router, before any training, which genes are network
+hubs worth deeper computation.
+
+\paragraph{Empirical-Bayes reading.}
+Equation~\eqref{eq:biorouter} is a log-linear prior on the routing decision:
+$\tilde r^{(t)}_m = \text{(data evidence)} + \beta_t\,\pi_m$ is the unnormalised
+log-score of keeping token $m$, with $\beta_t\pi_m$ a Gaussian-like prior mean. The
+anneal $\beta_t=\beta_0(1-\text{progress})$ is shrinkage whose strength decays as data
+evidence accumulates, the standard empirical-Bayes behaviour: prior-dominated when
+the likelihood is uninformative (early training, random hidden states), data-dominated
+later. This is most defensible exactly in the low-signal regime (stage, node), where
+the likelihood alone barely separates the depths.
+
+\paragraph{Leakage safety.}
+$\mathbf{W}$ is computed from training-split \emph{expression only}; no phenotype label
+enters it. The prior therefore injects network topology, not the answer, which is why
+a marker-recovery or gene-discovery claim under this prior is not circular, unlike a
+prior built from curated cohort-specific marker lists.
+
+\paragraph{Optional pathway-graph smoothing.}
+The additive bias treats genes independently. Co-pathway genes should route coherently,
+which one obtains by smoothing the logits over $\mathbf{W}$ with the normalised
+Laplacian $\mathbf{L}=\mathbf{I}-\mathbf{D}^{-1/2}\mathbf{W}\mathbf{D}^{-1/2}$,
+$\hat{\mathbf{r}}^{(t)}=\tilde{\mathbf{r}}^{(t)}-\gamma\,\mathbf{L}\tilde{\mathbf{r}}^{(t)}$,
+i.e.\ graph-Laplacian (label-propagation) regularisation: a gene borrows routing
+strength from its network neighbours. This is one sparse matrix-vector product per
+step and adds no transformer parameters, so the parameter-efficiency claim is
+untouched; we expose it as an option and leave its evaluation to future work.
 
 \end{document}

@@ -28,3 +28,6 @@ logs/
 
 # ---- stray training residue ----
 catboost_info/
+
+# interaction-ablation scratch (throwaway per-task JSONs from run_task)
+results_interaction/_scratch/

@@ -96,6 +96,7 @@ class ExpertChoiceRouter(nn.Module):
 
     def forward(self, tokens: torch.Tensor, block_fn: BlockFn,
                 refine_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+                prior: Optional[torch.Tensor] = None, prior_weight: float = 0.0,
                 ) -> Tuple[torch.Tensor, RouteInfo]:
         B, M, _ = tokens.shape
         device = tokens.device
@@ -110,6 +111,12 @@ class ExpertChoiceRouter(nn.Module):
             k = max(1, k)
 
             logits = self.routers[t](tokens / self.temp).squeeze(-1)   # (B, M)
+            # Biology-informed routing: add the annealed gene-gene-interaction
+            # centrality prior (genomap correlation graph) to the data-driven
+            # logit, nudging co-expression hubs to recurse deeper early in
+            # training. prior is (M,) over the selected markers, broadcast over B.
+            if prior is not None and prior_weight != 0.0:
+                logits = logits + prior_weight * prior.unsqueeze(0)
             z_loss = z_loss + (logits ** 2).mean()
             # Restrict selection to current candidates.
             masked = logits.masked_fill(~cand_mask, float("-inf"))
@@ -155,9 +162,13 @@ class TokenChoiceRouter(nn.Module):
 
     def forward(self, tokens: torch.Tensor, block_fn: BlockFn,
                 refine_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+                prior: Optional[torch.Tensor] = None, prior_weight: float = 0.0,
                 ) -> Tuple[torch.Tensor, RouteInfo]:
         B, M, _ = tokens.shape
         logits = self.router(tokens / self.temp)                       # (B, M, depth)
+        # Biology-informed routing: bias every depth logit by the per-marker prior.
+        if prior is not None and prior_weight != 0.0:
+            logits = logits + prior_weight * prior.view(1, M, 1)
         probs = F.softmax(logits, dim=-1) * self.alpha
         chosen = probs.argmax(dim=-1)                                   # (B, M) in [0, depth-1]
         gate = torch.gather(probs, -1, chosen.unsqueeze(-1))           # (B, M, 1)

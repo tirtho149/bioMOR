@@ -79,9 +79,20 @@ class RecursiveMarkerTransformer(nn.Module):
         self.aux_marker_head = nn.Linear(cfg.d_model, prim_out)
 
         self.register_buffer("gene_variance", torch.zeros(n_genes), persistent=False)
+        # Biology-informed router: per-gene network-centrality prior (genomap
+        # gene-gene interaction graph). Zero unless set; beta_t is the annealed
+        # additive-bias strength, updated by set_anneal.
+        self.register_buffer("gene_centrality", torch.zeros(n_genes), persistent=False)
+        self._use_prior = getattr(cfg, "gene_interaction", None) not in (None, "none")
+        self._prior_beta = float(getattr(cfg, "router_prior_beta", 0.0))
 
     def set_gene_variance(self, variance: torch.Tensor) -> None:
         self.gene_variance.copy_(variance.to(self.gene_variance))
+
+    def set_gene_interaction(self, centrality: torch.Tensor) -> None:
+        """Install the genomap gene-gene-interaction centrality prior (N,)."""
+        self.gene_centrality.copy_(centrality.to(self.gene_centrality))
+        self._use_prior = True
 
     @torch.no_grad()
     def _peak_init_router(self):
@@ -97,13 +108,19 @@ class RecursiveMarkerTransformer(nn.Module):
         self.selector.queries.copy_(kn[genes] * 60.0)
 
     def set_anneal(self, progress: float) -> None:
-        """Advance the selector temperature schedule (explore early, exploit late).
-        No-op for fixed selection modes, and disabled when anneal_markers is off
-        (temperature then stays at its hot start value)."""
-        if not getattr(self.cfg, "anneal_markers", True):
-            return
-        if self.selector is not None and hasattr(self.selector, "set_progress"):
+        """Advance the explore->exploit schedules. (1) the selector temperature
+        (gated by anneal_markers); (2) the biological-prior strength beta_t, which
+        decays linearly to 0 over training when router_prior_anneal is on (a
+        warm-start prior that hands off to the data-driven router), else stays at
+        beta_0."""
+        progress = min(1.0, max(0.0, float(progress)))
+        if getattr(self.cfg, "anneal_markers", True) and \
+                self.selector is not None and hasattr(self.selector, "set_progress"):
             self.selector.set_progress(progress)
+        if getattr(self.cfg, "router_prior_anneal", True):
+            self._prior_beta = float(getattr(self.cfg, "router_prior_beta", 0.0)) * (1.0 - progress)
+        else:
+            self._prior_beta = float(getattr(self.cfg, "router_prior_beta", 0.0))
 
     def forward(self, x: torch.Tensor) -> Dict[str, object]:
         gene_identity = self.embed.gene_identity()              # (N, d)
@@ -135,8 +152,15 @@ class RecursiveMarkerTransformer(nn.Module):
         # discriminative genes.
         aux_logits = self.aux_marker_head(cluster.mean(dim=1))
 
+        # Biology-informed router: gather the centrality prior for the selected
+        # markers and pass it (with the annealed strength beta_t) to the depth
+        # router. marker_idx is the per-slot arg-max gene, so prior is (M,).
+        prior = self.gene_centrality[marker_idx] if self._use_prior else None
+        prior_weight = self._prior_beta if self._use_prior else 0.0
+
         refine_fn = self.marker.refine_gate if self.cfg.recursive_marker_refine else None
-        h, route_info = self.stack(cluster, refine_fn)          # (B, M, d), routing info
+        h, route_info = self.stack(cluster, refine_fn, prior=prior,
+                                   prior_weight=prior_weight)   # (B, M, d), routing info
         pooled = h.mean(dim=1)                                  # (B, d)
 
         logits = {head: clf(pooled) for head, clf in self.classifiers.items()}
