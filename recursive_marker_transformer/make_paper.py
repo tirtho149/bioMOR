@@ -1689,12 +1689,14 @@ the self-attention cost by @@TR_ATTN_FACTOR@@$\times$ ($O(N^2)\!\to\!O(M^2)$;
 Table~\ref{tab:tokenred}). Reduction alone is not enough: the retained tokens must be
 the informative ones. Ranking every gene by its marker-query affinity, the kept tokens
 carry @@TR_MASS@@ of the total importance mass and have a mean importance of
-@@TR_MEANRET@@ versus @@TR_MEANDIS@@ for the discarded tokens, so the router is not
-pruning at random. Finally, the selection importance and the compute a gene is later
-allocated agree in rank (Spearman $\rho{=}$@@TR_RHO@@ between marker importance and
-mean recursion depth): the genes the router deems most marker-like are also the ones the
-Mixture-of-Recursions stack iterates deepest, an internal consistency check that the two
-importance signals (selection and compute allocation) are aligned rather than arbitrary.
+@@TR_MEANRET@@ versus @@TR_MEANDIS@@ for the discarded tokens, so the router keeps
+disproportionately high-scoring genes rather than pruning at random. The selection
+importance and the compute a gene is later allocated are, however, nearly uncorrelated
+in rank (Spearman $\rho{=}$@@TR_RHO@@ between marker affinity and mean recursion depth):
+\emph{which} genes are kept and \emph{how deeply} a kept gene is then iterated are
+largely independent, complementary signals rather than two views of one quantity, which
+is consistent with our finding that routing buys compute rather than accuracy. We report
+this rank correlation transparently rather than as a positive consistency claim.
 Table~\ref{tab:tokenredrank} shows the most and least important features under this
 ranking. The full per-gene ranking is emitted to \texttt{token\_reduction\_ranking.csv}
 and the structured validation record (summary, selected indices, descending/ascending

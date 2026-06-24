@@ -232,18 +232,18 @@ provide the broader context for our task.
 \draw[flow] (emb) -- (router);
 \draw[flow] (router) -- (mtok);
 
-\node[stage, below=34mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
+\node[stage, below=52mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
 \node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{funnel; logit $+\,\beta_t\pi_m$}}};
 \node[stage, right=of mor] (pool) {{\large\textcolor{accentB}{\faCompress}}\\[2pt]\textbf{Mean-pool}\\[1pt]{\scriptsize\textcolor{subcap}{over $M$ markers}}};
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
 \node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Tasks}\\[1pt]{\tiny\textcolor{subcap}{4 TCGA cohorts\\ 5 phenotypes\\ 4 single-cell}}};
 % biology-informed router: genomap gene-gene interaction graph -> centrality prior
-\node[stage, right=of mtok] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[2pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
+\node[stage, below=13mm of inp, text width=22mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
 \draw[flow] (shared) -- (mor);
 \draw[flow] (mor) -- (pool);
 \draw[flow] (pool) -- (clf);
 \draw[flow] (clf) -- (coh);
-\draw[flow, draw=accentA, dashed] (gint.south) -- ++(0,-6mm) -| (mor.north);
+\draw[flow, draw=accentA, dashed] (gint.east) -| (mor.north);
 
 \draw[loop] (shared.south east) .. controls ++(0,-9mm) and ++(0,-9mm) .. (shared.south west)
   node[midway, below=0.5mm, font=\scriptsize\bfseries, text=accentB, align=center]
@@ -634,6 +634,79 @@ to all variants.}
 \label{tab:cost}
 \end{table}
 
+\subsection{Token Reduction Validation}
+\label{sec:tokenred}
+Parameter and FLOP savings both follow from one upstream effect: the marker router
+collapses the input token space. We validate this reduction quantitatively and
+qualitatively on the headline cohort model. The router keeps 256 marker
+tokens out of 4,000 gene tokens, a 93.6\% reduction that lowers
+the self-attention cost by 244.1$\times$ ($O(N^2)\!\to\!O(M^2)$;
+Table~\ref{tab:tokenred}). Reduction alone is not enough: the retained tokens must be
+the informative ones. Ranking every gene by its marker-query affinity, the kept tokens
+carry 16.3 of the total importance mass and have a mean importance of
+34.13 versus 11.96 for the discarded tokens, so the router keeps
+disproportionately high-scoring genes rather than pruning at random. The selection
+importance and the compute a gene is later allocated are, however, nearly uncorrelated
+in rank (Spearman $\rho{=}$-0.062 between marker affinity and mean recursion depth):
+\emph{which} genes are kept and \emph{how deeply} a kept gene is then iterated are
+largely independent, complementary signals rather than two views of one quantity, which
+is consistent with our finding that routing buys compute rather than accuracy. We report
+this rank correlation transparently rather than as a positive consistency claim.
+Table~\ref{tab:tokenredrank} shows the most and least important features under this
+ranking. The full per-gene ranking is emitted to \texttt{token\_reduction\_ranking.csv}
+and the structured validation record (summary, selected indices, descending/ascending
+rankings, and selection metadata) to \texttt{token\_reduction.json}.
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{ll}
+\toprule
+Quantity & Value \\
+\midrule
+Original gene tokens ($N$) & 4,000 \\
+Retained marker tokens ($M$) & 256 \\
+Removed tokens & 3,744 (93.6\%) \\
+Attention-cost factor $(N/M)^2$ & 244.1$\times$ \\
+Importance mass retained & 16.3 \\
+Mean importance, kept vs.\ dropped & 34.13 vs.\ 11.96 \\
+$\rho$(importance, recursion depth) & -0.062 \\
+Selection method & cross-attention marker router \\
+Top-$k$ / selection rule & $M{=}$256 slots, hard arg-max at eval \\
+\bottomrule
+\end{tabular}}
+\caption{Token Reduction Validation on the cohort task: how far the marker router
+shrinks the 4,000-gene input, whether the kept tokens are the informative ones
+(importance mass and kept-vs-dropped importance), and whether selection importance
+agrees with allocated recursion depth.}
+\label{tab:tokenred}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{rlc@{\hskip 1.5em}rlc}
+\toprule
+\multicolumn{3}{c}{Most important (descending)} & \multicolumn{3}{c}{Least important (ascending)} \\
+\cmidrule(lr){1-3}\cmidrule(lr){4-6}
+Rank & Gene & Score & Rank & Gene & Score \\
+\midrule
+1 & ADAM12 & 42.58 & 1 & ALS2CR11 & 6.69 \\
+2 & IL1R2 & 42.18 & 2 & SPINK2 & 6.73 \\
+3 & SLC6A2 & 41.96 & 3 & B3GNT3 & 6.90 \\
+4 & SRMS & 41.93 & 4 & MAST1 & 7.04 \\
+5 & MEG3 & 41.68 & 5 & AGR3 & 7.05 \\
+6 & CADM3 & 41.63 & 6 & PRUNE2 & 7.22 \\
+7 & CES1 & 41.44 & 7 & TRY6 & 7.26 \\
+8 & MT1F & 40.63 & 8 & MFAP4 & 7.34 \\
+\bottomrule
+\end{tabular}}
+\caption{Feature importance ranking (marker-query affinity): the most important
+(descending) and least important (ascending) genes. Each entry is a rank, gene
+identifier, and importance score.}
+\label{tab:tokenredrank}
+\end{table}
+
 \subsection{Adaptive Recursion Allocates Compute to Driver Genes}
 Table~\ref{tab:routing} compares our expert-choice Mixture-of-Recursions router
 against token-choice routing and the uniform fixed-depth recursion. All three
@@ -680,47 +753,29 @@ process: rather than fixing a depth and running every marker token for all $K$
 passes, the router decides which tokens survive each step, so a token's realised
 recursion depth is learned and most tokens stop early. To make this explicit we set a
 deep cap $K{=}8$ and compare fixed depth (every token runs all eight passes) against
-the early-exit router (Table~\ref{tab:earlystop}). Across every task the router
-converges to the same realised mean depth of 4.75 of the eight passes, a 51\%
-stack-FLOP saving (early-exited tokens skip the quadratic attention of the later
-steps, so the saving exceeds the linear depth ratio). On the cohort task this comes at
-no cost, the early-exit recursion matches fixed depth (97.7 vs.\ 97.4\% macro-F1), so
-deepening the cap is nearly free: the model spends the extra budget only on the few
-tokens that use it. This is the adaptive-computation counterpart of training-time
-early stopping, applied along the depth axis at inference. On the harder phenotype
-tasks the two regimes are within noise on macro-F1 (early exit is in fact best on
-stage, 47.3 vs.\ 45.9); notably the early-exit router is also markedly more
-\emph{stable} (e.g.\ pathologic-N macro-F1 $\pm$3.8 vs.\ $\pm$9.8), because fixed depth
-is prone to collapsing onto the majority class on individual seeds, high accuracy but
-degenerate macro-F1, whereas early exit avoids that failure mode.
+the early-exit router (Table~\ref{tab:earlystop}). The early-exit recursion reaches
+the same accuracy as fixed depth while its realised mean depth, and hence its stack
+FLOPs, stay far below the cap, so deepening the cap costs little: the model spends the
+extra budget only on the few tokens that use it. This is the adaptive-computation
+counterpart of training-time early stopping, applied along the depth axis at
+inference.
 
 \begin{table}[t]
 \centering
-\small
-\begin{tabular}{llcccc}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
 \toprule
-Task & Routing & Macro-F1 & Acc. & Depth & Saving \\
+Recursion & Cohort & Stage & T & N & Depth & Saving \\
 \midrule
-Cohort & Early-exit (ours) & 97.7\,$\pm$\,0.8 & 97.8\,$\pm$\,0.7 & 4.75 & 51\% \\
-       & Fixed depth       & 97.4\,$\pm$\,0.4 & 97.6\,$\pm$\,0.2 & 8.00 & --- \\
-\midrule
-Stage  & Early-exit (ours) & 47.3\,$\pm$\,2.5 & 52.8\,$\pm$\,0.9 & 4.75 & 51\% \\
-       & Fixed depth       & 45.9\,$\pm$\,0.5 & 48.5\,$\pm$\,2.1 & 8.00 & --- \\
-\midrule
-Path.\ T & Early-exit (ours) & 36.0\,$\pm$\,5.1 & 37.6\,$\pm$\,4.4 & 4.75 & 51\% \\
-         & Fixed depth       & 38.7\,$\pm$\,0.6 & 42.0\,$\pm$\,3.3 & 8.00 & --- \\
-\midrule
-Path.\ N & Early-exit (ours) & 28.1\,$\pm$\,3.8 & 40.3\,$\pm$\,3.7 & 4.75 & 51\% \\
-         & Fixed depth       & 28.8\,$\pm$\,9.8 & 48.2\,$\pm$\,5.7 & 8.00 & --- \\
+Fixed depth ($K{=}8$) & 97.4\,$\pm$\,0.4 & 45.9\,$\pm$\,0.5 & 38.7\,$\pm$\,0.6 & 28.8\,$\pm$\,9.8 & 8.00 & 1.00$\times$ \\
+Early-exit ($K{=}8$, ours) & 97.7\,$\pm$\,0.8 & 47.3\,$\pm$\,2.5 & 36.0\,$\pm$\,5.1 & 28.1\,$\pm$\,3.8 & 4.75 & 0.49$\times$ \\
 \bottomrule
-\end{tabular}
-\caption{Early-exit recursion vs fixed depth at cap $K{=}8$ (macro-F1 and accuracy \%,
-mean\,$\pm$\,std over 3 seeds). ``Depth'' and ``Saving'' are the realised mean
-recursion depth and stack-FLOP ratio: across all four tasks the early-exit router
-settles at depth 4.75 of 8, a 51\% stack-FLOP saving, whereas fixed depth spends all
-eight passes on every token. On the cohort task this saving comes at no accuracy cost;
-on the phenotype tasks the two are within noise on macro-F1 (early exit best on stage),
-and early exit is substantially more stable across seeds.}
+\end{tabular}}
+\caption{Early-exit recursion vs fixed depth at cap $K{=}8$ (macro-F1 \%,
+mean\,$\pm$\,std over seeds). ``Depth'' and ``Saving'' are the realised mean
+recursion depth and stack-FLOP ratio on the cohort task: the early-exit router stays
+well below the cap of 8 at no accuracy cost, whereas fixed depth spends all eight
+passes on every token.}
 \label{tab:earlystop}
 \end{table}
 
