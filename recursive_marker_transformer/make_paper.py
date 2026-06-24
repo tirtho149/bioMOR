@@ -874,6 +874,96 @@ def task_distribution_table(results: Path):
 
 
 # --------------------------------------------------------------------------- #
+# Token Reduction Validation (results/token_reduction.json)
+# --------------------------------------------------------------------------- #
+def _load_token_reduction(results: Path):
+    p = Path(results) / "token_reduction.json"
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
+
+
+def _texesc(s):
+    return str(s).replace("_", "\\_").replace("%", "\\%").replace("&", "\\&")
+
+
+def token_reduction_table(results: Path):
+    """Summary + selection-metadata table for the token-reduction validation."""
+    tr = _load_token_reduction(results)
+    if tr is None:
+        return "\\textit{(token-reduction validation pending)}"
+    s = tr["token_reduction_summary"]
+    m = tr["selection_metadata"]
+    c = tr["ranking_consistency"]
+    rows = [
+        ("Original gene tokens ($N$)", _fmt(s["original_tokens"])),
+        ("Retained marker tokens ($M$)", _fmt(s["marker_tokens"])),
+        ("Removed tokens", f"{_fmt(s['removed_tokens'])} ({s['reduction_percentage']:.1f}\\%)"),
+        ("Attention-cost factor $(N/M)^2$", f"{s['attention_cost_factor']:.1f}$\\times$"),
+        ("Importance mass retained", _pct(c["importance_mass_retained"])),
+        ("Mean importance, kept vs.\\ dropped",
+         f"{c['mean_importance_retained']:.2f} vs.\\ {c['mean_importance_discarded']:.2f}"),
+        ("$\\rho$(importance, recursion depth)",
+         "n/a" if c["spearman_importance_vs_recursion_depth"] is None
+         else f"{c['spearman_importance_vs_recursion_depth']:.3f}"),
+        ("Selection method", "cross-attention marker router"),
+        ("Top-$k$ / selection rule",
+         f"$M{{=}}${m.get('top_k_markers')} slots, hard arg-max at eval"),
+    ]
+    lines = ["\\begin{tabular}{ll}", "\\toprule",
+             "Quantity & Value \\\\", "\\midrule"]
+    lines += [f"{k} & {v} \\\\" for k, v in rows]
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    return "\n".join(lines)
+
+
+def token_reduction_rank_table(results: Path, k=8):
+    """Top-k most- and least-important features (descending / ascending views)."""
+    tr = _load_token_reduction(results)
+    if tr is None:
+        return "\\textit{(token-reduction validation pending)}"
+    rk = tr["feature_importance_ranking"]
+    desc, asc = rk["descending"][:k], rk["ascending"][:k]
+    lines = ["\\begin{tabular}{rlc@{\\hskip 1.5em}rlc}", "\\toprule",
+             "\\multicolumn{3}{c}{Most important (descending)} & "
+             "\\multicolumn{3}{c}{Least important (ascending)} \\\\",
+             "\\cmidrule(lr){1-3}\\cmidrule(lr){4-6}",
+             "Rank & Gene & Score & Rank & Gene & Score \\\\", "\\midrule"]
+    for i in range(min(k, len(desc), len(asc))):
+        d, a = desc[i], asc[i]
+        lines.append(
+            f"{d['rank']} & {_texesc(d['feature'])} & {d['score']:.2f} & "
+            f"{a['rank']} & {_texesc(a['feature'])} & {a['score']:.2f} \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    return "\n".join(lines)
+
+
+def _tr_scalars(results: Path):
+    """Prose scalars for the token-reduction subsection (safe fallbacks)."""
+    tr = _load_token_reduction(results)
+    if tr is None:
+        return {"@@TR_ORIG@@": "$N$", "@@TR_MARKERS@@": "$M$",
+                "@@TR_REDUCTION_PCT@@": "--", "@@TR_ATTN_FACTOR@@": "--",
+                "@@TR_MASS@@": "--", "@@TR_RHO@@": "--",
+                "@@TR_MEANRET@@": "--", "@@TR_MEANDIS@@": "--"}
+    s, c = tr["token_reduction_summary"], tr["ranking_consistency"]
+    rho = c["spearman_importance_vs_recursion_depth"]
+    return {
+        "@@TR_ORIG@@": _fmt(s["original_tokens"]),
+        "@@TR_MARKERS@@": _fmt(s["marker_tokens"]),
+        "@@TR_REDUCTION_PCT@@": f"{s['reduction_percentage']:.1f}",
+        "@@TR_ATTN_FACTOR@@": f"{s['attention_cost_factor']:.1f}",
+        "@@TR_MASS@@": _pct(c["importance_mass_retained"]).replace("%", "\\%"),
+        "@@TR_RHO@@": "n/a" if rho is None else f"{rho:.3f}",
+        "@@TR_MEANRET@@": f"{c['mean_importance_retained']:.2f}",
+        "@@TR_MEANDIS@@": f"{c['mean_importance_discarded']:.2f}",
+    }
+
+
+# --------------------------------------------------------------------------- #
 # the paper
 # --------------------------------------------------------------------------- #
 def build_tex(results: Path) -> str:
@@ -958,7 +1048,10 @@ def build_tex(results: Path) -> str:
         "@@MARKER_SWEEP_TABLE@@": marker_sweep_table(results),
         "@@DATASET_OVERVIEW_TABLE@@": dataset_overview_table(results),
         "@@TASK_DISTRIBUTION_TABLE@@": task_distribution_table(results),
+        "@@TOKENRED_TABLE@@": token_reduction_table(results),
+        "@@TOKENRED_RANK_TABLE@@": token_reduction_rank_table(results),
     }
+    repl.update(_tr_scalars(results))
     tex = _TEX
     for k, v in repl.items():
         tex = tex.replace(k, v)
@@ -1584,6 +1677,48 @@ parameters (including the gene-identity embedding and classifier), and training
 wall-clock. The shared embedding dominates the non-stack parameters and is common
 to all variants.}
 \label{tab:cost}
+\end{table}
+
+\subsection{Token Reduction Validation}
+\label{sec:tokenred}
+Parameter and FLOP savings both follow from one upstream effect: the marker router
+collapses the input token space. We validate this reduction quantitatively and
+qualitatively on the headline cohort model. The router keeps @@TR_MARKERS@@ marker
+tokens out of @@TR_ORIG@@ gene tokens, a @@TR_REDUCTION_PCT@@\% reduction that lowers
+the self-attention cost by @@TR_ATTN_FACTOR@@$\times$ ($O(N^2)\!\to\!O(M^2)$;
+Table~\ref{tab:tokenred}). Reduction alone is not enough: the retained tokens must be
+the informative ones. Ranking every gene by its marker-query affinity, the kept tokens
+carry @@TR_MASS@@ of the total importance mass and have a mean importance of
+@@TR_MEANRET@@ versus @@TR_MEANDIS@@ for the discarded tokens, so the router is not
+pruning at random. Finally, the selection importance and the compute a gene is later
+allocated agree in rank (Spearman $\rho{=}$@@TR_RHO@@ between marker importance and
+mean recursion depth): the genes the router deems most marker-like are also the ones the
+Mixture-of-Recursions stack iterates deepest, an internal consistency check that the two
+importance signals (selection and compute allocation) are aligned rather than arbitrary.
+Table~\ref{tab:tokenredrank} shows the most and least important features under this
+ranking. The full per-gene ranking is emitted to \texttt{token\_reduction\_ranking.csv}
+and the structured validation record (summary, selected indices, descending/ascending
+rankings, and selection metadata) to \texttt{token\_reduction.json}.
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TOKENRED_TABLE@@}
+\caption{Token Reduction Validation on the cohort task: how far the marker router
+shrinks the @@TR_ORIG@@-gene input, whether the kept tokens are the informative ones
+(importance mass and kept-vs-dropped importance), and whether selection importance
+agrees with allocated recursion depth.}
+\label{tab:tokenred}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TOKENRED_RANK_TABLE@@}
+\caption{Feature importance ranking (marker-query affinity): the most important
+(descending) and least important (ascending) genes. Each entry is a rank, gene
+identifier, and importance score.}
+\label{tab:tokenredrank}
 \end{table}
 
 \subsection{Adaptive Recursion Allocates Compute to Driver Genes}

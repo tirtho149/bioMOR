@@ -95,6 +95,7 @@ recursive_marker_transformer/      # the model + training + all experiment runne
   extra_experiments.py        ── EXP 7: multi-seed + init/anneal 2x2x3            -> results_extra/
   sweeps.py                   ── EXP 8: multi-seed ablation + depth + marker-count -> results_sweeps/
   tune.py                     ── EXP 9: hyperparameter grid (width x M x K x lr)   -> results_tune/
+  token_reduction.py          ── EXP 10: token-reduction validation              -> results/token_reduction.json
   make_paper.py          reads results*/ -> paper/*.tex (+ TikZ figures); compiles to PDF
   bio_enrichment.py      Reactome enrichment of learned markers (supplementary)
 genomic_dataloader/      # TCGA loader (downloads/caches UCSC Xena RNA-seq)
@@ -312,6 +313,33 @@ python -m recursive_marker_transformer.tune \
 # GPU: sbatch run_tune.sbatch
 ```
 → `results_tune/<task>__d<..>_m<..>_k<..>_lr<..>.json`
+
+### EXP 10 — Token Reduction Validation
+
+*Quantifies and qualitatively validates how the marker router shrinks the input token
+space (the ~N gene tokens → M marker tokens) while preserving the informative features.
+Trains the headline cohort model (config read from `results/main.json`) and emits a
+structured validation record.*
+
+```bash
+python -m recursive_marker_transformer.token_reduction \
+    --config results/main.json --out results --top 50 --device cuda
+# GPU: sbatch run_token_reduction.sbatch   (also regenerates the paper .tex)
+```
+→ `results/token_reduction.json` + `results/token_reduction_ranking.csv`
+
+The artifact has four parts: **(1) Token Reduction Summary** (original / retained /
+removed token counts, reduction ratio + percentage, the `O(N²)→O(M²)` attention-cost
+factor); **(2) Token Selection Information** (indices and gene identifiers of the
+retained tokens, plus discarded counts); **(3) Feature Importance Ranking** in both
+**descending** (most→least important) and **ascending** (least→most) views, each entry
+`{rank, feature, score}` — the full per-gene ranking goes to the CSV; and
+**(4) Selection Metadata** (method, top-k, selection rule/threshold, temperature
+schedule, hyperparameters). It also reports ranking-quality diagnostics: importance mass
+retained, mean importance of kept vs. dropped tokens, and the Spearman correlation
+between a gene's selection importance and the recursion depth it is allocated. The paper's
+**"Token Reduction Validation"** subsection (Tables `tab:tokenred`, `tab:tokenredrank`)
+is filled from this JSON.
 
 ---
 

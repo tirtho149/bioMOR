@@ -142,7 +142,16 @@ def _class_names(head, data):
             for raw, idx in lm.items()}
 
 
-def run(cfg: RMTConfig, markers_path: str = "markers_top.csv") -> dict:
+def run(cfg: RMTConfig, markers_path: str = "markers_top.csv",
+        return_internals: bool = False):
+    """Train + evaluate the model.
+
+    Returns the results ``dict`` by default. When ``return_internals=True`` it
+    returns ``(results, internals)`` where ``internals`` exposes the trained
+    ``model``, the ``data`` bundle, the selected ``marker_idx`` and the per-slot
+    ``mean_slot_depth`` so callers (e.g. the token-reduction validation) can
+    inspect the learned selection without re-training.
+    """
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
     device = resolve_device(cfg.device)
@@ -280,6 +289,15 @@ def run(cfg: RMTConfig, markers_path: str = "markers_top.csv") -> dict:
     gene_depth = {int(g): float(d) for g, d in zip(marker_idx.tolist(),
                                                    mean_slot_depth.tolist())}
     _save_markers(model, data, cfg, path=markers_path, gene_depth=gene_depth)
+    if return_internals:
+        internals = {
+            "model": model,
+            "data": data,
+            "marker_idx": marker_idx,
+            "mean_slot_depth": mean_slot_depth,
+            "device": device,
+        }
+        return results, internals
     return results
 
 
