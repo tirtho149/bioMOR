@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.11)  23 JUN 2026 19:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.11)  24 JUN 2026 00:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -435,195 +435,283 @@ Underfull \hbox (badness 2884) in paragraph at lines 201--211
  []
 
 [2]
-LaTeX Font Info:    Trying to load font information for U+fontawesomefree1 on input line 265.
+LaTeX Font Info:    Trying to load font information for U+fontawesomefree1 on input line 269.
  (/home/tirtho/.TinyTeX/texmf-dist/tex/latex/fontawesome5/ufontawesomefree1.fd)
-LaTeX Font Info:    Trying to load font information for U+fontawesomefree2 on input line 265.
+LaTeX Font Info:    Trying to load font information for U+fontawesomefree2 on input line 269.
  (/home/tirtho/.TinyTeX/texmf-dist/tex/latex/fontawesome5/ufontawesomefree2.fd)
-LaTeX Font Info:    Trying to load font information for U+fontawesomefree3 on input line 265.
+LaTeX Font Info:    Trying to load font information for U+fontawesomefree3 on input line 269.
  (/home/tirtho/.TinyTeX/texmf-dist/tex/latex/fontawesome5/ufontawesomefree3.fd)
-LaTeX Font Info:    Trying to load font information for U+fontawesomefree0 on input line 265.
+LaTeX Font Info:    Trying to load font information for U+fontawesomefree0 on input line 269.
  (/home/tirtho/.TinyTeX/texmf-dist/tex/latex/fontawesome5/ufontawesomefree0.fd)
-Underfull \hbox (badness 1661) in paragraph at lines 297--317
+Underfull \hbox (badness 1661) in paragraph at lines 301--321
 \OT1/ptm/m/n/10 in-duced points and Perceiver-style cross-attention). We
  []
 
 
-Underfull \hbox (badness 2359) in paragraph at lines 297--317
+Underfull \hbox (badness 2359) in paragraph at lines 301--321
 \OT1/ptm/m/n/10 at-tends over the genes through a shared key pro-jec-
  []
 
 
-Underfull \hbox (badness 1895) in paragraph at lines 297--317
+Underfull \hbox (badness 1895) in paragraph at lines 301--321
 \OT1/ptm/m/n/10 tion $\OT1/cmr/bx/n/10 k[] \OT1/cmr/m/n/10 = \OT1/cmr/bx/n/10 W[]e[]$\OT1/ptm/m/n/10 , giv-ing se-lec-tion weights $\OT1/cmr/bx/n/10 w[] \OT1/cmr/m/n/10 =
  []
 
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 398.
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 402.
 (/home/tirtho/.TinyTeX/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-Underfull \hbox (badness 1259) in paragraph at lines 411--435
+Underfull \hbox (badness 1259) in paragraph at lines 415--439
  \OT1/ptm/b/n/10 Mixture-of-Recursions over genes. \OT1/ptm/m/n/10 Spend-ing the full
  []
 
 [3]
-Underfull \hbox (badness 10000) in paragraph at lines 454--462
+Underfull \hbox (badness 10000) in paragraph at lines 458--466
  \OT1/ptm/b/n/10 The prior $\OML/cmm/m/it/10 ^^Y[]$ \OT1/ptm/b/n/10 from gene-gene in-ter-ac-tions. \OT1/ptm/m/n/10 We
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 454--462
+Underfull \hbox (badness 10000) in paragraph at lines 458--466
 \OT1/ptm/m/n/10 ob-tain $\OML/cmm/m/it/10 ^^Y[]$ \OT1/ptm/m/n/10 from genomap's gene-gene \OT1/ptm/m/it/10 in-ter-ac-tion
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 454--462
+Underfull \hbox (badness 10000) in paragraph at lines 458--466
 \OT1/ptm/m/n/10 iden-ti-fi-ca-tion ( Is-lam and Xing 2023): genomap's
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 454--462
+Underfull \hbox (badness 10000) in paragraph at lines 458--466
 \OT1/pcr/m/n/10 createInteractionMatrix \OT1/ptm/m/n/10 de-fines in-ter-ac-tion
  []
 
 
-Underfull \hbox (badness 1552) in paragraph at lines 454--462
+Underfull \hbox (badness 1552) in paragraph at lines 458--466
 \OT1/ptm/m/n/10 sam-ples (which it then feeds to op-ti-mal trans-port for
  []
 
 
-Underfull \hbox (badness 1688) in paragraph at lines 454--462
+Underfull \hbox (badness 1688) in paragraph at lines 458--466
 \OT1/ptm/m/n/10 split and reuse only its in-ter-ac-tion ma-trix, tak-ing the
  []
 
 [4{/home/tirtho/.TinyTeX/texmf-dist/fonts/enc/dvips/fontawesome5/fa5free1.enc}{/home/tirtho/.TinyTeX/texmf-dist/fonts/enc/dvips/fontawesome5/fa5free2.enc}{/home/tirtho/.TinyTeX/texmf-dist/fonts/enc/dvips/fontawesome5/fa5free3.enc}{/home/tirtho/.TinyTeX/texmf-dist/fonts/enc/dvips/fontawesome5/fa5free0.enc}] [5]
-Overfull \hbox (35.70027pt too wide) in paragraph at lines 549--557
+Overfull \hbox (35.70027pt too wide) in paragraph at lines 553--561
  [][] 
  []
 
 
-Overfull \hbox (16.68387pt too wide) in paragraph at lines 563--577
+Overfull \hbox (16.68387pt too wide) in paragraph at lines 567--581
  [][] 
  []
 
 
-Overfull \hbox (47.38297pt too wide) in paragraph at lines 620--633
+Overfull \hbox (47.38297pt too wide) in paragraph at lines 624--637
  [][] 
  []
 
-[6]
-Underfull \hbox (badness 1412) in paragraph at lines 711--730
+
+Underfull \hbox (badness 1412) in paragraph at lines 655--674
 \OT1/ptm/m/n/10 a macro-F1 point of one an-other (fixed depth 98.4%,
  []
 
 
-Underfull \hbox (badness 2894) in paragraph at lines 745--745
-[]\OT1/ptm/m/n/10 Table 7: Mixture-of-Recursions rout-ing study. Expert-
+Underfull \vbox (badness 1742) has occurred while \output is active []
+
+ [6]
+Underfull \hbox (badness 2894) in paragraph at lines 689--689
+[]\OT1/ptm/m/n/10 Table 5: Mixture-of-Recursions rout-ing study. Expert-
  []
 
-[7]
-Underfull \hbox (badness 1082) in paragraph at lines 912--912
-[]\OT1/ptm/m/n/10 Table 11: Biology-informed rout-ing ab-la-tion (macro-F1
+
+Underfull \vbox (badness 3803) has occurred while \output is active []
+
+ [7]
+Underfull \hbox (badness 2384) in paragraph at lines 856--856
+[]\OT1/ptm/m/n/10 Table 9: Biology-informed rout-ing ab-la-tion (macro-F1
  []
 
 
-Underfull \hbox (badness 3907) in paragraph at lines 912--912
+Underfull \hbox (badness 3907) in paragraph at lines 856--856
 \OT1/ptm/m/n/10 %, mean$\OMS/cmsy/m/n/10 ^^F$\OT1/ptm/m/n/10 std over seeds): the genomap gene-gene-
  []
 
-[8] [9]
-Overfull \hbox (33.68353pt too wide) in paragraph at lines 1066--1079
+[8]
+Overfull \hbox (33.68353pt too wide) in paragraph at lines 1010--1023
+ [][] 
+ []
+
+[9]
+Overfull \hbox (26.84337pt too wide) in paragraph at lines 1046--1059
  [][] 
  []
 
 
-Overfull \hbox (26.84337pt too wide) in paragraph at lines 1102--1115
- [][] 
+Underfull \hbox (badness 1895) in paragraph at lines 1121--1133
+\OT1/ptm/m/n/10 The tab-u-lar learn-ers above are the strongest \OT1/ptm/m/it/10 clas-si-cal
+ []
+
+
+Underfull \hbox (badness 4316) in paragraph at lines 1134--1145
+[]\OT1/ptm/m/n/10 The head-line is pa-ram-e-ter foot-print. SMART car-
+ []
+
+
+Underfull \hbox (badness 1867) in paragraph at lines 1134--1145
+\OT1/ptm/m/n/10 ries 712,457 pa-ram-e-ters, whereas the pre-trained foun-
+ []
+
+
+Underfull \hbox (badness 3439) in paragraph at lines 1134--1145
+\OT1/ptm/m/n/10 da-tion base-lines range from 51M (scGPT) to 405M
+ []
+
+
+Underfull \hbox (badness 1902) in paragraph at lines 1168--1168
+[]\OT1/ptm/m/n/10 Table 17: SMART vs. re-pro-ducible deep / single-cell
  []
 
 [10] [11]
-Underfull \hbox (badness 1152) in paragraph at lines 1293--1308
+Underfull \hbox (badness 1152) in paragraph at lines 1290--1305
 \OT1/ptm/m/n/10 prop-erty of tran-scrip-tomic mod-els. By learn-ing marker
  []
 
 (./genomicrecursiveformer.bbl
-Underfull \hbox (badness 3029) in paragraph at lines 52--56
+Underfull \hbox (badness 3029) in paragraph at lines 58--62
 \OT1/ptm/m/n/10 hu-man single-cell RNA se-quenc-ing data.  \OT1/ptm/m/it/10 Database
  []
 
 [12]
-Underfull \hbox (badness 7116) in paragraph at lines 178--182
+Underfull \hbox (badness 7116) in paragraph at lines 202--206
 []\OT1/ptm/m/n/10 Raposo, D.; Rit-ter, S.; Richards, B.; Lil-l-i-crap, T.;
  []
 
 
-Underfull \hbox (badness 3291) in paragraph at lines 244--248
+Underfull \hbox (badness 3291) in paragraph at lines 274--278
 []\OT1/ptm/m/n/10 Wolf, F. A.; An-gerer, P.; and Theis, F. J.  2018.
  []
 
 
-Underfull \hbox (badness 1472) in paragraph at lines 244--248
+Underfull \hbox (badness 1472) in paragraph at lines 274--278
 \OT1/ptm/m/n/10 SCANPY: Large-scale single-cell gene ex-pres-sion data
  []
 
-) [13]
-Underfull \hbox (badness 1867) in paragraph at lines 1321--1325
+[13])
+Underfull \hbox (badness 1867) in paragraph at lines 1318--1322
 \OT1/ptm/m/n/10 si-fi-ca-tion bench-mark of the main pa-per. Four co-horts
  []
 
 
-Underfull \hbox (badness 3323) in paragraph at lines 1321--1325
+Underfull \hbox (badness 3323) in paragraph at lines 1318--1322
 \OT1/ptm/m/n/10 (breast/BRCA, head-and-neck/HNSC, lung/LUNG, thy-
  []
 
 
-Underfull \hbox (badness 1158) in paragraph at lines 1401--1401
+Underfull \hbox (badness 1158) in paragraph at lines 1398--1398
 []\OT1/ptm/m/n/10 Stage I: 966, Stage II: 886,
  []
 
-
-Underfull \hbox (badness 3240) in paragraph at lines 1430--1433
+[14]
+Underfull \hbox (badness 3240) in paragraph at lines 1427--1430
 \OT1/ptm/m/n/10 This ap-pendix gives the math-e-mat-i-cal and bi-o-log-i-cal
  []
 
 
-Underfull \hbox (badness 3690) in paragraph at lines 1430--1433
+Underfull \hbox (badness 3690) in paragraph at lines 1427--1430
 \OT1/ptm/m/n/10 ground-ing for SMART's router, both the data-driven
  []
 
-[14]
-Overfull \hbox (24.12167pt too wide) detected at line 1451
+
+Overfull \hbox (24.12167pt too wide) detected at line 1448
 []\OT1/cmr/bx/n/10 z[] \OT1/cmr/m/n/10 = []\OT1/cmr/bx/n/10 W[]h[]\OML/cmm/m/it/10 ;  \OT1/cmr/bx/n/10 p[] \OT1/cmr/m/n/10 = \OML/cmm/m/it/10  []\OT1/cmr/m/n/10 (\OT1/cmr/bx/n/10 z[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ;  i[] \OT1/cmr/m/n/10 = [] [] \OML/cmm/m/it/10 p[];
  []
 
 
-Underfull \hbox (badness 1189) in paragraph at lines 1493--1501
+Underfull \hbox (badness 1189) in paragraph at lines 1490--1498
 \OT1/ptm/m/n/10 node), where the like-li-hood alone barely sep-a-rates the
  []
 
 
-Underfull \hbox (badness 2213) in paragraph at lines 1509--1517
+Underfull \hbox (badness 2213) in paragraph at lines 1506--1514
 \OT1/ptm/m/n/10 co-her-ently, which one ob-tains by smooth-ing the log-
  []
 
-[15] (./genomicrecursiveformer.aux)
+
+Underfull \hbox (badness 4660) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 This ap-pendix gives the full token-reduction val-i-da-
+ []
+
+
+Underfull \hbox (badness 4429) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 tion sum-marised in Sec. 4[]. The pro-to-col mea-sures,
+ []
+
+
+Underfull \hbox (badness 6141) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 on the head-line co-hort model, how ef-fec-tively the
+ []
+
+
+Underfull \hbox (badness 5490) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 marker router re-duces the in-put to-ken space while
+ []
+
+
+Underfull \hbox (badness 3623) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 pre-serv-ing the in-for-ma-tive fea-tures, and is or-gan-ised
+ []
+
+
+Underfull \hbox (badness 6675) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 into four parts plus a ranking-consistency anal-y-sis.
+ []
+
+
+Underfull \hbox (badness 2452) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 The struc-tured record is re-gen-er-ated by \OT1/pcr/m/n/10 python -m
+ []
+
+
+Overfull \hbox (17.40564pt too wide) in paragraph at lines 1517--1525
+\OT1/pcr/m/n/10 recursive[]marker[]transformer.token[]reduction
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 and writ-ten to \OT1/pcr/m/n/10 token[]reduction.json\OT1/ptm/m/n/10 ;
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1517--1525
+\OT1/ptm/m/n/10 the com-plete per-gene rank-ing is writ-ten to
+ []
+
+[15]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[16] (./genomicrecursiveformer.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-03-20>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 17670 strings out of 469296
- 369660 string characters out of 5465255
- 801044 words of memory out of 5000000
- 46180 multiletter control sequences out of 15000+600000
+ 17677 strings out of 469296
+ 369785 string characters out of 5465255
+ 801262 words of memory out of 5000000
+ 46187 multiletter control sequences out of 15000+600000
  664220 words of font info for 118 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
  84i,14n,104p,428b,1040s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/fontawesome5/FontAwesome5Free-Solid.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></home/tirtho/.TinyTeX/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on genomicrecursiveformer.pdf (15 pages, 375436 bytes).
+Output written on genomicrecursiveformer.pdf (16 pages, 382461 bytes).
 PDF statistics:
- 191 PDF objects out of 1000 (max. 8388607)
- 121 compressed objects within 2 object streams
+ 194 PDF objects out of 1000 (max. 8388607)
+ 123 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

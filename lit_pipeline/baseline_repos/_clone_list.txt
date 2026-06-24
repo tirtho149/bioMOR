@@ -1,0 +1,14 @@
+Cell2Sentence	https://github.com/vandijklab/cell2sentence
+CellPLM	https://github.com/OmicsML/CellPLM
+scGeneFit	https://github.com/solevillar/scGeneFit-python
+scbenchmark	https://github.com/simpleshinobu/scbenchmark
+scRCL	https://github.com/THPengL/scRCL
+sciLaMA	https://github.com/microsoft/sciLaMA
+CoVEL	https://github.com/shapsider/scintegration
+scCluBench	https://github.com/XPgogogo/scCluBench
+HEIST	https://github.com/Graph-and-Geometric-Learning/HEIST
+CLM-Access	https://github.com/HIM-AIM/CLM-Access
+scGPT	https://github.com/bowang-lab/scGPT
+scBERT	https://github.com/TencentAILabHealthcare/scBERT
+scFoundation	https://github.com/biomap-research/scFoundation
+Geneformer	https://huggingface.co/ctheodoris/Geneformer

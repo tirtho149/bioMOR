@@ -48,6 +48,12 @@ Dehghani, M.; Gouws, S.; Vinyals, O.; Uszkoreit, J.; and Kaiser, L.
 \newblock Universal transformers.
 \newblock In {\em International Conference on Learning Representations (ICLR)}.
 
+\bibitem[\protect\citeauthoryear{Dumitrascu \bgroup et al\mbox.\egroup }{2021}]{dumitrascu2021optimal}
+Dumitrascu, B.; Villar, S.; Mixon, D.~G.; and Engelhardt, B.~E.
+\newblock 2021.
+\newblock Optimal marker gene selection for cell type discrimination in single cell analyses.
+\newblock {\em Nature Communications} 12:1186.
+
 \bibitem[\protect\citeauthoryear{Franz{\'e}n, Gan, and Bj{\"o}rkegren}{2019}]{franzen2019panglaodb}
 Franz{\'e}n, O.; Gan, L.-M.; and Bj{\"o}rkegren, J.~L.
 \newblock 2019.
@@ -95,6 +101,12 @@ Hu, C.; Li, T.; Xu, Y.; Zhang, X.; Li, F.; Bai, J.; Chen, J.; Jiang, W.; Yang, K
 \newblock 2023.
 \newblock Cellmarker 2.0: An updated database of manually curated cell markers in human/mouse and web tools based on {scRNA}-seq data.
 \newblock {\em Nucleic Acids Research} 51(D1):D870--D876.
+
+\bibitem[\protect\citeauthoryear{Hu \bgroup et al\mbox.\egroup }{2025}]{hu2025scilama}
+Hu, H.; Zhang, S.; Choi, Y.; Malladi, V.~S.; and Quon, G.
+\newblock 2025.
+\newblock {sciLaMA}: A single-cell representation learning framework to leverage prior knowledge from large language models.
+\newblock In {\em International Conference on Machine Learning (ICML)}.
 
 \bibitem[\protect\citeauthoryear{Ianevski, Giri, and Aittokallio}{2022}]{ianevski2022fully}
 Ianevski, A.; Giri, A.~K.; and Aittokallio, T.
@@ -144,6 +156,12 @@ Lan, Z.; Chen, M.; Goodman, S.; Gimpel, K.; Sharma, P.; and Soricut, R.
 \newblock {ALBERT}: A lite {BERT} for self-supervised learning of language representations.
 \newblock In {\em International Conference on Learning Representations (ICLR)}.
 
+\bibitem[\protect\citeauthoryear{Levine \bgroup et al\mbox.\egroup }{2024}]{levine2024cell2sentence}
+Levine, D.; Rizvi, S.~A.; L{\'e}vy, S.; Pallikkavaliyaveetil, N.; and van Dijk, D.
+\newblock 2024.
+\newblock Cell2sentence: Teaching large language models the language of biology.
+\newblock In {\em International Conference on Machine Learning (ICML)}.
+
 \bibitem[\protect\citeauthoryear{Lopez \bgroup et al\mbox.\egroup }{2018}]{lopez2018deep}
 Lopez, R.; Regier, J.; Cole, M.~B.; Jordan, M.~I.; and Yosef, N.
 \newblock 2018.
@@ -167,6 +185,12 @@ Polepalli, V.
 \newblock 2025.
 \newblock A novel {cVAE}-augmented deep learning framework for pan-cancer {RNA}-seq classification.
 \newblock {\em arXiv preprint}.
+
+\bibitem[\protect\citeauthoryear{Qi \bgroup et al\mbox.\egroup }{2025}]{qi2025scbenchmark}
+Qi, J.; Cui, Y.; Guo, K.; Zhang, X.; Huang, J.; and Xie, G.
+\newblock 2025.
+\newblock A simple and comprehensive benchmark for single-cell transcriptomics.
+\newblock In {\em AAAI Conference on Artificial Intelligence}.
 
 \bibitem[\protect\citeauthoryear{Rahaman \bgroup et al\mbox.\egroup }{2025}]{rahaman2025integrated}
 Rahaman, M.; Sarker, B.; Alamin, M.~H.; and Ferdousi, F.
@@ -239,6 +263,12 @@ Weinstein, J.~N.; Collisson, E.~A.; Mills, G.~B.; Shaw, K. R.~M.; Ozenberger, B.
 \newblock 2013.
 \newblock The cancer genome atlas pan-cancer analysis project.
 \newblock {\em Nature Genetics} 45:1113--1120.
+
+\bibitem[\protect\citeauthoryear{Wen \bgroup et al\mbox.\egroup }{2024}]{wen2024cellplm}
+Wen, H.; Tang, W.; Dai, X.; Ding, J.; Jin, W.; Xie, Y.; and Tang, J.
+\newblock 2024.
+\newblock {CellPLM}: Pre-training of cell language model beyond single cells.
+\newblock In {\em International Conference on Learning Representations (ICLR)}.
 
 \bibitem[\protect\citeauthoryear{Wolf, Angerer, and Theis}{2018}]{wolf2018scanpy}
 Wolf, F.~A.; Angerer, P.; and Theis, F.~J.

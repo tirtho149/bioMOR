@@ -33,3 +33,14 @@ catboost_info/
 results_interaction/_scratch/
 
 results_earlystop/_scratch/
+
+# ---- baseline reproduction (lit_pipeline) ----
+# third-party baseline clones: each has its own .git + multi-GB checkpoints.
+# Recreate via lit_pipeline/baseline_repos/_clone_list.txt + _fetch_weights.py.
+# Keep the loose adapter/setup scripts (run_*.py, _setup_*.sh, _build_*.sh, *.txt).
+lit_pipeline/baseline_repos/*/
+# ~1GB of downloaded review PDFs; regenerate via lit_pipeline/get_pdfs.py
+lit_pipeline/pdfs/
+lit_pipeline/.pytest_cache/
+# per-task scratch work dirs from the deep-baseline runs (h5ad/arrow/trainer state)
+results_dl_baselines/_*_work/

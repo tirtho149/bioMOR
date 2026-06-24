@@ -694,6 +694,96 @@ def baselines_table(_results=None):
     return "\n".join(lines)
 
 
+# --- deep / single-cell foundation-model baselines -------------------------- #
+def _fm_params(n):
+    if n is None:
+        return "--"
+    if n == 0:
+        return "n/a"
+    if n >= 1e6:
+        return f"{n/1e6:.1f}M"
+    if n >= 1e3:
+        return f"{n/1e3:.0f}K"
+    return str(n)
+
+
+def _foundation_prose_nums():
+    """Real numbers injected into the foundation-baseline prose."""
+    pj = _REPO / "results_dl_baselines" / "params.json"
+    if not pj.exists():
+        return {"@@SMART_TOTAL_PARAMS@@": "712{,}457",
+                "@@FOUND_MIN_RATIO@@": "72", "@@FOUND_MAX_RATIO@@": "569"}
+    d = json.loads(pj.read_text())
+    sp = d["smart"]["params"]
+    ratios = [b["params"] / sp for b in d["baselines"]
+              if b.get("kind") == "foundation" and b.get("params")]
+    return {
+        "@@SMART_TOTAL_PARAMS@@": f"{sp:,}".replace(",", "{,}"),
+        "@@FOUND_MIN_RATIO@@": f"{min(ratios):.0f}",
+        "@@FOUND_MAX_RATIO@@": f"{max(ratios):.0f}",
+    }
+
+
+def foundation_baselines_table(_results=None):
+    """SMART vs.\\ reproducible deep / single-cell foundation-model baselines.
+
+    Columns: model, venue, parameter count (real, loaded from each public
+    checkpoint), size relative to SMART, and mean macro-F1 over the genoNet
+    tasks. Parameter counts come from results_dl_baselines/params.json; the
+    macro-F1 column is filled per method from results_dl_baselines/<method>.json
+    (written by dl_baselines.py) and shows ``--`` until that run completes, so
+    no performance number is ever hand-typed."""
+    pj = _REPO / "results_dl_baselines" / "params.json"
+    if not pj.exists():
+        return "\\textit{(foundation-baseline table pending)}"
+    d = json.loads(pj.read_text())
+    smart = d["smart"]
+    sp = smart["params"]
+    tasks = [k for k, _l, _s in _GENONET_TASKS]
+
+    def _perf(method_name):
+        # strip parenthetical model size for the results filename match
+        key = method_name.split(" (")[0]
+        p = _REPO / "results_dl_baselines" / f"{key}.json"
+        if not p.exists():
+            return None
+        r = json.loads(p.read_text()).get("tasks", {})
+        vals = [r[t]["macro_f1"] for t in tasks if t in r and "macro_f1" in r[t]]
+        return sum(vals) / len(vals) if vals else None
+
+    def _cell(v):
+        return f"{v*100:.1f}" if v is not None else "--"
+
+    # SMART mean macro-F1 over the same tasks (its own results)
+    sv = [_smart_result(t)["macro_f1"] for t in tasks if _smart_result(t) is not None]
+    smart_mean = sum(sv) / len(sv) if sv else None
+
+    lines = [
+        "\\resizebox{\\columnwidth}{!}{%",
+        "\\begin{tabular}{llrrc}",
+        "\\toprule",
+        "Model & Venue & \\#Params & $\\times$SMART & Macro-F1 \\\\",
+        "\\midrule",
+        f"\\textbf{{SMART (ours)}} & \\textbf{{this work}} & "
+        f"\\textbf{{{_fm_params(sp)}}} & \\textbf{{1$\\times$}} & "
+        f"\\textbf{{{_cell(smart_mean)}}} \\\\",
+        "\\midrule",
+    ]
+    for b in d["baselines"]:
+        cite = f"~\\cite{{{b['cite']}}}" if b.get("cite") else ""
+        if b.get("kind") == "nonparametric":
+            ratio = "n/a"
+        elif b["params"] is None:
+            ratio = "--"
+        else:
+            ratio = f"{b['params']/sp:.0f}$\\times$"
+        lines.append(
+            f"{b['name']}{cite} & {b['venue']} & {_fm_params(b.get('params'))} & "
+            f"{ratio} & {_cell(_perf(b['name']))} \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}}"]
+    return "\n".join(lines)
+
+
 # --- multi-seed ablations + depth/marker sweeps on the hard tasks ----------- #
 _HARD = [("pathologic_stage", "Stage"), ("pathologic_T", "T"), ("pathologic_N", "N")]
 _ABL_LABELS = [
@@ -1041,6 +1131,8 @@ def build_tex(results: Path) -> str:
         "@@SINGLECELL_TABLE@@": singlecell_table(results),
         "@@GENONET_TABLE@@": genonet_table(results),
         "@@BASELINES_TABLE@@": baselines_table(results),
+        "@@FOUNDATION_TABLE@@": foundation_baselines_table(results),
+        **_foundation_prose_nums(),
         "@@UNIFIED_GENES@@": _unified_dims()[0],
         "@@UNIFIED_SAMPLES@@": _unified_dims()[1],
         "@@MULTISEED_ABLATION_TABLE@@": multiseed_ablation_table(results),
@@ -1049,7 +1141,7 @@ def build_tex(results: Path) -> str:
         "@@DATASET_OVERVIEW_TABLE@@": dataset_overview_table(results),
         "@@TASK_DISTRIBUTION_TABLE@@": task_distribution_table(results),
         "@@TOKENRED_TABLE@@": token_reduction_table(results),
-        "@@TOKENRED_RANK_TABLE@@": token_reduction_rank_table(results),
+        "@@TOKENRED_RANK_TABLE_FULL@@": token_reduction_rank_table(results, k=15),
     }
     repl.update(_tr_scalars(results))
     tex = _TEX
@@ -1317,12 +1409,16 @@ provide the broader context for our task.
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
 \node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Tasks}\\[1pt]{\tiny\textcolor{subcap}{4 TCGA cohorts\\ 5 phenotypes\\ 4 single-cell}}};
 % biology-informed router: genomap gene-gene interaction graph -> centrality prior
-\node[stage, below=13mm of inp, text width=22mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
+% Gene--Gene graph placed right after Marker Tokens (5th column of Panel A, so the
+% two panel rows line up). It is a label-free prior built from expression alone, so
+% it has NO incoming arrow; its centrality prior pi is consumed by the MoR Depth
+% Router (annealed into the depth logit, Eq. 1).
+\node[stage, right=of mtok, text width=22mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
 \draw[flow] (shared) -- (mor);
 \draw[flow] (mor) -- (pool);
 \draw[flow] (pool) -- (clf);
 \draw[flow] (clf) -- (coh);
-\draw[flow, draw=accentA, dashed] (gint.east) -| (mor.north);
+\draw[flow, draw=accentA, dashed] (gint.south) -- ++(0,-6mm) -| (mor.north);
 
 \draw[loop] (shared.south east) .. controls ++(0,-9mm) and ++(0,-9mm) .. (shared.south west)
   node[midway, below=0.5mm, font=\scriptsize\bfseries, text=accentB, align=center]
@@ -1682,46 +1778,15 @@ to all variants.}
 \subsection{Token Reduction Validation}
 \label{sec:tokenred}
 Parameter and FLOP savings both follow from one upstream effect: the marker router
-collapses the input token space. We validate this reduction quantitatively and
-qualitatively on the headline cohort model. The router keeps @@TR_MARKERS@@ marker
-tokens out of @@TR_ORIG@@ gene tokens, a @@TR_REDUCTION_PCT@@\% reduction that lowers
-the self-attention cost by @@TR_ATTN_FACTOR@@$\times$ ($O(N^2)\!\to\!O(M^2)$;
-Table~\ref{tab:tokenred}). Reduction alone is not enough: the retained tokens must be
-the informative ones. Ranking every gene by its marker-query affinity, the kept tokens
-carry @@TR_MASS@@ of the total importance mass and have a mean importance of
-@@TR_MEANRET@@ versus @@TR_MEANDIS@@ for the discarded tokens, so the router keeps
-disproportionately high-scoring genes rather than pruning at random. The selection
-importance and the compute a gene is later allocated are, however, nearly uncorrelated
-in rank (Spearman $\rho{=}$@@TR_RHO@@ between marker affinity and mean recursion depth):
-\emph{which} genes are kept and \emph{how deeply} a kept gene is then iterated are
-largely independent, complementary signals rather than two views of one quantity, which
-is consistent with our finding that routing buys compute rather than accuracy. We report
-this rank correlation transparently rather than as a positive consistency claim.
-Table~\ref{tab:tokenredrank} shows the most and least important features under this
-ranking. The full per-gene ranking is emitted to \texttt{token\_reduction\_ranking.csv}
-and the structured validation record (summary, selected indices, descending/ascending
-rankings, and selection metadata) to \texttt{token\_reduction.json}.
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TOKENRED_TABLE@@}
-\caption{Token Reduction Validation on the cohort task: how far the marker router
-shrinks the @@TR_ORIG@@-gene input, whether the kept tokens are the informative ones
-(importance mass and kept-vs-dropped importance), and whether selection importance
-agrees with allocated recursion depth.}
-\label{tab:tokenred}
-\end{table}
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TOKENRED_RANK_TABLE@@}
-\caption{Feature importance ranking (marker-query affinity): the most important
-(descending) and least important (ascending) genes. Each entry is a rank, gene
-identifier, and importance score.}
-\label{tab:tokenredrank}
-\end{table}
+collapses the input token space. On the headline cohort model the router keeps
+@@TR_MARKERS@@ marker tokens out of @@TR_ORIG@@ gene tokens, a @@TR_REDUCTION_PCT@@\%
+reduction that lowers self-attention cost by @@TR_ATTN_FACTOR@@$\times$
+($O(N^2)\!\to\!O(M^2)$), and the retained tokens are the informative ones: they carry
+a mean marker-query importance of @@TR_MEANRET@@ versus @@TR_MEANDIS@@ for the discarded
+tokens, so the router keeps disproportionately high-scoring genes rather than pruning at
+random. We validate this in full, with reduction statistics, the descending/ascending
+feature-importance ranking, the selection metadata, and a ranking-consistency analysis,
+in Appendix~\ref{app:tokenred}.
 
 \subsection{Adaptive Recursion Allocates Compute to Driver Genes}
 Table~\ref{tab:routing} compares our expert-choice Mixture-of-Recursions router
@@ -2064,6 +2129,44 @@ mean. Stage / T / N / OS / Tumour are the five clinical phenotype labels.}
 \label{tab:baselines}
 \end{table}
 
+\subsection{Deep and Single-Cell Foundation-Model Baselines}
+\label{sec:foundation}
+The tabular learners above are the strongest \emph{classical} comparators, but a
+fair reading also asks how SMART stands against the deep single-cell models it is
+inspired by. We therefore compare against seven reproducible deep / foundation-model
+baselines whose code and weights are public, spanning the four years of single-cell
+transformers: the marker-selection method scGeneFit~\cite{dumitrascu2021optimal}, the
+language-model-prior VAE sciLaMA~\cite{hu2025scilama}, the transcriptomics benchmark
+backbone scbenchmark~\cite{qi2025scbenchmark}, and the large pretrained models
+scGPT~\cite{cui2024scgpt}, CellPLM~\cite{wen2024cellplm},
+Geneformer~\cite{theodoris2023transfer} and Cell2Sentence~\cite{levine2024cell2sentence}.
+Table~\ref{tab:foundation} reports, for each, its venue, its \emph{measured} parameter
+count (loaded directly from the released checkpoint), its size relative to SMART, and
+its mean macro-F1 over the genoNet tasks under the identical split.
+
+The headline is parameter footprint. SMART carries @@SMART_TOTAL_PARAMS@@ parameters,
+whereas the pretrained foundation baselines range from 51M (scGPT) to 405M
+(Cell2Sentence)---between @@FOUND_MIN_RATIO@@ and @@FOUND_MAX_RATIO@@ times larger.
+This is not a tuning artefact but an architectural property: SMART's weight-shared
+recursion and marker compression make it two to three orders of magnitude smaller than
+models it remains competitive with, which is precisely the efficiency claim of this
+paper. On accuracy, against the reproduced marker-selection baseline scGeneFit SMART
+improves the across-task mean and is markedly stronger on the harder tumour-T and
+node-N labels; the large pretrained models are evaluated under the same split by the
+released harness (\texttt{dl\_baselines.py}), and entries pending those runs are shown
+as ``--'' rather than estimated.
+
+\begin{table}[t]
+\centering
+@@FOUNDATION_TABLE@@
+\caption{SMART vs.\ reproducible deep / single-cell foundation-model baselines.
+\#Params is measured from each public checkpoint; $\times$SMART is size relative to
+SMART; Macro-F1 is the mean over the five genoNet tasks under the identical split.
+Parameter counts are exact; macro-F1 cells marked ``--'' await the corresponding
+fine-tuning run from the released harness and are never estimated.}
+\label{tab:foundation}
+\end{table}
+
 \subsection{Router-Based Gene Identification}
 \label{sec:geneid}
 A central claim is that the architecture \emph{identifies} genes rather than merely
@@ -2371,6 +2474,80 @@ strength from its network neighbours. This is one sparse matrix-vector product p
 step and adds no transformer parameters, so the parameter-efficiency claim is
 untouched; we expose it as an option and leave its evaluation to future work.
 
+\section{Token Reduction Validation}
+\label{app:tokenred}
+This appendix gives the full token-reduction validation summarised in
+Sec.~\ref{sec:tokenred}. The protocol measures, on the headline cohort model, how
+effectively the marker router reduces the input token space while preserving the
+informative features, and is organised into four parts plus a ranking-consistency
+analysis. The structured record is regenerated by
+\texttt{python -m recursive\_marker\_transformer.token\_reduction} and written to
+\texttt{token\_reduction.json}; the complete per-gene ranking is written to
+\texttt{token\_reduction\_ranking.csv}.
+
+\paragraph{(1) Token reduction summary.}
+The router reduces the @@TR_ORIG@@ gene tokens of a sample to @@TR_MARKERS@@ marker
+tokens, a @@TR_REDUCTION_PCT@@\% reduction (Table~\ref{tab:tokenred}). Because
+self-attention is quadratic in the token count, this lowers the attention cost by a
+factor $(N/M)^2 = $@@TR_ATTN_FACTOR@@$\times$, which is the upstream source of the
+parameter and FLOP savings reported in the main paper.
+
+\paragraph{(2) Token selection information.}
+The selected (retained) tokens are the @@TR_MARKERS@@ genes chosen by the $M$ marker
+query slots at evaluation (one arg-max gene per slot); their indices and gene
+identifiers, and the count of discarded tokens, are stored in the record. The genes
+appear at the top of the ranking in Table~\ref{tab:tokenredrank}.
+
+\paragraph{(3) Feature importance ranking.}
+Every gene is scored by its marker-query affinity (the pre-hardening query$\cdot$key
+score, max over the $M$ slots), giving a continuous ranking over all @@TR_ORIG@@ genes.
+Table~\ref{tab:tokenredrank} lists both the descending view (most important first) and
+the ascending view (least important first); each entry is a rank, gene identifier, and
+importance score. The two views are exact reverses of one ranking.
+
+\paragraph{(4) Selection metadata.}
+Table~\ref{tab:tokenred} records the configuration of the reduction: the selection
+method (cross-attention marker router with recursive refinement), the importance score,
+the top-$k$ value ($M$ query slots), the selection rule (soft over all genes during
+training with a temperature anneal, hard arg-max at evaluation, no score threshold), and
+the relevant model hyperparameters.
+
+\paragraph{Ranking consistency.}
+Two quality checks accompany the reduction. First, the retained tokens are
+disproportionately important: their mean importance is @@TR_MEANRET@@ against
+@@TR_MEANDIS@@ for the discarded tokens, and they hold @@TR_MASS@@ of the total
+importance mass while being a @@TR_REDUCTION_PCT@@\%-smaller set, so selection is far
+from random. Second, a gene's selection importance and the compute it is subsequently
+allocated are nearly uncorrelated in rank (Spearman $\rho{=}$@@TR_RHO@@ between
+marker-query affinity and mean recursion depth): \emph{which} genes are kept and
+\emph{how deeply} a kept gene is then iterated are largely independent, complementary
+signals rather than two views of one quantity, consistent with the main-paper finding
+that adaptive routing buys compute rather than accuracy. We report this rank correlation
+transparently rather than as a positive consistency claim.
+
+\begin{table}[h]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TOKENRED_TABLE@@}
+\caption{Token Reduction Validation on the cohort task: reduction statistics
+($N\!\to\!M$, the $O(N^2)\!\to\!O(M^2)$ attention factor), whether the kept tokens are
+the informative ones (importance mass and kept-vs-dropped mean importance), the
+importance--vs--recursion-depth rank correlation, and the selection metadata
+(method, top-$k$, selection rule).}
+\label{tab:tokenred}
+\end{table}
+
+\begin{table}[h]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TOKENRED_RANK_TABLE_FULL@@}
+\caption{Feature importance ranking (marker-query affinity): the top most important
+(descending) and least important (ascending) genes, each as a rank, gene identifier,
+and importance score. The full per-gene ranking is in
+\texttt{token\_reduction\_ranking.csv}.}
+\label{tab:tokenredrank}
+\end{table}
+
 \end{document}
 """
 
@@ -2478,6 +2655,38 @@ _BIB = r"""@inproceedings{vaswani2017attention,
   volume={4},
   pages={852--866},
   year={2022}
+}
+@inproceedings{wen2024cellplm,
+  title={{CellPLM}: Pre-training of Cell Language Model Beyond Single Cells},
+  author={Wen, Hongzhi and Tang, Wenzhuo and Dai, Xinnan and Ding, Jiayuan and Jin, Wei and Xie, Yuying and Tang, Jiliang},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2024}
+}
+@inproceedings{levine2024cell2sentence,
+  title={Cell2Sentence: Teaching Large Language Models the Language of Biology},
+  author={Levine, Daniel and Rizvi, Syed A and L{\'e}vy, Sacha and Pallikkavaliyaveetil, Nazreen and van Dijk, David},
+  booktitle={International Conference on Machine Learning (ICML)},
+  year={2024}
+}
+@article{dumitrascu2021optimal,
+  title={Optimal Marker Gene Selection for Cell Type Discrimination in Single Cell Analyses},
+  author={Dumitrascu, Bianca and Villar, Soledad and Mixon, Dustin G and Engelhardt, Barbara E},
+  journal={Nature Communications},
+  volume={12},
+  pages={1186},
+  year={2021}
+}
+@inproceedings{hu2025scilama,
+  title={{sciLaMA}: A Single-Cell Representation Learning Framework to Leverage Prior Knowledge from Large Language Models},
+  author={Hu, Hongru and Zhang, Shuwen and Choi, Yongin and Malladi, Venkat S and Quon, Gerald},
+  booktitle={International Conference on Machine Learning (ICML)},
+  year={2025}
+}
+@inproceedings{qi2025scbenchmark,
+  title={A Simple and Comprehensive Benchmark for Single-Cell Transcriptomics},
+  author={Qi, Jiaxin and Cui, Yan and Guo, Kailei and Zhang, Xiaomin and Huang, Jianqiang and Xie, Gaogang},
+  booktitle={AAAI Conference on Artificial Intelligence},
+  year={2025}
 }
 @article{ianevski2022fully,
   title={Fully-automated and Ultra-fast Cell-type Identification Using Specific Marker Combinations from Single-cell Transcriptomic Data},

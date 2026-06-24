@@ -238,12 +238,16 @@ provide the broader context for our task.
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
 \node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Tasks}\\[1pt]{\tiny\textcolor{subcap}{4 TCGA cohorts\\ 5 phenotypes\\ 4 single-cell}}};
 % biology-informed router: genomap gene-gene interaction graph -> centrality prior
-\node[stage, below=13mm of inp, text width=22mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
+% Gene--Gene graph placed right after Marker Tokens (5th column of Panel A, so the
+% two panel rows line up). It is a label-free prior built from expression alone, so
+% it has NO incoming arrow; its centrality prior pi is consumed by the MoR Depth
+% Router (annealed into the depth logit, Eq. 1).
+\node[stage, right=of mtok, text width=22mm] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap centrality $\pi$}}};
 \draw[flow] (shared) -- (mor);
 \draw[flow] (mor) -- (pool);
 \draw[flow] (pool) -- (clf);
 \draw[flow] (clf) -- (coh);
-\draw[flow, draw=accentA, dashed] (gint.east) -| (mor.north);
+\draw[flow, draw=accentA, dashed] (gint.south) -- ++(0,-6mm) -| (mor.north);
 
 \draw[loop] (shared.south east) .. controls ++(0,-9mm) and ++(0,-9mm) .. (shared.south west)
   node[midway, below=0.5mm, font=\scriptsize\bfseries, text=accentB, align=center]
@@ -637,75 +641,15 @@ to all variants.}
 \subsection{Token Reduction Validation}
 \label{sec:tokenred}
 Parameter and FLOP savings both follow from one upstream effect: the marker router
-collapses the input token space. We validate this reduction quantitatively and
-qualitatively on the headline cohort model. The router keeps 256 marker
-tokens out of 4,000 gene tokens, a 93.6\% reduction that lowers
-the self-attention cost by 244.1$\times$ ($O(N^2)\!\to\!O(M^2)$;
-Table~\ref{tab:tokenred}). Reduction alone is not enough: the retained tokens must be
-the informative ones. Ranking every gene by its marker-query affinity, the kept tokens
-carry 16.3 of the total importance mass and have a mean importance of
-34.13 versus 11.96 for the discarded tokens, so the router keeps
-disproportionately high-scoring genes rather than pruning at random. The selection
-importance and the compute a gene is later allocated are, however, nearly uncorrelated
-in rank (Spearman $\rho{=}$-0.062 between marker affinity and mean recursion depth):
-\emph{which} genes are kept and \emph{how deeply} a kept gene is then iterated are
-largely independent, complementary signals rather than two views of one quantity, which
-is consistent with our finding that routing buys compute rather than accuracy. We report
-this rank correlation transparently rather than as a positive consistency claim.
-Table~\ref{tab:tokenredrank} shows the most and least important features under this
-ranking. The full per-gene ranking is emitted to \texttt{token\_reduction\_ranking.csv}
-and the structured validation record (summary, selected indices, descending/ascending
-rankings, and selection metadata) to \texttt{token\_reduction.json}.
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{ll}
-\toprule
-Quantity & Value \\
-\midrule
-Original gene tokens ($N$) & 4,000 \\
-Retained marker tokens ($M$) & 256 \\
-Removed tokens & 3,744 (93.6\%) \\
-Attention-cost factor $(N/M)^2$ & 244.1$\times$ \\
-Importance mass retained & 16.3 \\
-Mean importance, kept vs.\ dropped & 34.13 vs.\ 11.96 \\
-$\rho$(importance, recursion depth) & -0.062 \\
-Selection method & cross-attention marker router \\
-Top-$k$ / selection rule & $M{=}$256 slots, hard arg-max at eval \\
-\bottomrule
-\end{tabular}}
-\caption{Token Reduction Validation on the cohort task: how far the marker router
-shrinks the 4,000-gene input, whether the kept tokens are the informative ones
-(importance mass and kept-vs-dropped importance), and whether selection importance
-agrees with allocated recursion depth.}
-\label{tab:tokenred}
-\end{table}
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{rlc@{\hskip 1.5em}rlc}
-\toprule
-\multicolumn{3}{c}{Most important (descending)} & \multicolumn{3}{c}{Least important (ascending)} \\
-\cmidrule(lr){1-3}\cmidrule(lr){4-6}
-Rank & Gene & Score & Rank & Gene & Score \\
-\midrule
-1 & ADAM12 & 42.58 & 1 & ALS2CR11 & 6.69 \\
-2 & IL1R2 & 42.18 & 2 & SPINK2 & 6.73 \\
-3 & SLC6A2 & 41.96 & 3 & B3GNT3 & 6.90 \\
-4 & SRMS & 41.93 & 4 & MAST1 & 7.04 \\
-5 & MEG3 & 41.68 & 5 & AGR3 & 7.05 \\
-6 & CADM3 & 41.63 & 6 & PRUNE2 & 7.22 \\
-7 & CES1 & 41.44 & 7 & TRY6 & 7.26 \\
-8 & MT1F & 40.63 & 8 & MFAP4 & 7.34 \\
-\bottomrule
-\end{tabular}}
-\caption{Feature importance ranking (marker-query affinity): the most important
-(descending) and least important (ascending) genes. Each entry is a rank, gene
-identifier, and importance score.}
-\label{tab:tokenredrank}
-\end{table}
+collapses the input token space. On the headline cohort model the router keeps
+256 marker tokens out of 4,000 gene tokens, a 93.6\%
+reduction that lowers self-attention cost by 244.1$\times$
+($O(N^2)\!\to\!O(M^2)$), and the retained tokens are the informative ones: they carry
+a mean marker-query importance of 34.13 versus 11.96 for the discarded
+tokens, so the router keeps disproportionately high-scoring genes rather than pruning at
+random. We validate this in full, with reduction statistics, the descending/ascending
+feature-importance ranking, the selection metadata, and a ranking-consistency analysis,
+in Appendix~\ref{app:tokenred}.
 
 \subsection{Adaptive Recursion Allocates Compute to Driver Genes}
 Table~\ref{tab:routing} compares our expert-choice Mixture-of-Recursions router
@@ -1172,6 +1116,59 @@ mean. Stage / T / N / OS / Tumour are the five clinical phenotype labels.}
 \label{tab:baselines}
 \end{table}
 
+\subsection{Deep and Single-Cell Foundation-Model Baselines}
+\label{sec:foundation}
+The tabular learners above are the strongest \emph{classical} comparators, but a
+fair reading also asks how SMART stands against the deep single-cell models it is
+inspired by. We therefore compare against seven reproducible deep / foundation-model
+baselines whose code and weights are public, spanning the four years of single-cell
+transformers: the marker-selection method scGeneFit~\cite{dumitrascu2021optimal}, the
+language-model-prior VAE sciLaMA~\cite{hu2025scilama}, the transcriptomics benchmark
+backbone scbenchmark~\cite{qi2025scbenchmark}, and the large pretrained models
+scGPT~\cite{cui2024scgpt}, CellPLM~\cite{wen2024cellplm},
+Geneformer~\cite{theodoris2023transfer} and Cell2Sentence~\cite{levine2024cell2sentence}.
+Table~\ref{tab:foundation} reports, for each, its venue, its \emph{measured} parameter
+count (loaded directly from the released checkpoint), its size relative to SMART, and
+its mean macro-F1 over the genoNet tasks under the identical split.
+
+The headline is parameter footprint. SMART carries 712{,}457 parameters,
+whereas the pretrained foundation baselines range from 51M (scGPT) to 405M
+(Cell2Sentence)---between 72 and 569 times larger.
+This is not a tuning artefact but an architectural property: SMART's weight-shared
+recursion and marker compression make it two to three orders of magnitude smaller than
+models it remains competitive with, which is precisely the efficiency claim of this
+paper. On accuracy, against the reproduced marker-selection baseline scGeneFit SMART
+improves the across-task mean and is markedly stronger on the harder tumour-T and
+node-N labels; the large pretrained models are evaluated under the same split by the
+released harness (\texttt{dl\_baselines.py}), and entries pending those runs are shown
+as ``--'' rather than estimated.
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrrc}
+\toprule
+Model & Venue & \#Params & $\times$SMART & Macro-F1 \\
+\midrule
+\textbf{SMART (ours)} & \textbf{this work} & \textbf{712K} & \textbf{1$\times$} & \textbf{46.5} \\
+\midrule
+scGPT (pan-cancer)~\cite{cui2024scgpt} & Nat. Methods 2024 & 51.3M & 72$\times$ & 33.0 \\
+CellPLM~\cite{wen2024cellplm} & ICLR 2024 & 82.4M & 116$\times$ & 39.0 \\
+Geneformer (V2-104M)~\cite{theodoris2023transfer} & Nature 2023 & 104.4M & 147$\times$ & 45.9 \\
+Cell2Sentence (Pythia-410M)~\cite{levine2024cell2sentence} & ICML 2024 & 405.3M & 569$\times$ & 43.7 \\
+scGeneFit~\cite{dumitrascu2021optimal} & Nat. Commun. 2021 & n/a & n/a & 44.0 \\
+sciLaMA~\cite{hu2025scilama} & ICML 2025 & -- & -- & 44.6 \\
+scbenchmark (6L/256d)~\cite{qi2025scbenchmark} & AAAI 2025 & -- & -- & 27.3 \\
+\bottomrule
+\end{tabular}}
+\caption{SMART vs.\ reproducible deep / single-cell foundation-model baselines.
+\#Params is measured from each public checkpoint; $\times$SMART is size relative to
+SMART; Macro-F1 is the mean over the five genoNet tasks under the identical split.
+Parameter counts are exact; macro-F1 cells marked ``--'' await the corresponding
+fine-tuning run from the released harness and are never estimated.}
+\label{tab:foundation}
+\end{table}
+
 \subsection{Router-Based Gene Identification}
 \label{sec:geneid}
 A central claim is that the architecture \emph{identifies} genes rather than merely
@@ -1514,5 +1511,115 @@ i.e.\ graph-Laplacian (label-propagation) regularisation: a gene borrows routing
 strength from its network neighbours. This is one sparse matrix-vector product per
 step and adds no transformer parameters, so the parameter-efficiency claim is
 untouched; we expose it as an option and leave its evaluation to future work.
+
+\section{Token Reduction Validation}
+\label{app:tokenred}
+This appendix gives the full token-reduction validation summarised in
+Sec.~\ref{sec:tokenred}. The protocol measures, on the headline cohort model, how
+effectively the marker router reduces the input token space while preserving the
+informative features, and is organised into four parts plus a ranking-consistency
+analysis. The structured record is regenerated by
+\texttt{python -m recursive\_marker\_transformer.token\_reduction} and written to
+\texttt{token\_reduction.json}; the complete per-gene ranking is written to
+\texttt{token\_reduction\_ranking.csv}.
+
+\paragraph{(1) Token reduction summary.}
+The router reduces the 4,000 gene tokens of a sample to 256 marker
+tokens, a 93.6\% reduction (Table~\ref{tab:tokenred}). Because
+self-attention is quadratic in the token count, this lowers the attention cost by a
+factor $(N/M)^2 = $244.1$\times$, which is the upstream source of the
+parameter and FLOP savings reported in the main paper.
+
+\paragraph{(2) Token selection information.}
+The selected (retained) tokens are the 256 genes chosen by the $M$ marker
+query slots at evaluation (one arg-max gene per slot); their indices and gene
+identifiers, and the count of discarded tokens, are stored in the record. The genes
+appear at the top of the ranking in Table~\ref{tab:tokenredrank}.
+
+\paragraph{(3) Feature importance ranking.}
+Every gene is scored by its marker-query affinity (the pre-hardening query$\cdot$key
+score, max over the $M$ slots), giving a continuous ranking over all 4,000 genes.
+Table~\ref{tab:tokenredrank} lists both the descending view (most important first) and
+the ascending view (least important first); each entry is a rank, gene identifier, and
+importance score. The two views are exact reverses of one ranking.
+
+\paragraph{(4) Selection metadata.}
+Table~\ref{tab:tokenred} records the configuration of the reduction: the selection
+method (cross-attention marker router with recursive refinement), the importance score,
+the top-$k$ value ($M$ query slots), the selection rule (soft over all genes during
+training with a temperature anneal, hard arg-max at evaluation, no score threshold), and
+the relevant model hyperparameters.
+
+\paragraph{Ranking consistency.}
+Two quality checks accompany the reduction. First, the retained tokens are
+disproportionately important: their mean importance is 34.13 against
+11.96 for the discarded tokens, and they hold 16.3 of the total
+importance mass while being a 93.6\%-smaller set, so selection is far
+from random. Second, a gene's selection importance and the compute it is subsequently
+allocated are nearly uncorrelated in rank (Spearman $\rho{=}$-0.062 between
+marker-query affinity and mean recursion depth): \emph{which} genes are kept and
+\emph{how deeply} a kept gene is then iterated are largely independent, complementary
+signals rather than two views of one quantity, consistent with the main-paper finding
+that adaptive routing buys compute rather than accuracy. We report this rank correlation
+transparently rather than as a positive consistency claim.
+
+\begin{table}[h]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{ll}
+\toprule
+Quantity & Value \\
+\midrule
+Original gene tokens ($N$) & 4,000 \\
+Retained marker tokens ($M$) & 256 \\
+Removed tokens & 3,744 (93.6\%) \\
+Attention-cost factor $(N/M)^2$ & 244.1$\times$ \\
+Importance mass retained & 16.3 \\
+Mean importance, kept vs.\ dropped & 34.13 vs.\ 11.96 \\
+$\rho$(importance, recursion depth) & -0.062 \\
+Selection method & cross-attention marker router \\
+Top-$k$ / selection rule & $M{=}$256 slots, hard arg-max at eval \\
+\bottomrule
+\end{tabular}}
+\caption{Token Reduction Validation on the cohort task: reduction statistics
+($N\!\to\!M$, the $O(N^2)\!\to\!O(M^2)$ attention factor), whether the kept tokens are
+the informative ones (importance mass and kept-vs-dropped mean importance), the
+importance--vs--recursion-depth rank correlation, and the selection metadata
+(method, top-$k$, selection rule).}
+\label{tab:tokenred}
+\end{table}
+
+\begin{table}[h]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{rlc@{\hskip 1.5em}rlc}
+\toprule
+\multicolumn{3}{c}{Most important (descending)} & \multicolumn{3}{c}{Least important (ascending)} \\
+\cmidrule(lr){1-3}\cmidrule(lr){4-6}
+Rank & Gene & Score & Rank & Gene & Score \\
+\midrule
+1 & ADAM12 & 42.58 & 1 & ALS2CR11 & 6.69 \\
+2 & IL1R2 & 42.18 & 2 & SPINK2 & 6.73 \\
+3 & SLC6A2 & 41.96 & 3 & B3GNT3 & 6.90 \\
+4 & SRMS & 41.93 & 4 & MAST1 & 7.04 \\
+5 & MEG3 & 41.68 & 5 & AGR3 & 7.05 \\
+6 & CADM3 & 41.63 & 6 & PRUNE2 & 7.22 \\
+7 & CES1 & 41.44 & 7 & TRY6 & 7.26 \\
+8 & MT1F & 40.63 & 8 & MFAP4 & 7.34 \\
+9 & RXFP1 & 40.15 & 9 & DDX43 & 7.35 \\
+10 & HEPN1 & 39.65 & 10 & ZNF695 & 7.37 \\
+11 & RBP5 & 39.40 & 11 & SPC24 & 7.39 \\
+12 & DKFZp434J0226 & 39.37 & 12 & CD274 & 7.49 \\
+13 & C8orf46 & 39.30 & 13 & GPR110 & 7.51 \\
+14 & FAM153A & 39.27 & 14 & TMPRSS11A & 7.53 \\
+15 & SFTPB & 39.17 & 15 & TNFSF15 & 7.57 \\
+\bottomrule
+\end{tabular}}
+\caption{Feature importance ranking (marker-query affinity): the top most important
+(descending) and least important (ascending) genes, each as a rank, gene identifier,
+and importance score. The full per-gene ranking is in
+\texttt{token\_reduction\_ranking.csv}.}
+\label{tab:tokenredrank}
+\end{table}
 
 \end{document}

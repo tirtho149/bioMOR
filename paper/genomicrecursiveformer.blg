@@ -3,44 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: genomicrecursiveformer.aux
 The style file: aaai.bst
 Database file #1: refs.bib
-You've used 45 entries,
+You've used 50 entries,
             2568 wiz_defined-function locations,
-            785 strings with 13983 characters,
-and the built_in function-call counts, 19765 in all, are:
-= -- 1970
-> -- 1276
+            801 strings with 14954 characters,
+and the built_in function-call counts, 21978 in all, are:
+= -- 2183
+> -- 1426
 < -- 0
-+ -- 468
-- -- 458
-* -- 1715
-:= -- 3450
-add.period$ -- 225
-call.type$ -- 45
-change.case$ -- 403
-chr.to.int$ -- 45
-cite$ -- 45
-duplicate$ -- 635
-empty$ -- 1107
-format.name$ -- 526
-if$ -- 3832
++ -- 523
+- -- 512
+* -- 1899
+:= -- 3834
+add.period$ -- 250
+call.type$ -- 50
+change.case$ -- 450
+chr.to.int$ -- 50
+cite$ -- 50
+duplicate$ -- 713
+empty$ -- 1244
+format.name$ -- 585
+if$ -- 4273
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 45
-newline$ -- 273
-num.names$ -- 135
-pop$ -- 353
+missing$ -- 50
+newline$ -- 303
+num.names$ -- 150
+pop$ -- 405
 preamble$ -- 1
-purify$ -- 448
+purify$ -- 500
 quote$ -- 0
-skip$ -- 478
+skip$ -- 524
 stack$ -- 0
-substring$ -- 610
-swap$ -- 90
+substring$ -- 648
+swap$ -- 100
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 360
+type$ -- 400
 warning$ -- 0
-while$ -- 116
-width$ -- 49
-write$ -- 606
+while$ -- 127
+width$ -- 55
+write$ -- 672
