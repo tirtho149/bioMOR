@@ -227,6 +227,12 @@ def main():
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--patience", type=int, default=8)
     ap.add_argument("--device", type=str, default="auto")
+    ap.add_argument("--recursion_mode", type=str, default="expert",
+                    choices=["fixed", "expert", "token"],
+                    help="expert=shared early-exit (default), token=MoR token routing")
+    ap.add_argument("--share_weights", dest="share_weights", action="store_true", default=True)
+    ap.add_argument("--no_share_weights", dest="share_weights", action="store_false",
+                    help="untie the recursion blocks (Independent stack)")
     args = ap.parse_args()
 
     print(f"[genonet] loading {args.csv} ...", flush=True)
@@ -236,9 +242,12 @@ def main():
     base = RMTConfig(
         heads=("cancer_type",), n_hvg=None, batch_size=args.batch_size,
         d_model=args.d_model, d_ff=2 * args.d_model, n_markers=args.n_markers,
-        marker_mode="router", recursion_mode="expert", recursion_depth=4,
+        marker_mode="router", recursion_mode=args.recursion_mode, recursion_depth=4,
+        share_weights=args.share_weights,
         epochs=args.epochs, patience=args.patience, lr=args.lr, device=args.device,
     )
+    print(f"[genonet] variant: recursion_mode={args.recursion_mode} "
+          f"share_weights={args.share_weights}", flush=True)
     summary = []
     for task in args.tasks:
         r = run_task(task, X, labels, base, args.out)

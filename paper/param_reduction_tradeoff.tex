@@ -180,10 +180,11 @@ span tumor identity, clinical staging, and outcome.
 \begin{table}[h]
 \centering
 \caption{\textbf{Per-task accuracy of the three model types, with parameters.} Test accuracy
-for each of the three models (Independent / Recursive-shared / MoR) across the six TCGA tasks;
-recurrent-block parameters are listed under each model. The Independent and MoR variants were
-run only as part of the \texttt{cancer\_type} parameter-reduction study; the staging and
-survival tasks use the shared recursive model (``--'' = not run).}
+for each of the three models (Independent / Recursive-shared / MoR) across all six TCGA tasks;
+recurrent-block parameters are listed under each model. The shared recursive model matches the
+$\sim$4$\times$-larger Independent stack within a couple of accuracy points on most tasks ---
+and even edges it on \texttt{pathologic\_stage} and \texttt{tumor\_status} --- at one quarter
+the recurrent parameters.}
 \label{tab:tasks}
 \setlength{\tabcolsep}{6pt}
 \small
@@ -196,11 +197,11 @@ survival tasks use the shared recursive model (``--'' = not run).}
 & & & {\footnotesize 530{,}432 par.} & {\footnotesize 132{,}992 par.} & {\footnotesize 132{,}992 par.} \\
 \midrule
 \rowcolor{morblue} \texttt{cancer\_type} & 4 & 523 & \best{0.9904} & 0.9847 & 0.9885 \\
-\texttt{pathologic\_stage} & 4 & 548 & -- & 0.5000 & -- \\
-\texttt{pathologic\_T}     & 4 & 548 & -- & 0.4580 & -- \\
-\texttt{pathologic\_N}     & 4 & 548 & -- & 0.4416 & -- \\
-\texttt{os\_binary}        & 2 & 548 & -- & 0.7372 & -- \\
-\texttt{tumor\_status}     & 2 & 548 & -- & 0.6825 & -- \\
+\texttt{pathologic\_stage} & 4 & 548 & 0.4909 & \best{0.5000} & 0.4745 \\
+\texttt{pathologic\_T}     & 4 & 548 & \best{0.4653} & 0.4580 & 0.4288 \\
+\texttt{pathologic\_N}     & 4 & 548 & \best{0.4672} & 0.4416 & 0.4124 \\
+\texttt{os\_binary}        & 2 & 548 & \best{0.7573} & 0.7372 & 0.6350 \\
+\texttt{tumor\_status}     & 2 & 548 & 0.6734 & \best{0.6825} & 0.6296 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -209,9 +210,10 @@ survival tasks use the shared recursive model (``--'' = not run).}
 \noindent\footnotesize
 \textit{Notes.} Parameters under each header are recurrent transformer-block parameters
 (total params: 1{,}109{,}897 Independent; 712{,}457 shared and MoR). All numbers are
-single-seed (seed 42) test accuracies from \texttt{results\_genonet/} (staging/outcome tasks)
-and the \texttt{cancer\_type} heads in \texttt{results/\{independent,main,mor\_token\}.json}.
-Only \texttt{cancer\_type} was evaluated for all three model types; the parameter-reduction
-trade-off on page~1 is the full three-way comparison.
+single-seed (seed 42) test accuracies; the \texttt{cancer\_type} heads come from
+\texttt{results/\{independent,main,mor\_token\}.json} and the five staging/survival tasks from
+\texttt{results\_genonet\{\_independent,,\_mor\}/}. All three model types were trained on every
+task; the page-1 table reports the same three-way comparison with full parameter and
+multi-metric detail on \texttt{cancer\_type}.
 
 \end{document}
