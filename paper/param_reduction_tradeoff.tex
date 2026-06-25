@@ -87,22 +87,25 @@ weights (\emph{Independent}) or add token-adaptive routing (\emph{MoR}).
 %---------------------------------------------------------------
 \begin{table}[h]
 \centering
-\caption{\textbf{Main parameter-reduction trade-off.} Sharing the transformer block across
-the 4 recursion steps cuts transformer parameters by $\sim$4$\times$ versus an
-un-shared (independent) stack, while losing only 0.57 accuracy points. Mixture-of-Recursions
-(MoR) token routing keeps the shared (small) parameter count yet recovers most of the gap and
-saves $\sim$41\% compute.}
+\caption{\textbf{Parameters and performance for all three model types.} One view of the full
+trade-off: parameter budget (recurrent-block params, total params, and the independent$/$shared
+ratio) alongside all three performance metrics (accuracy, macro-F1, weighted-F1). Sharing the
+transformer block cuts recurrent params by $\sim$4$\times$ for a 0.57-point accuracy cost;
+Mixture-of-Recursions (MoR) keeps that small budget yet recovers the gap to 0.19 points and is
+best on macro-F1.}
 \label{tab:main}
-\begin{tabular}{l l c r c r r}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{l c c r r c r r r}
 \toprule
+& & & \multicolumn{3}{c}{\textbf{Parameters}} & \multicolumn{3}{c}{\textbf{Performance}} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-9}
 \textbf{Model} & \textbf{Weights} & \textbf{Routing} &
-\textbf{Transf.\ params} & \textbf{Param} &
-\textbf{Test acc.} & \textbf{Macro-F1} \\
- & & & & \textbf{ratio} & & \\
+\textbf{Recurrent} & \textbf{Total} & \textbf{Ratio} &
+\textbf{Acc.} & \textbf{Macro-F1} & \textbf{Wtd-F1} \\
 \midrule
-Independent stack       & untied  & none           & 530{,}432 & 3.99$\times$ & \best{0.9904} & 0.9891 \\
-\textbf{Recursive (shared)} & shared  & none       & 132{,}992 & 1.00$\times$ & 0.9847 & 0.9871 \\
-\rowcolor{morblue} \textbf{MoR (token-adaptive)} & \textbf{shared} & \textbf{token} & \textbf{132{,}992} & \textbf{1.00$\times$} & \best{0.9885} & \best{0.9892} \\
+Independent stack       & untied & none  & 530{,}432 & 1{,}109{,}897 & 3.99$\times$ & \best{0.9904} & 0.9891 & \best{0.9904} \\
+\textbf{Recursive (shared)} & shared & none & 132{,}992 & 712{,}457 & 1.00$\times$ & 0.9847 & 0.9871 & 0.9847 \\
+\rowcolor{morblue} \textbf{MoR (token-adaptive)} & \textbf{shared} & \textbf{token} & \textbf{132{,}992} & \textbf{712{,}457} & \textbf{1.00$\times$} & \best{0.9885} & \best{0.9892} & \best{0.9885} \\
 \bottomrule
 \end{tabular}
 \end{table}
