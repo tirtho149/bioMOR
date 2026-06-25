@@ -6,6 +6,22 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{colortbl}
+\usepackage[section]{placeins}  % floats never drift past their \section
+% --- tighter float / whitespace control (reduce vertical gaps) ---
+\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{6pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.85}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.85}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -441,52 +457,20 @@ logit $z$-loss (and, for token-choice, the balancing term) added to the objectiv
 
 \subsection{Biology-Informed Routing}
 \label{sec:biorouter}
-So far the router decides depth from data alone, and biology only enters afterwards,
-when we cross-check the deepest-routed genes against curated markers. We instead move
-a biological prior \emph{into} the routing decision. For marker token $m$ at step
-$t$, the expert-choice logit becomes
+We optionally move a biological prior \emph{into} the routing decision: the expert-choice
+logit gains an additive, annealed bias,
 \begin{equation}
-\tilde r^{(t)}_m \;=\; \underbrace{\tfrac{1}{\tau}\,\mathbf{w}_r^{\top}\mathbf{H}^{(t)}_m}_{\text{data-driven (learned)}}
-\;+\; \underbrace{\beta_t\,\pi_m}_{\text{biological prior}},
+\tilde r^{(t)}_m \;=\; \tfrac{1}{\tau}\,\mathbf{w}_r^{\top}\mathbf{H}^{(t)}_m \;+\; \beta_t\,\pi_m,
 \label{eq:biorouter}
 \end{equation}
-and the keep/drop top-$\lceil c_t M\rceil$ and the gate
-$g^{(t)}_m=\sigma(\tilde r^{(t)}_m)$ run exactly as before, so the recursion-depth
-definition is unchanged but now reflects prior and data together. This is the same
-loss-free additive-bias slot used by Switch routing \cite{shazeer2017outrageously},
-except the bias is a per-gene \emph{biological} score, not a load-balancing scalar.
-
-\paragraph{The prior $\pi_m$ from gene-gene interactions.}
-We obtain $\pi_m$ from genomap's gene-gene \emph{interaction} identification
-\cite{islam2023cartography}: genomap's \texttt{createInteractionMatrix} defines
-interaction as the pairwise correlation distance between genes across samples
-(which it then feeds to optimal transport for an image layout). We call that
-function on the training split and reuse only its interaction matrix, taking the
-co-expression affinity $\mathbf{W}_{ij}=|\mathrm{corr}(g_i,g_j)|=|1-d_{ij}|$ from
-genomap's distance $d_{ij}$, sparsifying it to each gene's $k$ nearest neighbours,
-symmetrising it, and reading off the network centrality
-\begin{equation}
-\pi \;=\; \mathrm{zscore}\big(\text{eigvec-centrality}(\mathbf{W})\big),
-\end{equation}
-so co-expression \emph{hub} genes, the master-regulator-like nodes whose perturbation
-propagates widely, receive a larger prior and are nudged to recurse deeper. Crucially
-$\mathbf{W}$ is built from \emph{expression alone, with no labels}, so the prior
-injects biological network structure without leaking the cohort labels; this is what
-keeps the gene-discovery claim honest.
-
-\paragraph{Annealing $\beta_t$.}
-A fixed strong prior would behave like hard routing, pinning compute to known hubs and
-unable to discover new genes, exactly the failure mode of our uniform-init router. We
-therefore warm-start: $\beta_t=\beta_0(1-\text{progress})$ decays to $0$ over training,
-so the prior dominates early, when hidden states are still random and biology gives a
-sensible starting allocation, and the data-driven term takes over late. This is an
-empirical-Bayes shrinkage / curriculum: a strong prior when evidence is weak, fading
-as evidence accumulates. Because $\pi_m$ is a constant additive bias, $\tilde r^{(t)}_m$
-stays smooth in $\mathbf{w}_r$ and the gate $g^{(t)}_m$ still carries gradient, so
-nothing about trainability or the parameter-efficiency claim changes. We validate the
-component against a degree-matched \emph{random}-graph control: only if the real
-co-expression graph beats the random one is it the biology, not mere smoothing, that
-helps (Sec.~\ref{sec:interaction}).
+where $\pi_m$ is the label-free co-expression-network centrality of gene $m$ (eigenvector
+centrality of genomap's gene-gene interaction graph \cite{islam2023cartography}) and
+$\beta_t$ decays to $0$, nudging co-expression hub genes to recurse deeper early in training
+and letting the data-driven term take over late. Because $\pi$ is a
+constant additive bias the gate stays differentiable and nothing about the
+parameter-efficiency claim changes. We validate it against a degree-matched random-graph
+control (only a win over that control implicates biology, not mere smoothing); full equations
+and the control are in Appendix~\ref{sec:interaction}.
 
 \subsection{Training Objective}
 We minimise a composite loss
@@ -757,54 +741,11 @@ to all variants.}
 \label{tab:cost}
 \end{table}
 
-\subsection{Token Reduction Validation}
-\label{sec:tokenred}
-Parameter and FLOP savings both follow from one upstream effect: the marker router
-collapses the input token space. On the headline cohort model the router keeps
-256 marker tokens out of 4,000 gene tokens, a 93.6\%
-reduction that lowers self-attention cost by 244.1$\times$
-($O(N^2)\!\to\!O(M^2)$), and the retained tokens are the informative ones: they carry
-a mean marker-query importance of 34.13 versus 11.96 for the discarded
-tokens, so the router keeps disproportionately high-scoring genes rather than pruning at
-random. We validate this in full, with reduction statistics, the descending/ascending
-feature-importance ranking, the selection metadata, and a ranking-consistency analysis,
-in Appendix~\ref{app:tokenred}.
-
-\subsection{Clinical Phenotype Tasks (genoNet Benchmark)}
-Beyond cohort of origin, the same tumours carry clinically meaningful phenotype
-labels. genomap's genoNet classifier \cite{islam2023cartography} reshapes the gene
-vector into an image and applies a small CNN; we instead keep our model fixed and
-feed it the raw, full gene vector (all 20{,}530 genes,
-2{,}738 samples). We run the unchanged headline SMART configuration on
-the five clinical genoNet tasks (Table~\ref{tab:genonet}): three ordinal pathology
-labels (overall stage, tumour T, node N) and two binary clinical labels (overall
-survival, tumour status). We deliberately exclude cohort detection from this
-benchmark: it is near-linearly separable from bulk expression and saturated for any
-reasonable model, so it is a sanity check rather than a predictive task. SMART
-degrades gracefully across the genuinely hard staging and survival tasks, which are
-only weakly determined by bulk expression, matching the difficulty ordering
-reported for deep classifiers on TCGA RNA-seq
-\cite{khalifa2020ai,rukhsar2022analyzing} and for staging in recent multi-omic
-pipelines \cite{ghaleb2025sdcfe}.
-
-\begin{table}[t]
-\centering
-\begin{tabular}{lcccc}
-\toprule
-Task & Classes & Acc. & Macro-F1 & Weighted-F1 \\
-\midrule
-Pathologic stage & 4 & 46.0 & 45.5 & 45.9 \\
-Tumour (T) & 4 & 41.1 & 38.8 & 42.0 \\
-Node (N) & 4 & 47.4 & 37.8 & 49.3 \\
-Overall survival & 2 & 71.4 & 56.4 & 74.4 \\
-Tumour status & 2 & 60.6 & 53.9 & 63.8 \\
-\bottomrule
-\end{tabular}
-\caption{SMART on the five clinical genoNet tasks (unified TCGA table, all genes),
-run with the unchanged headline configuration. Staging, nodal and survival labels
-are intrinsically hard from bulk expression.}
-\label{tab:genonet}
-\end{table}
+\paragraph{Token reduction.}\label{sec:tokenred} Both savings follow from one upstream effect: the router
+keeps 256 of 4{,}000 gene tokens (93.6\% reduction, lowering attention cost
+244.1$\times$, $O(N^2)\!\to\!O(M^2)$), and the retained tokens are the informative ones
+(mean importance 34.13 vs.\ 11.96 discarded). Full statistics, the importance ranking and
+a consistency analysis are in Appendix~\ref{app:tokenred}.
 
 \subsection{External Baselines}
 To position the absolute numbers we compare SMART against strong \emph{nonlinear}
@@ -915,7 +856,91 @@ fine-tuning run from the released harness and are never estimated.}
 \label{tab:foundation}
 \end{table}
 
-\subsection{Router-Based Gene Identification}
+\section{Discussion and Limitations}
+SMART shows that biological inductive bias and parameter-efficient recursion can be
+co-designed: the same mechanisms that make the model small (weight sharing, marker
+compression) also make it interpretable. The headline finding is informatively mixed
+--- SMART attains the best across-task mean macro-F1 of any deep model and wins the
+binary clinical heads, but tuned gradient boosting leads on tumour stage and T --- so
+SMART's advantage is \emph{efficiency and interpretability at competitive accuracy},
+not a universal accuracy gain.
+
+We scope the claims accordingly. (i) \emph{Marker learning is signal-dependent}: the
+learned router clearly beats random/variance selection on the cohort task, but on the
+weakly-determined staging labels every component sits within one std of the others.
+(ii) \emph{Accuracy ceiling}: closing the staging gap to gradient boosting likely needs
+ordinal-aware losses or pretraining \cite{cui2024scgpt,hao2024large,fu2025get}.
+(iii) \emph{Generalisation}: results are single-assembly (TCGA); leave-one-cohort-out,
+an external cohort, and efficient-attention backbones
+\cite{wang2020linformer,choromanski2021rethinking,xiong2021nystromformer} remain future
+work. (iv) \emph{Depth vs.\ variance}: recursion depth and a gene's expression variance
+may be partially entangled, so part of the depth signal could reflect statistical
+prominence rather than biology; we do not disentangle them here. (v) \emph{Biology-informed
+routing is not yet realised}: the genomap interaction prior does not separate from a
+degree-matched random-graph control on our tasks (App.), so we claim no benefit from
+biological structure. Efficiency evidence is stack FLOPs and wall-clock rather than
+end-to-end inference profiles; we report these so the trade-offs are not overstated.
+
+\section{Conclusion}
+We presented SMART, a recursive marker-guided transformer that makes parameter
+efficiency an architectural property of transcriptomic models. By learning marker
+genes, compressing around them, and sharing one block across recursive refinement
+steps, it matches strong cohort-classification accuracy with several times fewer
+parameters and exposes an interpretable, compute-allocated recursion-depth gene panel.
+Evaluated on the full transcriptome across five clinical phenotype tasks it achieves
+the best mean macro-F1 against ten strong nonlinear baselines while remaining far
+smaller, and it transfers unchanged to single-cell data; our multi-seed study also
+delineates, honestly, where the marker-learning advantage does and does not hold. We
+additionally formulate a biology-informed router that folds a label-free genomap
+gene-gene interaction prior into the recursion decision, with full mathematical and
+biological grounding; that it does not yet beat a random-graph control on these
+datasets is reported as an honest negative result and a clear direction for stronger,
+network-structured settings. The complete pipeline, including all experiments,
+baselines, and this paper, regenerates from a single command.
+
+\bibliographystyle{aaai}
+\bibliography{refs}
+
+\appendix
+
+\section{Clinical Phenotype Tasks (genoNet Benchmark)}
+Beyond cohort of origin, the same tumours carry clinically meaningful phenotype
+labels. genomap's genoNet classifier \cite{islam2023cartography} reshapes the gene
+vector into an image and applies a small CNN; we instead keep our model fixed and
+feed it the raw, full gene vector (all 20{,}530 genes,
+2{,}738 samples). We run the unchanged headline SMART configuration on
+the five clinical genoNet tasks (Table~\ref{tab:genonet}): three ordinal pathology
+labels (overall stage, tumour T, node N) and two binary clinical labels (overall
+survival, tumour status). We deliberately exclude cohort detection from this
+benchmark: it is near-linearly separable from bulk expression and saturated for any
+reasonable model, so it is a sanity check rather than a predictive task. SMART
+degrades gracefully across the genuinely hard staging and survival tasks, which are
+only weakly determined by bulk expression, matching the difficulty ordering
+reported for deep classifiers on TCGA RNA-seq
+\cite{khalifa2020ai,rukhsar2022analyzing} and for staging in recent multi-omic
+pipelines \cite{ghaleb2025sdcfe}.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Task & Classes & Acc. & Macro-F1 & Weighted-F1 \\
+\midrule
+Pathologic stage & 4 & 46.0 & 45.5 & 45.9 \\
+Tumour (T) & 4 & 41.1 & 38.8 & 42.0 \\
+Node (N) & 4 & 47.4 & 37.8 & 49.3 \\
+Overall survival & 2 & 71.4 & 56.4 & 74.4 \\
+Tumour status & 2 & 60.6 & 53.9 & 63.8 \\
+\bottomrule
+\end{tabular}
+\caption{SMART on the five clinical genoNet tasks (unified TCGA table, all genes),
+run with the unchanged headline configuration. Staging, nodal and survival labels
+are intrinsically hard from bulk expression.}
+\label{tab:genonet}
+\end{table}
+
+
+\section{Router-Based Gene Identification}
 \label{sec:geneid}
 A central claim is that the architecture \emph{identifies} genes rather than merely
 classifying. Two intrinsic signals rank genes: the cross-attention router's
@@ -977,6 +1002,8 @@ Reactome gene sets \cite{gillespie2022reactome} (hypergeometric test with FDR
 control), reported as ranked pathways with effect sizes, is a natural next step that
 would turn the qualitative marker validation into a quantitative one; we leave it to
 future work.
+
+
 
 
 \section{Ablation Studies}
@@ -1319,81 +1346,7 @@ mean\,$\pm$\,std) and stack parameters vs.\ the number of marker tokens $M$.}
 \end{table}
 
 
-\section{Discussion and Limitations}
-SMART shows that biological inductive bias and parameter-efficient recursion can be
-co-designed: the same mechanism that makes the model small (sharing, compression)
-also makes it interpretable (markers). Beyond the controlled cohort task, we
-stress-tested the model on the full $\sim$20{,}530-gene transcriptome across five
-clinical phenotype tasks, against ten strong nonlinear baselines, and across four
-single-cell datasets, which addresses the all-gene regime, the external-baseline
-comparison, and partial multi-seed variance reporting that an earlier version of
-this work left open. The headline finding is mixed in an informative way: SMART
-attains the best across-task mean macro-F1 and wins the binary clinical tasks, but
-gradient-boosted trees lead on tumour stage and T, so SMART's advantage is
-efficiency and interpretability at competitive accuracy rather than a universal
-accuracy gain.
 
-We scope the claims to what the evidence supports, and flag the genuine remaining
-limitations. (i) \emph{Marker learning is signal-dependent.} The learned router
-clearly beats random and variance selection on the cohort task, but our five-seed
-ablations show that on the weakly-determined staging and nodal labels every
-component, learned selection included, sits within one standard deviation of the
-others; marker learning helps only where the label carries a marker signal.
-(ii) \emph{Accuracy ceiling.} Against tuned gradient boosting SMART leads on the
-mean and on three of five tasks but trails on two; closing the staging gap likely
-needs ordinal-aware losses or pretraining \cite{cui2024scgpt,hao2024large,fu2025get}.
-(iii) \emph{Generalisation.} Results are single external assembly (TCGA);
-leave-one-cohort-out and an independent external cohort, plus large-scale
-pretraining and comparison against efficient-attention backbones
-\cite{wang2020linformer,choromanski2021rethinking,xiong2021nystromformer}, remain
-future work. (iv) \emph{Routing/refinement interaction and optimisation.}
-Expert-choice routing under-performs fixed depth unless the funnel is gentle and
-gates are full-strength, and the differentiable top-$k$ is the main source of
-optimisation noise; smoother relaxations are a promising direction.
-(v) \emph{Depth versus statistical prominence.} Recursion depth and a gene's raw
-expression variance may be partially entangled: a high-variance gene is both easier
-to select and more likely to be routed deep, so part of the depth signal could
-reflect statistical prominence rather than biology. We do not disentangle the two
-here; a rank correlation of $d_m$ against per-gene variance and mean $|z|$ on a
-held-out split, together with the Reactome enrichment above, is the test needed to
-establish that depth carries information beyond variance, and we leave it to future
-work. (vi) \emph{Biology-informed routing is not yet realised.} The genomap
-interaction prior is principled and label-free, but on our four tasks it does not
-separate from a degree-matched random-graph control (Sec.~\ref{sec:interaction}), so
-we cannot claim a benefit from biological structure here; testing it where the prior
-should bite, datasets with stronger or explicitly network-mediated signal, with
-richer priors (pathway membership, regulatory-network centrality) and the optional
-logit Laplacian smoothing of Appendix~\ref{app:theory}, is the natural next step.
-(vii) \emph{Comparisons and profiling left to future work.} We do not yet include a
-controlled from-scratch transcriptomics-transformer baseline (e.g.\ a Geneformer- or
-GexBERT-style stack trained on our split) nor efficient-attention backbones
-\cite{wang2020linformer,choromanski2021rethinking,xiong2021nystromformer} as
-head-to-head comparators, and our efficiency evidence is stack FLOPs and training
-wall-clock rather than end-to-end inference-time and memory profiles across batch
-sizes; both are clear next steps to substantiate the practical efficiency claim. We
-report these so the trade-offs are not overstated.
-
-\section{Conclusion}
-We presented SMART, a recursive marker-guided transformer that makes parameter
-efficiency an architectural property of transcriptomic models. By learning marker
-genes, compressing around them, and sharing one block across recursive refinement
-steps, it matches strong cohort-classification accuracy with several times fewer
-parameters and exposes an interpretable, compute-allocated recursion-depth gene panel.
-Evaluated on the full transcriptome across five clinical phenotype tasks it achieves
-the best mean macro-F1 against ten strong nonlinear baselines while remaining far
-smaller, and it transfers unchanged to single-cell data; our multi-seed study also
-delineates, honestly, where the marker-learning advantage does and does not hold. We
-additionally formulate a biology-informed router that folds a label-free genomap
-gene-gene interaction prior into the recursion decision, with full mathematical and
-biological grounding; that it does not yet beat a random-graph control on these
-datasets is reported as an honest negative result and a clear direction for stronger,
-network-structured settings. The complete pipeline, including all experiments,
-baselines, and this paper, regenerates from a single command.
-
-\bibliographystyle{aaai}
-\bibliography{refs}
-
-\appendix
 \section{Dataset Details}
 \label{app:data}
 We use three data sources, summarised in Table~\ref{tab:datasets}. All gene
