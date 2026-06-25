@@ -250,6 +250,7 @@ def main():
     ap.add_argument("--n_markers", type=int, default=128)
     ap.add_argument("--batch_size", type=int, default=512)
     ap.add_argument("--lr", type=float, default=3e-4)
+    ap.add_argument("--weight_decay", type=float, default=1e-2)
     ap.add_argument("--patience", type=int, default=5)
     ap.add_argument("--device", type=str, default="auto")
     ap.add_argument("--recursion_mode", type=str, default="expert",
@@ -268,7 +269,8 @@ def main():
         d_model=args.d_model, d_ff=2 * args.d_model, n_markers=args.n_markers,
         marker_mode="router", recursion_mode=args.recursion_mode, recursion_depth=4,
         share_weights=args.share_weights, seed=args.seed,
-        epochs=args.epochs, patience=args.patience, lr=args.lr, device=args.device,
+        epochs=args.epochs, patience=args.patience, lr=args.lr,
+        weight_decay=args.weight_decay, device=args.device,
     )
     print(f"[singlecell] variant: recursion_mode={args.recursion_mode} "
           f"share_weights={args.share_weights} cv_folds={args.cv_folds}", flush=True)

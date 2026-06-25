@@ -17,10 +17,16 @@
 # =============================================================================
 # Single-cell CELL-RECOGNITION exactly as in the genomap paper (Islam & Xing,
 # Nat. Commun. 2023, s41467-023-36383-6): cell-type classification on the
-# capsule datasets using the paper's train/test protocol -- shipped split where
-# present (Tabula Muris 70/30, pancreas integration split), else stratified
-# 70/30 -- and ACCURACY as the headline metric. Run for all THREE model types.
-# One array task per variant (0=shared, 1=independent, 2=mor).
+# capsule datasets (genomaps: the paper's 5-10% HVG + entropy cartography,
+# precomputed in the capsule) using the paper's exact protocol --
+#   * data: precomputed genomap features (33x33=1089, 44x44=1936, ...)
+#   * split: shipped where present (Tabula Muris 70/30, pancreas integration),
+#            else stratified 70/30 ("70% train, rest test" -- paper)
+#   * optimizer: Adam + weight decay, lr 0.001, weight_decay 1e-5, batch 128,
+#                150 epochs, shuffle each epoch (paper Methods / Suppl. Table S2)
+#   * metric: ACCURACY (paper headline)
+# Run for all THREE model types. One array task per variant (0=shared,
+# 1=independent, 2=mor).
 # Output: results_singlecell_paper/<variant>/<dataset>.json
 #   sbatch run_singlecell_paper.sbatch
 # =============================================================================
@@ -42,9 +48,10 @@ esac
 echo "[sc-paper] variant=$V host=$(hostname) date=$(date)"
 nvidia-smi -L
 
+# Paper hyperparameters: lr 0.001, weight_decay 1e-5, batch 128, 150 epochs.
 $PY -m recursive_marker_transformer.singlecell \
     --data data/singlecell --out "results_singlecell_paper/$V" \
     --datasets tabula_muris common_class prototype pancreas \
-    --epochs 10 --d_model 96 --n_markers 128 --batch_size 512 \
-    --lr 3e-4 --patience 5 --device cuda $MODEFLAGS
+    --epochs 150 --d_model 96 --n_markers 128 --batch_size 128 \
+    --lr 0.001 --weight_decay 0.00001 --patience 15 --device cuda $MODEFLAGS
 echo "[sc-paper] variant=$V DONE rc=$? date=$(date)"
