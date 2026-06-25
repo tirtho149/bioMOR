@@ -69,12 +69,17 @@ def _load_dataset(d: Path):
 
 
 def _make_splits(y, split, seed):
+    """Genomap-paper protocol (Islam & Xing, Nat. Commun. 2023): use the capsule's
+    shipped train/test split when present (this is the paper's exact split, e.g.
+    Tabula Muris 38,407/16,458 = 70/30; pancreas = the integration split); otherwise
+    a stratified 70/30 train/test split, "a standard practice" per the paper."""
     idx = np.arange(len(y))
     if split is not None and (split == "train").any() and (split == "test").any():
         tr, te = idx[split == "train"], idx[split == "test"]
     else:
-        tr, te = train_test_split(idx, test_size=0.2, random_state=seed, stratify=y)
-    # carve a validation slice out of train (stratified)
+        tr, te = train_test_split(idx, test_size=0.30, random_state=seed, stratify=y)
+    # carve a small validation slice out of train (stratified) for early stopping;
+    # the test set is untouched and remains the paper's exact 30% hold-out.
     tr, va = train_test_split(tr, test_size=0.15, random_state=seed, stratify=y[tr])
     return tr, va, te
 
