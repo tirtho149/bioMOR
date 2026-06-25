@@ -94,6 +94,122 @@ class _DictLoader:
         return len(self.dl)
 
 
+def _fit_eval(task, Xs_full, y, tr, va, te, cfg, G, K, dtypes, device):
+    """Train on `tr` (z-scored on its own stats), early-stop on `va`, eval on `te`.
+    Returns (y_true, y_pred, model, test_loader)."""
+    mu = Xs_full[tr].mean(0, keepdims=True)
+    sd = Xs_full[tr].std(0, keepdims=True) + 1e-6
+    Xs = (Xs_full - mu) / sd
+
+    dl_tr = _DictLoader(Xs, y, tr, cfg.batch_size, True, task)
+    dl_va = _DictLoader(Xs, y, va, cfg.batch_size, False, task)
+    dl_te = _DictLoader(Xs, y, te, cfg.batch_size, False, task)
+
+    model = RecursiveMarkerTransformer(cfg, G, {task: K}, dtypes).to(device)
+    model.set_gene_variance(torch.from_numpy(Xs[tr].var(0).astype(np.float32)))
+
+    if getattr(cfg, "gene_interaction", None) not in (None, "none"):
+        from .interaction import build_interaction
+        inter = build_interaction(Xs[tr], G, mode=cfg.gene_interaction,
+                                  knn=cfg.interaction_knn, seed=cfg.seed)
+        model.set_gene_interaction(inter.centrality)
+
+    cw = _class_weights(torch.from_numpy(y[tr]), K).to(device)
+    criterion = RMTLoss(cfg, dtypes, {task: cw})
+    opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg.epochs)
+
+    best_f1, best_state, bad = -1.0, None, 0
+    for ep in range(cfg.epochs):
+        model.train()
+        model.set_anneal(ep / max(cfg.epochs - 1, 1))
+        for xb, yb in dl_tr:
+            xb = xb.to(device)
+            yb = {h: v.to(device) for h, v in yb.items()}
+            out = model(xb)
+            loss = criterion(out, yb)["total"]
+            opt.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            opt.step()
+        sched.step()
+        yt, yp = evaluate(model, dl_va, device, dtypes)[task]
+        vf1 = f1_score(yt, yp, average="macro")
+        if vf1 > best_f1:
+            best_f1, bad = vf1, 0
+            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+        else:
+            bad += 1
+            if bad >= cfg.patience:
+                break
+    if best_state is not None:
+        model.load_state_dict(best_state)
+
+    yt, yp = evaluate(model, dl_te, device, dtypes)[task]
+    return yt, yp, model, dl_te
+
+
+def run_task_cv(task: str, X: np.ndarray, labels: pd.DataFrame,
+                base: RMTConfig, out_dir: Path, folds: int = 5) -> dict:
+    """Stratified k-fold CV: every sample is tested once across folds. Reports
+    accuracy / macro-F1 / weighted-F1 as mean +/- std over folds -- robust for
+    small, imbalanced cohorts where a single split collapses to the majority."""
+    from sklearn.model_selection import StratifiedKFold
+    torch.manual_seed(base.seed)
+    np.random.seed(base.seed)
+    device = resolve_device(base.device)
+    dtypes = {task: "multiclass"}
+
+    y_raw = labels[task].values
+    uniq = np.unique(y_raw)
+    remap = {v: i for i, v in enumerate(uniq)}
+    y = np.array([remap[v] for v in y_raw], dtype=np.int64)
+    G, K = X.shape[1], int(y.max() + 1)
+    cfg = replace(base, heads=(task,), n_hvg=None, n_markers=min(base.n_markers, G))
+    Xf = X.astype(np.float32, copy=False)
+
+    skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=base.seed)
+    print(f"\n########## CV {task}: N={len(y)} G={G} K={K} folds={folds} device={device} "
+          f"##########", flush=True)
+
+    fold_metrics, model = [], None
+    for fi, (tr_all, te) in enumerate(skf.split(np.zeros(len(y)), y)):
+        _, cnt = np.unique(y[tr_all], return_counts=True)
+        strat = y[tr_all] if cnt.min() >= 2 else None
+        tr, va = train_test_split(tr_all, test_size=0.15,
+                                  random_state=base.seed + fi, stratify=strat)
+        yt, yp, model, _ = _fit_eval(task, Xf, y, tr, va, te, cfg, G, K, dtypes, device)
+        m = {"fold": fi, "n_test": int(len(te)),
+             "accuracy": float(accuracy_score(yt, yp)),
+             "macro_f1": float(f1_score(yt, yp, average="macro")),
+             "weighted_f1": float(f1_score(yt, yp, average="weighted"))}
+        fold_metrics.append(m)
+        print(f"  fold {fi+1}/{folds}: acc={m['accuracy']:.4f} "
+              f"macroF1={m['macro_f1']:.4f} (test {len(te)})", flush=True)
+
+    def _ms(key):
+        v = np.array([m[key] for m in fold_metrics], dtype=float)
+        return {"mean": float(v.mean()), "std": float(v.std(ddof=0))}
+
+    res = {
+        "task": task, "n_samples": int(len(y)), "n_genes": int(G), "n_classes": int(K),
+        "cv_folds": folds,
+        "transformer_params": int(model.transformer_param_count()),
+        "total_params": int(model.total_param_count()),
+        "config": cfg.as_dict(),
+        "fold_metrics": fold_metrics,
+        "accuracy": _ms("accuracy"),
+        "macro_f1": _ms("macro_f1"),
+        "weighted_f1": _ms("weighted_f1"),
+    }
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with open(out_dir / f"{task}.json", "w") as f:
+        json.dump(res, f, indent=1, default=float)
+    print(f"  [CV] {task}: acc={res['accuracy']['mean']:.4f}+/-{res['accuracy']['std']:.4f} "
+          f"macroF1={res['macro_f1']['mean']:.4f}+/-{res['macro_f1']['std']:.4f}", flush=True)
+    return res
+
+
 def run_task(task: str, X: np.ndarray, labels: pd.DataFrame,
              base: RMTConfig, out_dir: Path) -> dict:
     torch.manual_seed(base.seed)
@@ -118,69 +234,13 @@ def run_task(task: str, X: np.ndarray, labels: pd.DataFrame,
     tr, te = _split(idx, y, 0.2)
     tr, va = _split(tr, y[tr], 0.15)
 
-    # z-score on the train split only.
-    Xs = X.copy()
-    mu = Xs[tr].mean(0, keepdims=True)
-    sd = Xs[tr].std(0, keepdims=True) + 1e-6
-    Xs = (Xs - mu) / sd
-
     cfg = replace(base, heads=(task,), n_hvg=None, n_markers=min(base.n_markers, G))
     print(f"\n########## {task}: N={len(y)} G={G} K={K} "
           f"(train {len(tr)}, val {len(va)}, test {len(te)}) device={device} ##########",
           flush=True)
 
-    dl_tr = _DictLoader(Xs, y, tr, cfg.batch_size, True, task)
-    dl_va = _DictLoader(Xs, y, va, cfg.batch_size, False, task)
-    dl_te = _DictLoader(Xs, y, te, cfg.batch_size, False, task)
-
-    model = RecursiveMarkerTransformer(cfg, G, {task: K}, dtypes).to(device)
-    model.set_gene_variance(torch.from_numpy(Xs[tr].var(0).astype(np.float32)))
-
-    # Biology-informed router: genomap gene-gene-interaction centrality prior,
-    # built (label-free) on the train split of this task.
-    if getattr(cfg, "gene_interaction", None) not in (None, "none"):
-        from .interaction import build_interaction
-        inter = build_interaction(Xs[tr], G, mode=cfg.gene_interaction,
-                                  knn=cfg.interaction_knn, seed=cfg.seed)
-        model.set_gene_interaction(inter.centrality)
-        print(f"  gene_interaction={cfg.gene_interaction} prior installed "
-              f"(beta0={cfg.router_prior_beta}, anneal={cfg.router_prior_anneal})",
-              flush=True)
-
-    cw = _class_weights(torch.from_numpy(y[tr]), K).to(device)
-    criterion = RMTLoss(cfg, dtypes, {task: cw})
-    opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg.epochs)
-
-    best_f1, best_state, bad = -1.0, None, 0
-    for ep in range(cfg.epochs):
-        model.train()
-        model.set_anneal(ep / max(cfg.epochs - 1, 1))
-        for xb, yb in dl_tr:
-            xb = xb.to(device)
-            yb = {h: v.to(device) for h, v in yb.items()}
-            out = model(xb)
-            loss = criterion(out, yb)["total"]
-            opt.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            opt.step()
-        sched.step()
-        yt, yp = evaluate(model, dl_va, device, dtypes)[task]
-        vf1 = f1_score(yt, yp, average="macro")
-        print(f"  epoch {ep+1:2d}/{cfg.epochs}  val_macroF1={vf1:.4f}", flush=True)
-        if vf1 > best_f1:
-            best_f1, bad = vf1, 0
-            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
-        else:
-            bad += 1
-            if bad >= cfg.patience:
-                print(f"  early stop @ epoch {ep+1}", flush=True)
-                break
-    if best_state is not None:
-        model.load_state_dict(best_state)
-
-    yt, yp = evaluate(model, dl_te, device, dtypes)[task]
+    yt, yp, model, dl_te = _fit_eval(task, X.astype(np.float32, copy=False), y,
+                                     tr, va, te, cfg, G, K, dtypes, device)
 
     # Realised per-token recursion depth + token-aware FLOP saving on the test
     # set (identical estimator to train.run, so cohort and phenotype tasks are
@@ -242,6 +302,9 @@ def main():
                     help="untie the recursion blocks (Independent stack)")
     ap.add_argument("--cohort", type=str, default=None,
                     help="restrict to one cancer cohort (cancer_name), e.g. breast/lung/thyroid/head_neck")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--cv_folds", type=int, default=0,
+                    help="if >0, stratified k-fold CV reporting mean+/-std (robust for small cohorts)")
     args = ap.parse_args()
 
     print(f"[genonet] loading {args.csv} ...", flush=True)
@@ -260,20 +323,27 @@ def main():
         heads=("cancer_type",), n_hvg=None, batch_size=args.batch_size,
         d_model=args.d_model, d_ff=2 * args.d_model, n_markers=args.n_markers,
         marker_mode="router", recursion_mode=args.recursion_mode, recursion_depth=4,
-        share_weights=args.share_weights,
+        share_weights=args.share_weights, seed=args.seed,
         epochs=args.epochs, patience=args.patience, lr=args.lr, device=args.device,
     )
     print(f"[genonet] variant: recursion_mode={args.recursion_mode} "
           f"share_weights={args.share_weights}", flush=True)
     summary = []
     for task in args.tasks:
-        r = run_task(task, X, labels, base, args.out)
-        h = r["heads"][task]
-        summary.append((task, r["n_classes"], h["accuracy"], h["macro_f1"], h["weighted_f1"]))
-    print("\n==== SMART (MoR) on genoNet tasks -- all 20530 genes ====", flush=True)
-    print(f"  {'task':18s} {'K':>2s}  {'acc':>6s} {'macroF1':>8s} {'wF1':>6s}")
-    for n, k, a, f, w in summary:
-        print(f"  {n:18s} {k:2d}  {a*100:6.1f} {f*100:8.1f} {w*100:6.1f}")
+        if args.cv_folds > 0:
+            r = run_task_cv(task, X, labels, base, args.out, folds=args.cv_folds)
+            summary.append((task, r["n_classes"],
+                            r["accuracy"]["mean"], r["accuracy"]["std"],
+                            r["macro_f1"]["mean"], r["macro_f1"]["std"]))
+        else:
+            r = run_task(task, X, labels, base, args.out)
+            h = r["heads"][task]
+            summary.append((task, r["n_classes"], h["accuracy"], 0.0, h["macro_f1"], 0.0))
+    tag = f"{args.cv_folds}-fold CV (mean+/-std)" if args.cv_folds > 0 else "single split"
+    print(f"\n==== SMART on genoNet tasks [{tag}] ====", flush=True)
+    print(f"  {'task':18s} {'K':>2s}  {'acc':>13s} {'macroF1':>13s}")
+    for n, k, a, asd, f, fsd in summary:
+        print(f"  {n:18s} {k:2d}  {a*100:5.1f}+/-{asd*100:3.1f}  {f*100:5.1f}+/-{fsd*100:3.1f}")
 
 
 if __name__ == "__main__":

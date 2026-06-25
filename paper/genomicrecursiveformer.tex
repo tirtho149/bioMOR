@@ -4,6 +4,7 @@
 \usepackage{helvet}
 \usepackage{courier}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -580,6 +581,80 @@ macro and support-weighted aggregates are in Table~\ref{tab:main}). Reported per
 cohort rather than as a single macro number so cohort-level strengths and weaknesses
 are visible.}
 \label{tab:perclass}
+\end{table}
+
+\subsection{Cohort-Wise Clinical Prediction}
+Beyond tumor-of-origin, we ask whether the same architecture recovers clinical
+staging and outcome \emph{within} each cohort. Tumor-of-origin (\texttt{cancer\_type})
+is modeled unified across all four cohorts; the five clinical / outcome targets are
+modeled cohort-by-cohort (breast, lung, thyroid, head\&neck), so staging and survival
+are learned without cross-cohort confounding. Because the cohorts are small
+(423--943 samples) and class-imbalanced, every target is evaluated with stratified
+5-fold cross-validation and reported as macro-F1 (mean\,$\pm$\,std). Accuracy is
+\emph{not} reported here: on these splits it collapses to the majority-class floor and
+is bit-identical across the three model types, masking the true difficulty; macro-F1
+exposes it. Table~\ref{tab:cohortcv} reports all three model types (Independent,
+shared recursion, MoR) per cell.
+
+Two findings stand out. First, only tumor-of-origin ($\sim$97\% macro-F1) and nodal
+status in thyroid (\texttt{pathologic\_N}, 59--65\%) carry strong signal; the 4-class
+staging targets hover near the 25\% chance level and the binary outcome targets near
+50\%, confirming that fine-grained clinical staging is largely \emph{not} recoverable
+from bulk expression at these cohort sizes. Second, no single model type dominates and
+the three are mostly within one standard deviation of one another --- the
+$\sim$4$\times$ parameter saving of shared recursion (and the additional compute saving
+of MoR) is preserved with no systematic loss in this much harder, low-data regime.
+
+\begin{table}[t]
+\centering
+\setlength{\tabcolsep}{4pt}
+\footnotesize
+\begin{tabular}{llccc}
+\toprule
+& & \multicolumn{3}{c}{Macro-F1 \% (mean\,$\pm$\,std, 5-fold CV)} \\
+\cmidrule(lr){3-5}
+Cohort & Task & Independent & Shared & MoR \\
+& & {\scriptsize 530{,}432 p.} & {\scriptsize 132{,}992 p.} & {\scriptsize 132{,}992 p.} \\
+\midrule
+Unified & \texttt{cancer\_type} & \textbf{97.9\,$\pm$\,0.9} & 96.9\,$\pm$\,0.4 & 96.7\,$\pm$\,0.9 \\
+\midrule
+\multirow{5}{*}{Breast}
+ & \texttt{path\_stage} & 26.4\,$\pm$\,3.8 & 25.1\,$\pm$\,3.9 & \textbf{26.6\,$\pm$\,3.2} \\
+ & \texttt{path\_T}     & \textbf{26.6\,$\pm$\,4.4} & \textbf{26.6\,$\pm$\,3.7} & 24.8\,$\pm$\,2.3 \\
+ & \texttt{path\_N}     & \textbf{22.8\,$\pm$\,1.3} & 21.2\,$\pm$\,2.6 & 20.7\,$\pm$\,4.6 \\
+ & \texttt{os\_binary}  & 50.2\,$\pm$\,5.7 & \textbf{50.4\,$\pm$\,3.9} & 49.3\,$\pm$\,5.9 \\
+ & \texttt{tumor\_stat} & \textbf{51.6\,$\pm$\,3.4} & 47.4\,$\pm$\,5.0 & 50.8\,$\pm$\,3.0 \\
+\midrule
+\multirow{5}{*}{Lung}
+ & \texttt{path\_stage} & 26.1\,$\pm$\,2.5 & 24.2\,$\pm$\,2.9 & \textbf{27.8\,$\pm$\,1.6} \\
+ & \texttt{path\_T}     & \textbf{27.3\,$\pm$\,2.2} & 24.7\,$\pm$\,1.6 & 22.4\,$\pm$\,3.3 \\
+ & \texttt{path\_N}     & 22.7\,$\pm$\,2.0 & 24.1\,$\pm$\,3.5 & \textbf{24.5\,$\pm$\,2.5} \\
+ & \texttt{os\_binary}  & 46.1\,$\pm$\,1.6 & \textbf{46.9\,$\pm$\,0.9} & 46.8\,$\pm$\,0.9 \\
+ & \texttt{tumor\_stat} & \textbf{55.0\,$\pm$\,2.8} & 52.6\,$\pm$\,5.2 & 53.1\,$\pm$\,3.2 \\
+\midrule
+\multirow{5}{*}{Thyroid}
+ & \texttt{path\_stage} & \textbf{25.3\,$\pm$\,3.4} & 24.5\,$\pm$\,4.0 & 24.6\,$\pm$\,4.7 \\
+ & \texttt{path\_T}     & 24.8\,$\pm$\,5.9 & 24.5\,$\pm$\,3.3 & \textbf{25.3\,$\pm$\,2.4} \\
+ & \texttt{path\_N}     & 58.0\,$\pm$\,3.4 & \textbf{64.8\,$\pm$\,2.7} & 58.9\,$\pm$\,4.9 \\
+ & \texttt{os\_binary}  & \textbf{49.2\,$\pm$\,2.2} & 48.7\,$\pm$\,0.2 & 47.2\,$\pm$\,3.0 \\
+ & \texttt{tumor\_stat} & \textbf{50.6\,$\pm$\,7.3} & 47.8\,$\pm$\,2.1 & 47.2\,$\pm$\,3.2 \\
+\midrule
+\multirow{5}{*}{Head\&neck}
+ & \texttt{path\_stage} & 20.4\,$\pm$\,4.9 & \textbf{21.8\,$\pm$\,3.9} & 19.2\,$\pm$\,2.3 \\
+ & \texttt{path\_T}     & \textbf{20.8\,$\pm$\,3.8} & 20.4\,$\pm$\,3.6 & 19.5\,$\pm$\,2.3 \\
+ & \texttt{path\_N}     & 25.8\,$\pm$\,3.8 & 24.9\,$\pm$\,5.5 & \textbf{28.8\,$\pm$\,3.9} \\
+ & \texttt{os\_binary}  & 47.5\,$\pm$\,0.2 & 47.9\,$\pm$\,1.6 & \textbf{48.7\,$\pm$\,2.3} \\
+ & \texttt{tumor\_stat} & 50.8\,$\pm$\,4.7 & \textbf{51.2\,$\pm$\,4.0} & 50.0\,$\pm$\,2.1 \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Cohort-wise clinical prediction} (macro-F1 \%, mean\,$\pm$\,std over
+stratified 5-fold CV). \texttt{cancer\_type} is the unified four-cohort model; the five
+clinical / outcome targets are modeled separately within each cohort, for all three
+model types. Recurrent-block parameter counts under each header. Best per row in
+\textbf{bold}. Only tumor-of-origin and thyroid nodal status carry strong signal;
+staging targets sit near chance, and the three model types are statistically
+indistinguishable --- the parameter saving is preserved in the low-data regime.}
+\label{tab:cohortcv}
 \end{table}
 
 \subsection{Parameter Efficiency Is Architectural}
