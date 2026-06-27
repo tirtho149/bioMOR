@@ -485,6 +485,7 @@ a deliberately out-of-format stress test.
 
 \begin{table}[t]
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrcc}
 \toprule
 Dataset & Cells & Genes & Classes & Accuracy & Macro-F1 \\
@@ -492,7 +493,7 @@ Dataset & Cells & Genes & Classes & Accuracy & Macro-F1 \\
 Tabula Muris & 54{,}865 & 1{,}089 & 55 & 81.1\,$\pm$\,1.3 & 69.9\,$\pm$\,1.5 \\
 Pancreas & 14{,}767 & 1{,}936 & 15 & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \caption{SMART on the two genomap single-cell benchmarks (headline configuration with
 the co-expression biology-informed router; mean$\pm$std over 3 seeds, each
 dataset's shipped split). Cells, genes and classes are read directly from the data.}
@@ -544,6 +545,7 @@ deliver it, neither overclaiming a benefit nor hiding the comparison.
 
 \begin{table}[t]
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llcc}
 \toprule
 Dataset & Router prior & Accuracy & Macro-F1 \\
@@ -556,7 +558,7 @@ Pancreas & None (data-only router) & 90.9\,$\pm$\,2.1 & 54.6\,$\pm$\,1.1 \\
  & Co-expression (genomap, ours) & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
  & Random graph (control) & 91.2\,$\pm$\,1.4 & 52.8\,$\pm$\,1.6 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \caption{Biology-informed routing ablation (mean$\pm$std over 3 seeds): the
 genomap gene-gene-interaction centrality prior (co-expression, ours) vs.\ a
 degree-matched random-graph control vs.\ no prior, on both single-cell datasets. The

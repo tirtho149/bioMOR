@@ -953,7 +953,8 @@ a deliberately out-of-format stress test.
 
 \begin{table}[t]
 \centering
-@@MAIN_SC_TABLE@@
+\resizebox{\columnwidth}{!}{%
+@@MAIN_SC_TABLE@@}
 \caption{SMART on the two genomap single-cell benchmarks (headline configuration with
 the co-expression biology-informed router; mean$\pm$std over @@NSEEDS@@ seeds, each
 dataset's shipped split). Cells, genes and classes are read directly from the data.}
@@ -996,7 +997,8 @@ deliver it, neither overclaiming a benefit nor hiding the comparison.
 
 \begin{table}[t]
 \centering
-@@BIOROUTER_TABLE@@
+\resizebox{\columnwidth}{!}{%
+@@BIOROUTER_TABLE@@}
 \caption{Biology-informed routing ablation (mean$\pm$std over @@NSEEDS@@ seeds): the
 genomap gene-gene-interaction centrality prior (co-expression, ours) vs.\ a
 degree-matched random-graph control vs.\ no prior, on both single-cell datasets. The
