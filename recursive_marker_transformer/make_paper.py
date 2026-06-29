@@ -531,7 +531,7 @@ def main():
                "(adding common\\_class, prototype, Baron and Segerstolpe) and to the "
                "Reactome/P-NET multi-omics cohorts, and add the design-decision "
                "validations (token count, sharing schemes, adaptive depth, routing).\n"
-               "\\input{mor_tables}\n\\clearpage\n")
+               "\\input{mor_tables}\n")
         # Place inside the results flow (before Discussion), not after the Conclusion.
         for anchor in ("\\section{Discussion", "\\section{Conclusion",
                        "\\bibliographystyle", "\\end{document}"):
@@ -563,6 +563,7 @@ _TEX = r"""\documentclass[letterpaper]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{tikz}
 \usepackage{fontawesome5}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
@@ -1167,9 +1168,9 @@ label-free mechanism with a complete mathematical and biological grounding
 (Appendix~\ref{app:theory}), and report its controlled evaluation exactly as the runs
 deliver it, neither overclaiming a benefit nor hiding the comparison.
 
-\begin{table*}[t]
+\begin{table}[H]
 \centering
-\resizebox{\textwidth}{!}{%
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
 @@BIOROUTER_TABLE@@}
 \caption{Biology-informed routing ablation (mean$\pm$std over @@NSEEDS@@ seeds): the
 genomap gene-gene-interaction centrality prior (co-expression, ours) vs.\ a
@@ -1177,7 +1178,7 @@ degree-matched random-graph control vs.\ no prior, on both single-cell datasets.
 co-expression-vs-random gap isolates the contribution of real biological network
 structure from generic additive bias.}
 \label{tab:interaction}
-\end{table*}
+\end{table}
 
 \subsection{Architecture Ablations}
 Table~\ref{tab:arch} expands the ladder of Sec.~\ref{sec:ladder} into the full set of
@@ -1212,14 +1213,14 @@ selector is competitive with or ahead of the heuristics while additionally being
 end-to-end and yielding the interpretable recursion-depth ranking that fixed panels
 cannot provide.
 
-\begin{table*}[t]
+\begin{table}[H]
 \centering
-\resizebox{\textwidth}{!}{%
+\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
 @@SELECTION_TABLE@@}
 \caption{Marker-selection study (accuracy and macro-F1, \%, mean$\pm$std): the learned
 cross-attention router vs.\ variance and random panels, at otherwise identical settings.}
 \label{tab:selection}
-\end{table*}
+\end{table}
 
 \subsection{Parameter Efficiency Is Architectural}
 \label{sec:params}
@@ -1231,7 +1232,7 @@ fewer stack parameters, and the gap widens linearly with depth. The saving is bu
 the architecture, not recovered by pruning, and it is the same mechanism (weight
 sharing) that makes the recursion-depth signal interpretable.
 
-\begin{table}[t]
+\begin{table}[H]
 \centering
 @@PARAM_TABLE@@
 \caption{Transformer-stack parameters: shared recursion (ours) vs.\ independent layers
