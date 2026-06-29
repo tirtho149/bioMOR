@@ -2,7 +2,7 @@
 
 macro-F1 (mean±std); `--` = job still running.
 
-## How few tokens suffice — macro-F1 as the number of marker/pathway tokens $M$ is reduced (token reduction)
+## How few tokens suffice — macro-F1 as the number of marker tokens $M$ is reduced (token reduction)
 | Dataset / #tokens M | M=16 | M=32 | M=64 | M=128 | M=256 |
 |---|---|---|---|---|---|
 | tabula_muris | 36.3 | 53.2 | 65.2 | 70.9 | 76.8 |
@@ -11,34 +11,6 @@ macro-F1 (mean±std); `--` = job still running.
 | prototype | 63.2 | 79.1 | 87.4 | 93.8 | 97.5 |
 | baron | 28.1 | 43.3 | 42.1 | 61.9 | 72.0 |
 | segerstolpe | 5.1 | 6.1 | 10.0 | 4.5 | 7.5 |
-
-## Routing and marker-token selection — expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1
-| Variant (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| expert-choice MoR (shared) | 72.7±1.1 | 53.5±1.1 | 66.2±2.9 | 94.2±0.4 | 64.5±0.0 | 5.9±0.0 |
-| token-choice MoR | 75.1±2.1 | 58.7±5.3 | 67.4±3.4 | 94.3±0.6 | 58.6±0.0 | 5.5±0.0 |
-| fixed-depth (no routing) | 77.1±2.1 | 53.6±1.6 | 68.5±2.7 | 94.1±0.3 | 65.8±0.0 | 9.8±0.0 |
-| K=1 (no recursion) | 73.1±2.4 | 51.7±5.2 | 66.2±3.7 | 93.2±0.5 | 57.5±0.0 | 7.7±0.0 |
-| independent blocks | 75.5±0.8 | 57.3±1.9 | 66.6±4.4 | 94.2±0.4 | 58.3±0.0 | 7.0±0.0 |
-| random markers | 74.6±3.1 | 59.0±2.0 | 63.6±3.9 | 96.8±0.0 | 65.5±0.0 | 5.5±0.0 |
-| variance markers | 75.6±0.7 | 59.2±2.3 | 72.2±1.8 | 95.4±0.6 | 73.3±0.0 | 9.6±0.0 |
-
-## Biology-informed routing — label-free co-expression centrality prior on the recursion router vs no prior and a random-graph control
-| Biology prior (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| no prior | 71.5±3.0 | 54.6±1.1 | 66.2±2.9 | 94.2±0.4 | 61.5±1.8 | 5.7±0.6 |
-| co-expression prior | 69.9±1.5 | 59.1±4.1 | 70.2±2.2 | 94.1±0.1 | 57.1±7.3 | 8.4±1.4 |
-| random-graph control | 72.4±1.2 | 52.8±1.6 | 69.1±0.6 | -- | 60.1±3.2 | 7.8±0.5 |
-
-## Adaptive recursion depth — single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved
-| Dataset | K=1 (no recursion) | fixed depth K | adaptive depth (MoR) | mean token depth | compute saved |
-|---|---|---|---|---|---|
-| tabula_muris | 73.1 | 77.1 | 72.7 | 2.75/4 | 31% |
-| pancreas | 51.7 | 53.6 | 53.5 | 2.75/4 | 31% |
-| common_class | 66.2 | 68.5 | 66.2 | 2.75/4 | 31% |
-| prototype | 93.2 | 94.1 | 94.2 | 2.75/4 | 31% |
-| baron | 57.5 | 65.8 | 64.5 | 2.75/4 | 31% |
-| segerstolpe | 7.7 | 9.8 | 5.9 | 2.75/4 | 31% |
 
 ## Recursion versus independent layers across model sizes — macro-F1 of independent layers (Vanilla), one weight-shared block (Recursive), and adaptive routing (SMART)
 | Arch x size (macro_f1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
@@ -56,23 +28,15 @@ macro-F1 (mean±std); `--` = job still running.
 | MoR (SMART) d=192 | 74.0 | 65.6 | 61.5 | 95.3 | 62.4 | 10.0 |
 | MoR (SMART) d=384 | 65.8 | 53.4 | 42.8 | 91.6 | 60.1 | 9.9 |
 
-## Parameter reduction from weight sharing — transformer parameters of each size variant and the shared-vs-independent reduction factor
-| Size | Recursions | MoR params | Vanilla params | param reduction |
-|---|---|---|---|---|
-| d_model=48 | K=4 | 19,152 | 75,840 | 4.0x |
-| d_model=96 | K=4 | 75,168 | 299,136 | 4.0x |
-| d_model=192 | K=4 | 297,792 | 1,188,096 | 4.0x |
-| d_model=384 | K=4 | 1,185,408 | 4,735,488 | 4.0x |
-
 ## Weight-sharing schemes — Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes
-| Sharing scheme (K=6) | params | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|---|
-| shared (1 block) | 74,784 | 75.1 | 61.0 | 68.9 | 93.6 | 60.2 | 3.4 |
-| Cycle (3) | 224,352 | 80.5 | 54.4 | 71.6 | 95.2 | 70.5 | 6.9 |
-| Sequence (3) | 224,352 | 78.5 | 57.6 | 0.8 | 93.9 | 66.1 | 4.5 |
-| Middle-Cycle (3) | 224,352 | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 |
-| Middle-Sequence (3) | 224,352 | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 |
-| independent (6) | 448,704 | 79.9 | 57.0 | 3.0 | 95.4 | 65.3 | 7.2 |
+| Sharing scheme (K=6) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe | prostate | blca | stad | panmeta_subtype |
+|---|---|---|---|---|---|---|---|---|---|---|
+| shared (1 block) | 75.1 | 61.0 | 68.9 | 93.6 | 60.2 | 3.4 | 72.3 | 42.7 | 38.8 | -- |
+| Cycle (3) | 80.5 | 54.4 | 71.6 | 95.2 | 70.5 | 6.9 | 57.1 | 40.4 | -- | -- |
+| Sequence (3) | 78.5 | 57.6 | 0.8 | 93.9 | 66.1 | 4.5 | 59.5 | 43.8 | -- | -- |
+| Middle-Cycle (3) | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 | 60.5 | 40.4 | -- | -- |
+| Middle-Sequence (3) | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 | 60.5 | 40.4 | -- | -- |
+| independent (6) | 79.9 | 57.0 | 3.0 | 95.4 | 65.3 | 7.2 | 59.6 | 44.4 | 56.2 | -- |
 
 ## Where computation is spent — mean recursion depth per marker token and the fraction of tokens still active at each step
 | Dataset | mean token depth | active fraction per step (1..K) |
@@ -85,10 +49,10 @@ macro-F1 (mean±std); `--` = job still running.
 | segerstolpe | 2.75/4 | 1.00, 0.75, 0.50, 0.50 |
 
 ## Key/value reuse across recursions — recomputing vs reusing the first-step attention keys/values across recursion steps
-| KV strategy (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| recompute K/V (no cache) | 79.9 | 54.1 | 70.4 | 93.9 | 65.6 | 8.6 |
-| reuse step-1 K/V (step-cache) | 71.6 | 58.5 | 71.8 | 93.2 | 59.6 | 6.4 |
+| KV strategy (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe | prostate | blca | stad | panmeta_subtype |
+|---|---|---|---|---|---|---|---|---|---|---|
+| recompute K/V (no cache) | 79.9 | 54.1 | 70.4 | 93.9 | 65.6 | 8.6 | 74.7 | 43.3 | 36.4 | -- |
+| reuse step-1 K/V (step-cache) | 71.6 | 58.5 | 71.8 | 93.2 | 59.6 | 6.4 | 82.8 | 39.6 | 38.8 | -- |
 
 ## Warm-starting recursion from a fixed-depth model — initialising the shared block from a trained fixed-depth model vs training from scratch
 | Warm-start (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
@@ -107,13 +71,4 @@ macro-F1 (mean±std); `--` = job still running.
 | token linear | 74.7 | 53.7 | 70.1 | 94.5 | 52.6 | 5.4 |
 | token MLP | 78.8 | 59.7 | 64.4 | 94.0 | 60.9 | 5.5 |
 | token balance=0.01 | 75.6 | 57.6 | 67.5 | 93.7 | 58.6 | 5.0 |
-
-## Transfer to pathway-informed multi-omics — the same architecture ablation on the Reactome/P-NET cohorts (mutation/CNV/expression)
-| Pathway cohort (macro-F1) | prostate | blca | stad | brca | panmeta_response | panmeta_subtype |
-|---|---|---|---|---|---|---|
-| adaptive MoR (shared) | 50.9 | 43.3 | 38.8 | 27.7 | 93.0 | 50.3 |
-| independent | 47.5 | 40.4 | 55.3 | 28.8 | 91.8 | 34.2 |
-| token-choice | 80.9 | 43.3 | 37.6 | 30.7 | 91.8 | 57.9 |
-| fixed-depth | 75.5 | 43.3 | 36.4 | 22.6 | 91.5 | 68.4 |
-| K=1 | 47.7 | 40.0 | 38.8 | 13.5 | 90.7 | 55.4 |
 

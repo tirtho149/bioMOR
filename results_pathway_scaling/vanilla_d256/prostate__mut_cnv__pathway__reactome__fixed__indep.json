@@ -1,0 +1,108 @@
+{
+ "task": "prostate",
+ "channel_set": "mut_cnv",
+ "channels": [
+  "mut",
+  "cnv"
+ ],
+ "n_channels": 2,
+ "marker_mode": "pathway",
+ "gene_interaction": "reactome",
+ "recursion_mode": "fixed",
+ "pathway_attn_bias": false,
+ "n_samples": 1011,
+ "n_genes": 5050,
+ "n_pathways": 1223,
+ "n_classes": 2,
+ "n_train": 686,
+ "n_test": 203,
+ "class_names": [
+  "0",
+  "1"
+ ],
+ "transformer_params": 2108416,
+ "total_params": 3470796,
+ "mean_recursion_depth": 4.0,
+ "compute_saving_ratio": 1.0,
+ "config": {
+  "heads": [
+   "prostate"
+  ],
+  "cohorts": null,
+  "n_hvg": null,
+  "n_channels": 2,
+  "batch_size": 64,
+  "val_frac": 0.15,
+  "test_frac": 0.15,
+  "d_model": 256,
+  "n_heads": 4,
+  "d_ff": 512,
+  "dropout": 0.1,
+  "n_markers": 256,
+  "marker_mode": "pathway",
+  "pathway_pool": "mean",
+  "compress_mode": "aggregate",
+  "recursive_marker_refine": true,
+  "peak_init": true,
+  "anneal_markers": true,
+  "recursion_depth": 4,
+  "share_weights": false,
+  "share_strategy": "cycle",
+  "n_unique_blocks": null,
+  "step_cache": false,
+  "adaptive_depth": false,
+  "marker_ffn": false,
+  "recursion_mode": "fixed",
+  "router_capacity": null,
+  "router_alpha": 1.0,
+  "router_temp": 1.0,
+  "router_type": "linear",
+  "router_z_coeff": 0.001,
+  "router_balance_coeff": 0.1,
+  "gene_interaction": "reactome",
+  "interaction_knn": 16,
+  "router_prior_beta": 1.0,
+  "router_prior_anneal": true,
+  "pathway_attn_bias": false,
+  "pathway_attn_lambda": 2.0,
+  "lambda_marker": 0.1,
+  "gamma_diversity": 0.05,
+  "beta_compression": 0.01,
+  "lr": 0.0003,
+  "weight_decay": 0.01,
+  "epochs": 40,
+  "patience": 8,
+  "seed": 0,
+  "device": "cuda"
+ },
+ "accuracy": 0.7339901477832512,
+ "macro_f1": 0.6464783281733746,
+ "weighted_f1": 0.7062636306791319,
+ "per_class": {
+  "0": {
+   "precision": 0.7440476190476191,
+   "recall": 0.9191176470588235,
+   "f1-score": 0.8223684210526315,
+   "support": 136.0
+  },
+  "1": {
+   "precision": 0.6857142857142857,
+   "recall": 0.3582089552238806,
+   "f1-score": 0.47058823529411764,
+   "support": 67.0
+  },
+  "accuracy": 0.7339901477832512,
+  "macro avg": {
+   "precision": 0.7148809523809524,
+   "recall": 0.6386633011413521,
+   "f1-score": 0.6464783281733746,
+   "support": 203.0
+  },
+  "weighted avg": {
+   "precision": 0.7247947454844006,
+   "recall": 0.7339901477832512,
+   "f1-score": 0.7062636306791319,
+   "support": 203.0
+  }
+ }
+}

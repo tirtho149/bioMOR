@@ -45,8 +45,23 @@ _TEMPLATE_DIR = _REPO / "aaai_template"
 # ---------------------------------------------------------------------------
 # datasets (TM + pancreas ONLY) and display metadata
 # ---------------------------------------------------------------------------
-_DATASETS = ["tabula_muris", "pancreas"]
-_DISPLAY = {"tabula_muris": "Tabula Muris", "pancreas": "Pancreas"}
+_DATASETS = ["tabula_muris", "pancreas", "common_class", "prototype", "baron", "segerstolpe"]
+_DISPLAY = {"tabula_muris": "TM", "pancreas": "Panc.", "common_class": "Common",
+            "prototype": "Proto.", "baron": "Baron", "segerstolpe": "Seger."}
+# GitHub pathway/P-NET cohorts, reported in the same tables as the genomap datasets.
+_PW_COH = ["prostate", "blca", "stad", "panmeta_subtype"]
+_PW_DISPLAY = {"prostate": "Prost.", "blca": "BLCA", "stad": "STAD", "panmeta_subtype": "PanCan"}
+
+
+def _pw_arch(variant: str, task: str):
+    """macro-F1 records for a pathway cohort under an arch variant (results_pathway_arch)."""
+    out = []
+    for f in glob.glob(str(_REPO / "results_pathway_arch" / variant / f"{task}__*.json")):
+        try:
+            out.append(json.loads(Path(f).read_text())["macro_f1"])
+        except Exception:
+            pass
+    return out
 # genomap-paper reported cell-recognition accuracy on Tabula Muris (Islam & Xing,
 # Nat. Commun. 2023): genomap 93%, +6% over Cell-ID, +21% over SingleR -> 87 / 72.
 # These are LITERATURE values, cited, never presented as our own runs.
@@ -189,57 +204,38 @@ def biorouter_table() -> str:
     return "\n".join(lines)
 
 
-def arch_table() -> str:
-    """Architecture + marker-selection ablation on TM + pancreas (macro-F1, mean+/-std)."""
-    lines = [
-        "\\begin{tabular}{lcccc}",
-        "\\toprule",
-        "& \\multicolumn{2}{c}{Tabula Muris} & \\multicolumn{2}{c}{Pancreas} \\\\",
-        "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-        "Variant & Acc. & Macro-F1 & Acc. & Macro-F1 \\\\",
-        "\\midrule",
-    ]
-    for key, label in _ARCH_VARIANTS:
-        tm = _arch_runs(key, "tabula_muris")
-        pa = _arch_runs(key, "pancreas")
-        cells = [
-            _ms_pct([r["accuracy"] for r in tm]),
-            _ms_pct([r["macro_f1"] for r in tm]),
-            _ms_pct([r["accuracy"] for r in pa]),
-            _ms_pct([r["macro_f1"] for r in pa]),
-        ]
+def _allcols_table(rows, head_label):
+    """Macro-F1 (mean+/-std) per dataset, across all 6 genomap datasets AND the
+    pathway/P-NET cohorts, for the given (variant_key, label) rows."""
+    cols = _DATASETS + _PW_COH
+    header = (head_label + " & "
+              + " & ".join([_DISPLAY[d] for d in _DATASETS]
+                           + [_PW_DISPLAY[t] for t in _PW_COH]) + " \\\\")
+    lines = ["\\begin{tabular}{l" + "c" * len(cols) + "}", "\\toprule",
+             "& \\multicolumn{%d}{c}{genomap single-cell} & \\multicolumn{%d}{c}{pathway/P-NET cohorts} \\\\"
+             % (len(_DATASETS), len(_PW_COH)),
+             "\\cmidrule(lr){2-%d}\\cmidrule(lr){%d-%d}" % (len(_DATASETS) + 1,
+                                                            len(_DATASETS) + 2, len(cols) + 1),
+             header, "\\midrule"]
+    for key, label in rows:
+        cells = [_ms_pct([r["macro_f1"] for r in _arch_runs(key, d)]) for d in _DATASETS]
+        cells += [_ms_pct(_pw_arch(key, t)) for t in _PW_COH]
         lines.append(f"{label} & " + " & ".join(cells) + " \\\\")
     lines += ["\\bottomrule", "\\end{tabular}"]
     return "\n".join(lines)
+
+
+def arch_table() -> str:
+    """Architecture + routing ablation, macro-F1 over all genomap datasets + pathway cohorts."""
+    return _allcols_table(_ARCH_VARIANTS, "Variant")
 
 
 def selection_table() -> str:
-    """Marker-selection study: learned router vs variance vs random panels (TM)."""
-    rows = [
-        ("shared",        "Cross-attention router (ours)"),
-        ("marker_var",    "Variance panel"),
-        ("marker_random", "Random panel"),
-    ]
-    lines = [
-        "\\begin{tabular}{lcccc}",
-        "\\toprule",
-        "& \\multicolumn{2}{c}{Tabula Muris} & \\multicolumn{2}{c}{Pancreas} \\\\",
-        "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-        "Selection & Acc. & Macro-F1 & Acc. & Macro-F1 \\\\",
-        "\\midrule",
-    ]
-    for key, label in rows:
-        tm = _arch_runs(key, "tabula_muris")
-        pa = _arch_runs(key, "pancreas")
-        cells = [
-            _ms_pct([r["accuracy"] for r in tm]),
-            _ms_pct([r["macro_f1"] for r in tm]),
-            _ms_pct([r["accuracy"] for r in pa]),
-            _ms_pct([r["macro_f1"] for r in pa]),
-        ]
-        lines.append(f"{label} & " + " & ".join(cells) + " \\\\")
-    lines += ["\\bottomrule", "\\end{tabular}"]
-    return "\n".join(lines)
+    """Marker-selection study across all genomap datasets + pathway cohorts (macro-F1)."""
+    rows = [("shared", "Cross-attention router (ours)"),
+            ("marker_var", "Variance panel"),
+            ("marker_random", "Random panel")]
+    return _allcols_table(rows, "Selection")
 
 
 def baseline_sc_table() -> str:
@@ -341,14 +337,15 @@ def dataset_overview_table() -> str:
         "\\midrule",
     ]
     split = {"tabula_muris": "70/30 (shipped)", "pancreas": "integration (shipped)"}
-    feat = {"tabula_muris": "1{,}089 genes", "pancreas": "1{,}936 (44$\\times$44 genomap)"}
     for ds in _DATASETS:
         m = _first_meta(ds)
         if not m:
             continue
+        nf = m.get("n_features")
+        feat = f"{_fmt(nf)} genomap feats" if nf else "--"
         lines.append(
-            f"{_DISPLAY[ds]} & {_fmt(m['n_samples'])} & {feat[ds]} & "
-            f"{m['n_classes']} & {split[ds]} \\\\")
+            f"{_DISPLAY[ds]} & {_fmt(m['n_samples'])} & {feat} & "
+            f"{m['n_classes']} & {split.get(ds, 'stratified')} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}"]
     return "\n".join(lines)
 
@@ -534,11 +531,13 @@ def main():
                "(adding common\\_class, prototype, Baron and Segerstolpe) and to the "
                "Reactome/P-NET multi-omics cohorts, and add the design-decision "
                "validations (token count, sharing schemes, adaptive depth, routing).\n"
-               "\\input{mor_tables}\n")
-        if "\\bibliographystyle" in doc:
-            doc = doc.replace("\\bibliographystyle", sec + "\\bibliographystyle", 1)
-        else:
-            doc = doc.replace("\\end{document}", sec + "\\end{document}")
+               "\\input{mor_tables}\n\\clearpage\n")
+        # Place inside the results flow (before Discussion), not after the Conclusion.
+        for anchor in ("\\section{Discussion", "\\section{Conclusion",
+                       "\\bibliographystyle", "\\end{document}"):
+            if anchor in doc:
+                doc = doc.replace(anchor, sec + anchor, 1)
+                break
     (args.outdir / "genomicrecursiveformer.tex").write_text(doc)
     (args.outdir / "refs.bib").write_text(_BIB)
     for s in ("aaai.sty", "aaai.bst", "fixbib.sty"):
@@ -1089,15 +1088,15 @@ genes and the rarer cell types are diluted; we therefore treat Tabula Muris as t
 on-distribution, gene-panel test of the architecture and the genomap-image pancreas as
 a deliberately out-of-format stress test.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 @@MAIN_SC_TABLE@@}
 \caption{SMART on the two genomap single-cell benchmarks (headline configuration with
 the co-expression biology-informed router; mean$\pm$std over @@NSEEDS@@ seeds, each
 dataset's shipped split). Cells, genes and classes are read directly from the data.}
 \label{tab:mainsc}
-\end{table}
+\end{table*}
 
 To position the absolute accuracy, Table~\ref{tab:basesc} places SMART next to the
 cell-recognition accuracies reported for genomap and two widely used annotation tools
@@ -1168,9 +1167,9 @@ label-free mechanism with a complete mathematical and biological grounding
 (Appendix~\ref{app:theory}), and report its controlled evaluation exactly as the runs
 deliver it, neither overclaiming a benefit nor hiding the comparison.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 @@BIOROUTER_TABLE@@}
 \caption{Biology-informed routing ablation (mean$\pm$std over @@NSEEDS@@ seeds): the
 genomap gene-gene-interaction centrality prior (co-expression, ours) vs.\ a
@@ -1178,7 +1177,7 @@ degree-matched random-graph control vs.\ no prior, on both single-cell datasets.
 co-expression-vs-random gap isolates the contribution of real biological network
 structure from generic additive bias.}
 \label{tab:interaction}
-\end{table}
+\end{table*}
 
 \subsection{Architecture Ablations}
 Table~\ref{tab:arch} expands the ladder of Sec.~\ref{sec:ladder} into the full set of
@@ -1193,15 +1192,15 @@ gain from depth itself. The ``$-$ weight sharing'' variant is exactly a standard
 $K$-layer transformer over the $M$ marker tokens, so it doubles as a matched-budget
 standard-transformer baseline (the top rung of the ladder).
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 @@ARCH_TABLE@@}
 \caption{Architecture and routing ablations on both datasets (accuracy and macro-F1,
 \%, mean$\pm$std over @@NSEEDS@@ seeds). Each row changes one component of the headline
 model.}
 \label{tab:arch}
-\end{table}
+\end{table*}
 
 \subsection{Marker Selection Study}
 Does \emph{learning} the markers help? Table~\ref{tab:selection} compares the
@@ -1213,14 +1212,14 @@ selector is competitive with or ahead of the heuristics while additionally being
 end-to-end and yielding the interpretable recursion-depth ranking that fixed panels
 cannot provide.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 @@SELECTION_TABLE@@}
 \caption{Marker-selection study (accuracy and macro-F1, \%, mean$\pm$std): the learned
 cross-attention router vs.\ variance and random panels, at otherwise identical settings.}
 \label{tab:selection}
-\end{table}
+\end{table*}
 
 \subsection{Parameter Efficiency Is Architectural}
 \label{sec:params}

@@ -65,20 +65,35 @@ def fig_scaling():
     return "fig_scaling.png"
 
 
+def _arch_f1(variant, d):
+    import statistics as st
+    xs = [json.loads(Path(f).read_text())["heads"]["cell_type"]["macro_f1"] * 100
+          for f in glob.glob(str(ROOT / f"results_singlecell_arch/{variant}/s*/{d}.json"))]
+    return st.mean(xs) if xs else None
+
+
 def fig_depth():
-    """MoR Fig 5 analogue: fraction of marker tokens still active at each recursion step."""
-    files = sorted(glob.glob(str(ROOT / "results_depth" / "*.json")))
-    if not files:
+    """Adaptive-depth result, per dataset: macro-F1 under no recursion (K=1),
+    fixed-depth recursion, and adaptive routed depth. (The raw active-fraction funnel
+    is set by the fixed capacity schedule and is identical across datasets, so we
+    instead show the dataset-varying accuracy each regime achieves.)"""
+    import numpy as np
+    ds = _present(GENOMAP)
+    regimes = [("depth1", "K=1 (no recursion)", "#9E9E9E"),
+               ("fixed", "fixed depth", "#1F77B4"),
+               ("shared", "adaptive depth (MoR)", "#FF7F0E")]
+    vals = {r: [_arch_f1(r, d) for d in ds] for r, _, _ in regimes}
+    if not any(any(v is not None for v in vv) for vv in vals.values()):
         return None
-    fig, ax = plt.subplots(figsize=(6, 4))
-    for f in files:
-        r = json.loads(Path(f).read_text())
-        af = r.get("active_fraction_per_step", [])
-        if af:
-            ax.plot(range(1, len(af) + 1), af, marker="o", label=r["dataset"])
-    ax.set_xlabel("recursion step"); ax.set_ylabel("fraction of tokens active")
-    ax.set_title("Fig 5 analogue: expert-choice depth funnel (genomap)")
-    ax.grid(alpha=0.3); ax.legend(fontsize=8)
+    x = np.arange(len(ds)); w = 0.26
+    fig, ax = plt.subplots(figsize=(8, 4))
+    for i, (r, lab, col) in enumerate(regimes):
+        ys = [v if v is not None else 0 for v in vals[r]]
+        ax.bar(x + (i - 1) * w, ys, w, label=lab, color=col)
+    ax.set_xticks(x); ax.set_xticklabels(ds, rotation=20, ha="right")
+    ax.set_ylabel("macro-F1"); ax.set_ylim(0, 100)
+    ax.set_title("Adaptive recursion depth across the genomap suite")
+    ax.legend(fontsize=8); ax.grid(axis="y", alpha=0.3)
     fig.tight_layout(); FIGS.mkdir(parents=True, exist_ok=True)
     fig.savefig(FIGS / "fig_depth.png", dpi=140); plt.close(fig)
     return "fig_depth.png"

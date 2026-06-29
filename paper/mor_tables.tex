@@ -2,7 +2,7 @@
 \paragraph{How few tokens suffice.} Token reduction. SMART keeps only $M$ interpretable tokens, so attention costs $O(M^2)$ rather than $O(N^2)$ in the number of genes. Accuracy is reported as $M$ shrinks; a few dozen to a few hundred tokens recover most of the full-gene signal..
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{Macro-F1 as the number of marker/pathway tokens $M$ is reduced (token reduction).}
+\caption{Macro-F1 as the number of marker tokens $M$ is reduced (token reduction).}
 \label{tab:exp-tokens}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrr}
@@ -15,64 +15,6 @@ common\_class & 14.7 & 30.9 & 33.9 & 64.8 & 74.9 \\
 prototype & 63.2 & 79.1 & 87.4 & 93.8 & 97.5 \\
 baron & 28.1 & 43.3 & 42.1 & 61.9 & 72.0 \\
 segerstolpe & 5.1 & 6.1 & 10.0 & 4.5 & 7.5 \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
-\paragraph{Routing and marker-token selection.} Two questions about the selective recursion. Expert- vs token-choice routing allocate depth differently; and learning which genes are markers (the cross-attention router) is compared against fixed random and variance-ranked panels..
-\begin{table*}[t]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1.}
-\label{tab:exp-selection}
-\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrrrr}
-\toprule
-Variant (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
-\midrule
-expert-choice MoR (shared) & 72.7$\pm$1.1 & 53.5$\pm$1.1 & 66.2$\pm$2.9 & 94.2$\pm$0.4 & 64.5$\pm$0.0 & 5.9$\pm$0.0 \\
-token-choice MoR & 75.1$\pm$2.1 & 58.7$\pm$5.3 & 67.4$\pm$3.4 & 94.3$\pm$0.6 & 58.6$\pm$0.0 & 5.5$\pm$0.0 \\
-fixed-depth (no routing) & 77.1$\pm$2.1 & 53.6$\pm$1.6 & 68.5$\pm$2.7 & 94.1$\pm$0.3 & 65.8$\pm$0.0 & 9.8$\pm$0.0 \\
-K=1 (no recursion) & 73.1$\pm$2.4 & 51.7$\pm$5.2 & 66.2$\pm$3.7 & 93.2$\pm$0.5 & 57.5$\pm$0.0 & 7.7$\pm$0.0 \\
-independent blocks & 75.5$\pm$0.8 & 57.3$\pm$1.9 & 66.6$\pm$4.4 & 94.2$\pm$0.4 & 58.3$\pm$0.0 & 7.0$\pm$0.0 \\
-random markers & 74.6$\pm$3.1 & 59.0$\pm$2.0 & 63.6$\pm$3.9 & 96.8$\pm$0.0 & 65.5$\pm$0.0 & 5.5$\pm$0.0 \\
-variance markers & 75.6$\pm$0.7 & 59.2$\pm$2.3 & 72.2$\pm$1.8 & 95.4$\pm$0.6 & 73.3$\pm$0.0 & 9.6$\pm$0.0 \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
-\paragraph{Biology-informed routing.} SMART's headline component: a label-free prior from the gene-gene co-expression graph (network centrality) is added to the recursion-depth router, nudging co-expression hubs to recurse deeper. We compare it against no prior and a degree-matched random-graph control across all datasets; gains are small and mostly within noise, so we report it as a stabiliser rather than an accuracy driver..
-\begin{table*}[t]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Label-free co-expression centrality prior on the recursion router vs no prior and a random-graph control.}
-\label{tab:exp-bio}
-\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrrrr}
-\toprule
-Biology prior (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
-\midrule
-no prior & 71.5$\pm$3.0 & 54.6$\pm$1.1 & 66.2$\pm$2.9 & 94.2$\pm$0.4 & 61.5$\pm$1.8 & 5.7$\pm$0.6 \\
-co-expression prior & 69.9$\pm$1.5 & 59.1$\pm$4.1 & 70.2$\pm$2.2 & 94.1$\pm$0.1 & 57.1$\pm$7.3 & 8.4$\pm$1.4 \\
-random-graph control & 72.4$\pm$1.2 & 52.8$\pm$1.6 & 69.1$\pm$0.6 & -- & 60.1$\pm$3.2 & 7.8$\pm$0.5 \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
-\paragraph{Adaptive recursion depth.} The adaptive-loop result. A single pass ($K{=}1$), fixed-depth recursion, and adaptive per-token routed depth are compared; the mean token depth and compute saved quantify the funnel -- uninformative tokens exit early while accuracy tracks fixed depth..
-\begin{table*}[t]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved.}
-\label{tab:exp-adaptive}
-\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrrr}
-\toprule
-Dataset & K=1 (no recursion) & fixed depth K & adaptive depth (MoR) & mean token depth & compute saved \\
-\midrule
-tabula\_muris & 73.1 & 77.1 & 72.7 & 2.75/4 & 31\% \\
-pancreas & 51.7 & 53.6 & 53.5 & 2.75/4 & 31\% \\
-common\_class & 66.2 & 68.5 & 66.2 & 2.75/4 & 31\% \\
-prototype & 93.2 & 94.1 & 94.2 & 2.75/4 & 31\% \\
-baron & 57.5 & 65.8 & 64.5 & 2.75/4 & 31\% \\
-segerstolpe & 7.7 & 9.8 & 5.9 & 2.75/4 & 31\% \\
 \bottomrule
 \end{tabular}
 }
@@ -103,40 +45,22 @@ MoR (SMART) d=384 & 65.8 & 53.4 & 42.8 & 91.6 & 60.1 & 9.9 \\
 \end{tabular}
 }
 \end{table*}
-\paragraph{Parameter reduction from weight sharing.} The parameter-reduction result. Applying one block recursively uses $1/K$ of the parameters of $K$ independent blocks of the same width (a $4\times$ reduction at $K{=}4$)..
-\begin{table*}[t]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Transformer parameters of each size variant and the shared-vs-independent reduction factor.}
-\label{tab:exp-config}
-\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrr}
-\toprule
-Size & Recursions & MoR params & Vanilla params & param reduction \\
-\midrule
-d\_model=48 & K=4 & 19,152 & 75,840 & 4.0$\times$ \\
-d\_model=96 & K=4 & 75,168 & 299,136 & 4.0$\times$ \\
-d\_model=192 & K=4 & 297,792 & 1,188,096 & 4.0$\times$ \\
-d\_model=384 & K=4 & 1,185,408 & 4,735,488 & 4.0$\times$ \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
 \paragraph{Weight-sharing schemes.} Between fully shared and fully independent lie graded sharing schemes -- Cycle, Sequence, Middle-Cycle and Middle-Sequence -- trading parameters for capacity..
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes.}
 \label{tab:exp-sharing}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrrrrr}
+\begin{tabular}{lrrrrrrrrrr}
 \toprule
-Sharing scheme (K=6) & params & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
+Sharing scheme (K=6) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe & prostate & blca & stad & panmeta\_subtype \\
 \midrule
-shared (1 block) & 74,784 & 75.1 & 61.0 & 68.9 & 93.6 & 60.2 & 3.4 \\
-Cycle (3) & 224,352 & 80.5 & 54.4 & 71.6 & 95.2 & 70.5 & 6.9 \\
-Sequence (3) & 224,352 & 78.5 & 57.6 & 0.8 & 93.9 & 66.1 & 4.5 \\
-Middle-Cycle (3) & 224,352 & 80.1 & 56.4 & 67.0 & 94.9 & 61.0 & 7.8 \\
-Middle-Sequence (3) & 224,352 & 80.1 & 56.4 & 67.0 & 94.9 & 61.0 & 7.8 \\
-independent (6) & 448,704 & 79.9 & 57.0 & 3.0 & 95.4 & 65.3 & 7.2 \\
+shared (1 block) & 75.1 & 61.0 & 68.9 & 93.6 & 60.2 & 3.4 & 72.3 & 42.7 & 38.8 & -- \\
+Cycle (3) & 80.5 & 54.4 & 71.6 & 95.2 & 70.5 & 6.9 & 57.1 & 40.4 & -- & -- \\
+Sequence (3) & 78.5 & 57.6 & 0.8 & 93.9 & 66.1 & 4.5 & 59.5 & 43.8 & -- & -- \\
+Middle-Cycle (3) & 80.1 & 56.4 & 67.0 & 94.9 & 61.0 & 7.8 & 60.5 & 40.4 & -- & -- \\
+Middle-Sequence (3) & 80.1 & 56.4 & 67.0 & 94.9 & 61.0 & 7.8 & 60.5 & 40.4 & -- & -- \\
+independent (6) & 79.9 & 57.0 & 3.0 & 95.4 & 65.3 & 7.2 & 59.6 & 44.4 & 56.2 & -- \\
 \bottomrule
 \end{tabular}
 }
@@ -167,12 +91,12 @@ segerstolpe & 2.75/4 & 1.00, 0.75, 0.50, 0.50 \\
 \caption{Recomputing vs reusing the first-step attention keys/values across recursion steps.}
 \label{tab:exp-cache}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrrrrrrr}
 \toprule
-KV strategy (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
+KV strategy (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe & prostate & blca & stad & panmeta\_subtype \\
 \midrule
-recompute K/V (no cache) & 79.9 & 54.1 & 70.4 & 93.9 & 65.6 & 8.6 \\
-reuse step-1 K/V (step-cache) & 71.6 & 58.5 & 71.8 & 93.2 & 59.6 & 6.4 \\
+recompute K/V (no cache) & 79.9 & 54.1 & 70.4 & 93.9 & 65.6 & 8.6 & 74.7 & 43.3 & 36.4 & -- \\
+reuse step-1 K/V (step-cache) & 71.6 & 58.5 & 71.8 & 93.2 & 59.6 & 6.4 & 82.8 & 39.6 & 38.8 & -- \\
 \bottomrule
 \end{tabular}
 }
@@ -215,25 +139,6 @@ token balance=0.01 & 75.6 & 57.6 & 67.5 & 93.7 & 58.6 & 5.0 \\
 \end{tabular}
 }
 \end{table*}
-\paragraph{Transfer to pathway-informed multi-omics.} Whether the same design decisions hold beyond single cells: the architecture ablation rerun on Reactome/P-NET mutation/CNV/expression cohorts..
-\begin{table*}[t]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{The same architecture ablation on the Reactome/P-NET cohorts (mutation/CNV/expression).}
-\label{tab:exp-pathway}
-\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
-\begin{tabular}{lrrrrrr}
-\toprule
-Pathway cohort (macro-F1) & prostate & blca & stad & brca & panmeta\_response & panmeta\_subtype \\
-\midrule
-adaptive MoR (shared) & 50.9 & 43.3 & 38.8 & 27.7 & 93.0 & 50.3 \\
-independent & 47.5 & 40.4 & 55.3 & 28.8 & 91.8 & 34.2 \\
-token-choice & 80.9 & 43.3 & 37.6 & 30.7 & 91.8 & 57.9 \\
-fixed-depth & 75.5 & 43.3 & 36.4 & 22.6 & 91.5 & 68.4 \\
-K=1 & 47.7 & 40.0 & 38.8 & 13.5 & 90.7 & 55.4 \\
-\bottomrule
-\end{tabular}
-}
-\end{table*}
 \begin{figure}[t]\centering
 \includegraphics[width=\columnwidth]{figs/fig_scaling.png}
 \caption{Macro-F1 versus model size for independent (Vanilla), weight-shared (Recursive) and adaptively-routed (SMART) stacks on each dataset.}
@@ -241,7 +146,7 @@ K=1 & 47.7 & 40.0 & 38.8 & 13.5 & 90.7 & 55.4 \\
 \end{figure}
 \begin{figure}[t]\centering
 \includegraphics[width=\columnwidth]{figs/fig_depth.png}
-\caption{The expert-choice funnel: fraction of marker tokens still active at each recursion step.}
+\caption{Adaptive recursion depth across all six genomap datasets: macro-F1 under no recursion (K=1), fixed depth, and adaptive routed depth.}
 \label{fig:depth}
 \end{figure}
 \begin{figure}[t]\centering

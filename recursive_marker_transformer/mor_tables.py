@@ -88,6 +88,25 @@ def _present(ds):
     return [d for d in ds if (ROOT / "data" / "singlecell" / d).exists()]
 
 
+# GitHub pathway/P-NET cohorts reported alongside the genomap datasets in every table.
+PATHWAY_COH = ["prostate", "blca", "stad", "panmeta_subtype"]
+
+
+def _pw(subdir: str, variant: str, task: str, key: str = "macro_f1"):
+    """Mean macro-F1 (%) for a pathway cohort from results_pathway_<subdir>/<variant>/<task>__*.json."""
+    vals = []
+    for f in glob.glob(str(ROOT / f"results_pathway_{subdir}" / variant / f"{task}__*.json")):
+        d = json.loads(Path(f).read_text())
+        if d.get(key) is not None:
+            vals.append(100 * d[key])
+    return st.mean(vals) if vals else None
+
+
+def _cols_all():
+    """Column order used by every dataset-as-column table: genomap then pathway."""
+    return _present(GENOMAP) + PATHWAY_COH
+
+
 # ----------------------------------------------------------------------------- tables
 def t_adaptive_depth():
     """ADAPTIVE-DEPTH table (MoR's core claim): fixed-depth recursion vs adaptive
@@ -172,27 +191,27 @@ def t158_sharing():
             ("sequence_nu3", "Sequence (3)"), ("middle_cycle_nu3", "Middle-Cycle (3)"),
             ("middle_sequence_nu3", "Middle-Sequence (3)"),
             ("independent_nu6", "independent (6)")]
-    ds = _present(GENOMAP)
+    gds = _present(GENOMAP)
     rows = []
     for tag, label in tags:
-        cells, tp = [], None
-        for d in ds:
-            r = _metric(ROOT / f"results_sharing/{tag}" / f"{d}.json")
-            cells.append(_cell(r))
-            if r:
-                tp = r[1]
-        rows.append([label, "--" if tp is None else f"{tp:,}"] + cells)
-    return _md_table(["Sharing scheme (K=6)", "params"] + ds, rows)
+        cells = [_cell(_metric(ROOT / f"results_sharing/{tag}" / f"{d}.json")) for d in gds]
+        for t in PATHWAY_COH:
+            v = _pw("sharing", tag, t)
+            cells.append(f"{v:.1f}" if v is not None else "--")
+        rows.append([label] + cells)
+    return _md_table(["Sharing scheme (K=6)"] + gds + PATHWAY_COH, rows)
 
 
 def t2_12_13_stepcache():
     """T2/T12/T13: step-cache (reuse vs recompute step-1 K/V) (results_stepcache)."""
-    ds = _present(GENOMAP)
+    gds = _present(GENOMAP)
     rows = []
     for tag, label in [("off", "recompute K/V (no cache)"), ("on", "reuse step-1 K/V (step-cache)")]:
-        cells = [_cell(_metric(ROOT / f"results_stepcache/{tag}" / f"{d}.json")) for d in ds]
+        cells = [_cell(_metric(ROOT / f"results_stepcache/{tag}" / f"{d}.json")) for d in gds]
+        cells += [(lambda v: f"{v:.1f}" if v is not None else "--")(_pw("stepcache", tag, t))
+                  for t in PATHWAY_COH]
         rows.append([label] + cells)
-    return _md_table(["KV strategy (macro-F1)"] + ds, rows)
+    return _md_table(["KV strategy (macro-F1)"] + gds + PATHWAY_COH, rows)
 
 
 def t_pathway_arch():
@@ -294,24 +313,14 @@ PENDING = {}
 # table is a result of the paper, ordered to tell the SMART story: token reduction ->
 # adaptive recursion -> parameter sharing -> compute allocation -> transfer.
 SECTIONS = [
+    # Only design dimensions NOT already in the main-paper tables (which now report
+    # all 6 genomap datasets + the pathway cohorts). No redundancy.
     ("How few tokens suffice",
-     "macro-F1 as the number of marker/pathway tokens $M$ is reduced (token reduction)",
+     "macro-F1 as the number of marker tokens $M$ is reduced (token reduction)",
      t_token_reduction, "tab:tokens"),
-    ("Routing and marker-token selection",
-     "expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1",
-     t4_router_ablation, "tab:selection"),
-    ("Biology-informed routing",
-     "label-free co-expression centrality prior on the recursion router vs no prior and a random-graph control",
-     t_biorouter, "tab:bio"),
-    ("Adaptive recursion depth",
-     "single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved",
-     t_adaptive_depth, "tab:adaptive"),
     ("Recursion versus independent layers across model sizes",
      "macro-F1 of independent layers (Vanilla), one weight-shared block (Recursive), and adaptive routing (SMART)",
      t3_arch_scaling, "tab:scaling"),
-    ("Parameter reduction from weight sharing",
-     "transformer parameters of each size variant and the shared-vs-independent reduction factor",
-     t6_config, "tab:config"),
     ("Weight-sharing schemes",
      "Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes",
      t158_sharing, "tab:sharing"),
@@ -327,9 +336,6 @@ SECTIONS = [
     ("Routing configurations",
      "router head, temperature and load balancing for the expert- and token-choice routers",
      t1011_routing, "tab:routing"),
-    ("Transfer to pathway-informed multi-omics",
-     "the same architecture ablation on the Reactome/P-NET cohorts (mutation/CNV/expression)",
-     t_pathway_arch, "tab:pathway"),
 ]
 
 # Story description paragraph per table (keyed by title). Prose, not "MoR table N".
@@ -382,8 +388,8 @@ DESC = {
 FIGURES = [
     ("fig_scaling.png", "Macro-F1 versus model size for independent (Vanilla), weight-shared "
                         "(Recursive) and adaptively-routed (SMART) stacks on each dataset.", "fig:scaling"),
-    ("fig_depth.png", "The expert-choice funnel: fraction of marker tokens still active at each "
-                      "recursion step.", "fig:depth"),
+    ("fig_depth.png", "Adaptive recursion depth across all six genomap datasets: macro-F1 under "
+                      "no recursion (K=1), fixed depth, and adaptive routed depth.", "fig:depth"),
     ("fig_param_efficiency.png", "Accuracy versus transformer parameters for weight-shared "
                                  "recursion against independent layers.", "fig:param"),
 ]

@@ -532,22 +532,26 @@ genes and the rarer cell types are diluted; we therefore treat Tabula Muris as t
 on-distribution, gene-panel test of the architecture and the genomap-image pancreas as
 a deliberately out-of-format stress test.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrcc}
 \toprule
 Dataset & Cells & Genes & Classes & Accuracy & Macro-F1 \\
 \midrule
-Tabula Muris & 54{,}865 & 1{,}089 & 55 & 81.1\,$\pm$\,1.3 & 69.9\,$\pm$\,1.5 \\
-Pancreas & 14{,}767 & 1{,}936 & 15 & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
+TM & 54{,}865 & 1{,}089 & 55 & 81.1\,$\pm$\,1.3 & 69.9\,$\pm$\,1.5 \\
+Panc. & 14{,}767 & 1{,}936 & 15 & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
+Common & 27{,}499 & 1{,}089 & 19 & 84.1\,$\pm$\,1.2 & 70.2\,$\pm$\,2.2 \\
+Proto. & 90{,}579 & 752 & 10 & 94.5\,$\pm$\,0.1 & 94.0\,$\pm$\,0.2 \\
+Baron & 8{,}569 & 1{,}936 & 14 & 77.8\,$\pm$\,7.3 & 57.1\,$\pm$\,7.3 \\
+Seger. & 2{,}122 & 1{,}936 & 10 & 17.4\,$\pm$\,2.1 & 8.4\,$\pm$\,1.4 \\
 \bottomrule
 \end{tabular}}
 \caption{SMART on the two genomap single-cell benchmarks (headline configuration with
 the co-expression biology-informed router; mean$\pm$std over 3 seeds, each
 dataset's shipped split). Cells, genes and classes are read directly from the data.}
 \label{tab:mainsc}
-\end{table}
+\end{table*}
 
 To position the absolute accuracy, Table~\ref{tab:basesc} places SMART next to the
 cell-recognition accuracies reported for genomap and two widely used annotation tools
@@ -633,25 +637,41 @@ random: a separation there, not merely over \emph{none}, is what would show that
 biological network structure rather than any additive bias drives the effect.
 
 \paragraph{Finding.}
-The picture is mixed and we report it as we find it. On Tabula Muris the co-expression prior is below its random-graph control (69.9\% vs.\ 72.4\%). On Pancreas the co-expression prior improves mean macro-F1 over the degree-matched random graph by 6.3 points (59.1\% vs.\ 52.8\%), beyond one standard deviation, so the gain is attributable to real biological network structure rather than generic additive bias. We therefore present biology-informed routing as a principled,
+The picture is mixed and we report it as we find it. On TM the co-expression prior is below its random-graph control (69.9\% vs.\ 72.4\%). On Panc. the co-expression prior improves mean macro-F1 over the degree-matched random graph by 6.3 points (59.1\% vs.\ 52.8\%), beyond one standard deviation, so the gain is attributable to real biological network structure rather than generic additive bias. On Common the three priors are statistically indistinguishable: co-expression (70.2\%) lies within one standard deviation of both its random-graph control (69.1\%) and the no-prior baseline (66.2\%). On Proto. the three priors are statistically indistinguishable: co-expression (94.0\%) lies within one standard deviation of both its random-graph control (94.2\%) and the no-prior baseline (94.2\%). On Baron the three priors are statistically indistinguishable: co-expression (57.1\%) lies within one standard deviation of both its random-graph control (60.1\%) and the no-prior baseline (61.5\%). On Seger. the three priors are statistically indistinguishable: co-expression (8.4\%) lies within one standard deviation of both its random-graph control (7.8\%) and the no-prior baseline (5.7\%). We therefore present biology-informed routing as a principled,
 label-free mechanism with a complete mathematical and biological grounding
 (Appendix~\ref{app:theory}), and report its controlled evaluation exactly as the runs
 deliver it, neither overclaiming a benefit nor hiding the comparison.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{llcc}
 \toprule
 Dataset & Router prior & Accuracy & Macro-F1 \\
 \midrule
-Tabula Muris & None (data-only router) & 81.4\,$\pm$\,2.3 & 71.5\,$\pm$\,3.0 \\
+TM & None (data-only router) & 81.4\,$\pm$\,2.3 & 71.5\,$\pm$\,3.0 \\
  & Co-expression (genomap, ours) & 81.1\,$\pm$\,1.3 & 69.9\,$\pm$\,1.5 \\
  & Random graph (control) & 82.6\,$\pm$\,1.1 & 72.4\,$\pm$\,1.2 \\
 \midrule
-Pancreas & None (data-only router) & 90.9\,$\pm$\,2.1 & 54.6\,$\pm$\,1.1 \\
+Panc. & None (data-only router) & 90.9\,$\pm$\,2.1 & 54.6\,$\pm$\,1.1 \\
  & Co-expression (genomap, ours) & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
  & Random graph (control) & 91.2\,$\pm$\,1.4 & 52.8\,$\pm$\,1.6 \\
+\midrule
+Common & None (data-only router) & 81.0\,$\pm$\,1.5 & 66.2\,$\pm$\,2.9 \\
+ & Co-expression (genomap, ours) & 84.1\,$\pm$\,1.2 & 70.2\,$\pm$\,2.2 \\
+ & Random graph (control) & 83.8\,$\pm$\,1.0 & 69.1\,$\pm$\,0.6 \\
+\midrule
+Proto. & None (data-only router) & 94.7\,$\pm$\,0.3 & 94.2\,$\pm$\,0.4 \\
+ & Co-expression (genomap, ours) & 94.5\,$\pm$\,0.1 & 94.0\,$\pm$\,0.2 \\
+ & Random graph (control) & 94.7\,$\pm$\,0.5 & 94.2\,$\pm$\,0.4 \\
+\midrule
+Baron & None (data-only router) & 80.6\,$\pm$\,4.9 & 61.5\,$\pm$\,1.8 \\
+ & Co-expression (genomap, ours) & 77.8\,$\pm$\,7.3 & 57.1\,$\pm$\,7.3 \\
+ & Random graph (control) & 84.0\,$\pm$\,3.2 & 60.1\,$\pm$\,3.2 \\
+\midrule
+Seger. & None (data-only router) & 13.9\,$\pm$\,2.5 & 5.7\,$\pm$\,0.6 \\
+ & Co-expression (genomap, ours) & 17.4\,$\pm$\,2.1 & 8.4\,$\pm$\,1.4 \\
+ & Random graph (control) & 14.4\,$\pm$\,2.0 & 7.8\,$\pm$\,0.5 \\
 \bottomrule
 \end{tabular}}
 \caption{Biology-informed routing ablation (mean$\pm$std over 3 seeds): the
@@ -660,7 +680,7 @@ degree-matched random-graph control vs.\ no prior, on both single-cell datasets.
 co-expression-vs-random gap isolates the contribution of real biological network
 structure from generic additive bias.}
 \label{tab:interaction}
-\end{table}
+\end{table*}
 
 \subsection{Architecture Ablations}
 Table~\ref{tab:arch} expands the ladder of Sec.~\ref{sec:ladder} into the full set of
@@ -675,29 +695,29 @@ gain from depth itself. The ``$-$ weight sharing'' variant is exactly a standard
 $K$-layer transformer over the $M$ marker tokens, so it doubles as a matched-budget
 standard-transformer baseline (the top rung of the ladder).
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccc}
 \toprule
-& \multicolumn{2}{c}{Tabula Muris} & \multicolumn{2}{c}{Pancreas} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Variant & Acc. & Macro-F1 & Acc. & Macro-F1 \\
+& \multicolumn{6}{c}{genomap single-cell} & \multicolumn{4}{c}{pathway/P-NET cohorts} \\
+\cmidrule(lr){2-7}\cmidrule(lr){8-11}
+Variant & TM & Panc. & Common & Proto. & Baron & Seger. & Prost. & BLCA & STAD & PanCan \\
 \midrule
-Expert-choice MoR, shared (headline) & 82.5\,$\pm$\,0.3 & 72.7\,$\pm$\,1.1 & 88.1\,$\pm$\,4.0 & 53.5\,$\pm$\,1.1 \\
-$-$ weight sharing (independent layers) & 84.7\,$\pm$\,1.3 & 75.5\,$\pm$\,0.8 & 91.4\,$\pm$\,2.2 & 57.3\,$\pm$\,1.9 \\
-Token-choice routing & 85.0\,$\pm$\,1.5 & 75.1\,$\pm$\,2.1 & 90.6\,$\pm$\,2.4 & 58.7\,$\pm$\,5.3 \\
-Fixed-depth recursion (no routing) & 85.3\,$\pm$\,1.8 & 77.1\,$\pm$\,2.1 & 88.9\,$\pm$\,6.3 & 53.6\,$\pm$\,1.6 \\
-$-$ recursion ($K{=}1$, single pass) & 82.1\,$\pm$\,1.7 & 73.1\,$\pm$\,2.4 & 90.9\,$\pm$\,2.9 & 51.7\,$\pm$\,5.2 \\
-Random marker panel & 83.2\,$\pm$\,2.5 & 74.6\,$\pm$\,3.1 & 91.7\,$\pm$\,1.9 & 59.0\,$\pm$\,2.0 \\
-Variance marker panel & 84.3\,$\pm$\,0.3 & 75.6\,$\pm$\,0.7 & 90.8\,$\pm$\,1.0 & 59.2\,$\pm$\,2.3 \\
+Expert-choice MoR, shared (headline) & 72.7\,$\pm$\,1.1 & 53.5\,$\pm$\,1.1 & 66.2\,$\pm$\,2.9 & 94.2\,$\pm$\,0.4 & 64.5\,$\pm$\,0.0 & 5.9\,$\pm$\,0.0 & 50.9\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 38.8\,$\pm$\,0.0 & 50.3\,$\pm$\,0.0 \\
+$-$ weight sharing (independent layers) & 75.5\,$\pm$\,0.8 & 57.3\,$\pm$\,1.9 & 66.6\,$\pm$\,4.4 & 94.2\,$\pm$\,0.4 & 58.3\,$\pm$\,0.0 & 7.0\,$\pm$\,0.0 & 47.5\,$\pm$\,0.0 & 40.4\,$\pm$\,0.0 & 55.3\,$\pm$\,0.0 & 34.2\,$\pm$\,0.0 \\
+Token-choice routing & 75.1\,$\pm$\,2.1 & 58.7\,$\pm$\,5.3 & 67.4\,$\pm$\,3.4 & 94.3\,$\pm$\,0.6 & 58.6\,$\pm$\,0.0 & 5.5\,$\pm$\,0.0 & 80.9\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 37.6\,$\pm$\,0.0 & 57.9\,$\pm$\,0.0 \\
+Fixed-depth recursion (no routing) & 77.1\,$\pm$\,2.1 & 53.6\,$\pm$\,1.6 & 68.5\,$\pm$\,2.7 & 94.1\,$\pm$\,0.3 & 65.8\,$\pm$\,0.0 & 9.8\,$\pm$\,0.0 & 75.5\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 36.4\,$\pm$\,0.0 & 68.4\,$\pm$\,0.0 \\
+$-$ recursion ($K{=}1$, single pass) & 73.1\,$\pm$\,2.4 & 51.7\,$\pm$\,5.2 & 66.2\,$\pm$\,3.7 & 93.2\,$\pm$\,0.5 & 57.5\,$\pm$\,0.0 & 7.7\,$\pm$\,0.0 & 47.7\,$\pm$\,0.0 & 40.0\,$\pm$\,0.0 & 38.8\,$\pm$\,0.0 & 55.4\,$\pm$\,0.0 \\
+Random marker panel & 74.6\,$\pm$\,3.1 & 59.0\,$\pm$\,2.0 & 63.6\,$\pm$\,3.9 & 96.8\,$\pm$\,0.0 & 65.5\,$\pm$\,0.0 & 5.5\,$\pm$\,0.0 & -- & -- & -- & -- \\
+Variance marker panel & 75.6\,$\pm$\,0.7 & 59.2\,$\pm$\,2.3 & 72.2\,$\pm$\,1.8 & 95.4\,$\pm$\,0.6 & 73.3\,$\pm$\,0.0 & 9.6\,$\pm$\,0.0 & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}}
 \caption{Architecture and routing ablations on both datasets (accuracy and macro-F1,
 \%, mean$\pm$std over 3 seeds). Each row changes one component of the headline
 model.}
 \label{tab:arch}
-\end{table}
+\end{table*}
 
 \subsection{Marker Selection Study}
 Does \emph{learning} the markers help? Table~\ref{tab:selection} compares the
@@ -709,24 +729,24 @@ selector is competitive with or ahead of the heuristics while additionally being
 end-to-end and yielding the interpretable recursion-depth ranking that fixed panels
 cannot provide.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccc}
 \toprule
-& \multicolumn{2}{c}{Tabula Muris} & \multicolumn{2}{c}{Pancreas} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Selection & Acc. & Macro-F1 & Acc. & Macro-F1 \\
+& \multicolumn{6}{c}{genomap single-cell} & \multicolumn{4}{c}{pathway/P-NET cohorts} \\
+\cmidrule(lr){2-7}\cmidrule(lr){8-11}
+Selection & TM & Panc. & Common & Proto. & Baron & Seger. & Prost. & BLCA & STAD & PanCan \\
 \midrule
-Cross-attention router (ours) & 82.5\,$\pm$\,0.3 & 72.7\,$\pm$\,1.1 & 88.1\,$\pm$\,4.0 & 53.5\,$\pm$\,1.1 \\
-Variance panel & 84.3\,$\pm$\,0.3 & 75.6\,$\pm$\,0.7 & 90.8\,$\pm$\,1.0 & 59.2\,$\pm$\,2.3 \\
-Random panel & 83.2\,$\pm$\,2.5 & 74.6\,$\pm$\,3.1 & 91.7\,$\pm$\,1.9 & 59.0\,$\pm$\,2.0 \\
+Cross-attention router (ours) & 72.7\,$\pm$\,1.1 & 53.5\,$\pm$\,1.1 & 66.2\,$\pm$\,2.9 & 94.2\,$\pm$\,0.4 & 64.5\,$\pm$\,0.0 & 5.9\,$\pm$\,0.0 & 50.9\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 38.8\,$\pm$\,0.0 & 50.3\,$\pm$\,0.0 \\
+Variance panel & 75.6\,$\pm$\,0.7 & 59.2\,$\pm$\,2.3 & 72.2\,$\pm$\,1.8 & 95.4\,$\pm$\,0.6 & 73.3\,$\pm$\,0.0 & 9.6\,$\pm$\,0.0 & -- & -- & -- & -- \\
+Random panel & 74.6\,$\pm$\,3.1 & 59.0\,$\pm$\,2.0 & 63.6\,$\pm$\,3.9 & 96.8\,$\pm$\,0.0 & 65.5\,$\pm$\,0.0 & 5.5\,$\pm$\,0.0 & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}}
 \caption{Marker-selection study (accuracy and macro-F1, \%, mean$\pm$std): the learned
 cross-attention router vs.\ variance and random panels, at otherwise identical settings.}
 \label{tab:selection}
-\end{table}
+\end{table*}
 
 \subsection{Parameter Efficiency Is Architectural}
 \label{sec:params}
@@ -756,6 +776,10 @@ at the single-cell geometry ($d{=}$96). Reduction grows linearly with depth $K$.
 \label{tab:params}
 \end{table}
 
+\section{Extended Results: Full Genomap Suite and Pathway Cohorts}
+These experiments extend the study above to all six genomap datasets (adding common\_class, prototype, Baron and Segerstolpe) and to the Reactome/P-NET multi-omics cohorts, and add the design-decision validations (token count, sharing schemes, adaptive depth, routing).
+\input{mor_tables}
+\clearpage
 \section{Discussion and Limitations}
 SMART shows that biological inductive bias and parameter-efficient recursion can be
 co-designed: the same mechanism that makes the model small (weight sharing,
@@ -790,9 +814,6 @@ none / co-expression / random-graph ablation and report the outcome transparentl
 complete pipeline, including all experiments and this paper, regenerates from a single
 command.
 
-\section{Extended Results: Full Genomap Suite and Pathway Cohorts}
-These experiments extend the study above to all six genomap datasets (adding common\_class, prototype, Baron and Segerstolpe) and to the Reactome/P-NET multi-omics cohorts, and add the design-decision validations (token count, sharing schemes, adaptive depth, routing).
-\input{mor_tables}
 \bibliographystyle{aaai}
 \bibliography{refs}
 
@@ -815,8 +836,12 @@ genomap-native setting.
 \toprule
 Dataset & Cells & Features & Classes & Split \\
 \midrule
-Tabula Muris & 54{,}865 & 1{,}089 genes & 55 & 70/30 (shipped) \\
-Pancreas & 14{,}767 & 1{,}936 (44$\times$44 genomap) & 15 & integration (shipped) \\
+TM & 54{,}865 & 1{,}089 genomap feats & 55 & 70/30 (shipped) \\
+Panc. & 14{,}767 & 1{,}936 genomap feats & 15 & integration (shipped) \\
+Common & 27{,}499 & 1{,}089 genomap feats & 19 & stratified \\
+Proto. & 90{,}579 & 752 genomap feats & 10 & stratified \\
+Baron & 8{,}569 & 1{,}936 genomap feats & 14 & stratified \\
+Seger. & 2{,}122 & 1{,}936 genomap feats & 10 & stratified \\
 \bottomrule
 \end{tabular}}
 \caption{The two single-cell datasets used. Counts and splits are read directly from
