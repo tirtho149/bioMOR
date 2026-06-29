@@ -31,12 +31,12 @@ macro-F1 (mean±std); `--` = job still running.
 ## Weight-sharing schemes — Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes
 | Sharing scheme (K=6) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe | prostate | blca | stad | panmeta_subtype |
 |---|---|---|---|---|---|---|---|---|---|---|
-| shared (1 block) | 75.1 | 61.0 | 68.9 | 93.6 | 60.2 | 3.4 | 72.3 | 42.7 | 38.8 | -- |
-| Cycle (3) | 80.5 | 54.4 | 71.6 | 95.2 | 70.5 | 6.9 | 57.1 | 40.4 | -- | -- |
-| Sequence (3) | 78.5 | 57.6 | 0.8 | 93.9 | 66.1 | 4.5 | 59.5 | 43.8 | -- | -- |
-| Middle-Cycle (3) | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 | 60.5 | 40.4 | -- | -- |
-| Middle-Sequence (3) | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 | 60.5 | 40.4 | -- | -- |
-| independent (6) | 79.9 | 57.0 | 3.0 | 95.4 | 65.3 | 7.2 | 59.6 | 44.4 | 56.2 | -- |
+| shared (1 block) | 75.1 | 61.0 | 68.9 | 93.6 | 60.2 | 3.4 | 72.3 | 42.7 | 38.8 | 60.9 |
+| Cycle (3) | 80.5 | 54.4 | 71.6 | 95.2 | 70.5 | 6.9 | 57.1 | 40.4 | 35.6 | 74.6 |
+| Sequence (3) | 78.5 | 57.6 | 0.8 | 93.9 | 66.1 | 4.5 | 59.5 | 43.8 | 51.3 | 75.7 |
+| Middle-Cycle (3) | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 | 60.5 | 40.4 | 35.7 | 73.8 |
+| Middle-Sequence (3) | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 | 60.5 | 40.4 | 35.7 | 73.8 |
+| independent (6) | 79.9 | 57.0 | 3.0 | 95.4 | 65.3 | 7.2 | 59.6 | 44.4 | 56.2 | 70.4 |
 
 ## Where computation is spent — mean recursion depth per marker token and the fraction of tokens still active at each step
 | Dataset | mean token depth | active fraction per step (1..K) |
@@ -51,8 +51,8 @@ macro-F1 (mean±std); `--` = job still running.
 ## Key/value reuse across recursions — recomputing vs reusing the first-step attention keys/values across recursion steps
 | KV strategy (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe | prostate | blca | stad | panmeta_subtype |
 |---|---|---|---|---|---|---|---|---|---|---|
-| recompute K/V (no cache) | 79.9 | 54.1 | 70.4 | 93.9 | 65.6 | 8.6 | 74.7 | 43.3 | 36.4 | -- |
-| reuse step-1 K/V (step-cache) | 71.6 | 58.5 | 71.8 | 93.2 | 59.6 | 6.4 | 82.8 | 39.6 | 38.8 | -- |
+| recompute K/V (no cache) | 79.9 | 54.1 | 70.4 | 93.9 | 65.6 | 8.6 | 74.7 | 43.3 | 36.4 | 69.3 |
+| reuse step-1 K/V (step-cache) | 71.6 | 58.5 | 71.8 | 93.2 | 59.6 | 6.4 | 82.8 | 39.6 | 38.8 | 67.6 |
 
 ## Warm-starting recursion from a fixed-depth model — initialising the shared block from a trained fixed-depth model vs training from scratch
 | Warm-start (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
