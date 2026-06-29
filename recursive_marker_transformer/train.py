@@ -189,7 +189,14 @@ def run(cfg: RMTConfig, markers_path: str = "markers_top.csv",
     criterion = RMTLoss(cfg, data.head_dtypes, class_weights)
 
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg.epochs)
+    # Linear LR warmup (1%->100% over first ~10% of epochs) then cosine; prevents the
+    # wide-model collapse-to-majority-class seen without warmup.
+    _warm = max(1, round(0.1 * cfg.epochs))
+    sched = torch.optim.lr_scheduler.SequentialLR(
+        opt,
+        [torch.optim.lr_scheduler.LinearLR(opt, start_factor=0.01, total_iters=_warm),
+         torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(1, cfg.epochs - _warm))],
+        milestones=[_warm])
 
     primary = cfg.heads[0]
     best_f1, best_state, bad = -1.0, None, 0

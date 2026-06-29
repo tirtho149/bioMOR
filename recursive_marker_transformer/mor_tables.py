@@ -17,7 +17,8 @@ import statistics as st
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GENOMAP = ["tabula_muris", "pancreas", "common_class", "prototype", "baron", "segerstolpe"]
+GENOMAP = ["tabula_muris", "pancreas", "common_class", "prototype", "baron", "segerstolpe",
+           "lung", "oesophagus", "spleen", "tcell"]
 
 
 def _metric(path: Path, key: str = "macro_f1"):

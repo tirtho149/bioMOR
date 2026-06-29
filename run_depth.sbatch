@@ -18,5 +18,5 @@ export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
 echo "[depth] host=$(hostname) date=$(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.depth_viz --data data/singlecell --out results_depth \
-    --datasets tabula_muris pancreas common_class prototype --epochs 60 --d_model 96 --device cuda
+    --datasets tabula_muris pancreas common_class prototype baron segerstolpe lung oesophagus spleen tcell --epochs 60 --d_model 96 --device cuda
 echo "[depth] DONE rc=$? date=$(date)"

@@ -27,7 +27,7 @@ if [ "$SLURM_ARRAY_TASK_ID" = "1" ]; then TAG=on; CACHE="--step_cache"; else TAG
 echo "[stepcache] $TAG host=$(hostname) date=$(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.singlecell \
     --data data/singlecell --out "results_stepcache/$TAG" \
-    --datasets tabula_muris pancreas common_class prototype \
+    --datasets tabula_muris pancreas common_class prototype baron segerstolpe lung oesophagus spleen tcell \
     --epochs 80 --d_model 96 --n_markers 128 --batch_size 128 \
     --lr 0.001 --weight_decay 0.00001 --patience 12 --device cuda \
     --recursion_mode fixed --recursion_depth 4 --seed 0 $CACHE

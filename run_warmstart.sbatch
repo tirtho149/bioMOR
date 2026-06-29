@@ -21,6 +21,6 @@ cd "$PROJ"; export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=$SLURM_CPUS_PER_TA
 echo "[warmstart] host=$(hostname) date=$(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.warmstart \
     --data data/singlecell --out results_warmstart \
-    --datasets tabula_muris pancreas common_class prototype \
+    --datasets tabula_muris pancreas common_class prototype baron segerstolpe lung oesophagus spleen tcell \
     --epochs 80 --d_model 96 --device cuda --seed 0
 echo "[warmstart] DONE rc=$? date=$(date)"

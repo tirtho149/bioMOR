@@ -57,3 +57,6 @@ results_cohorts_ms/
 # large raw data + copyrighted reference PDFs (not for the repo)
 new data/pancan_raw/
 TableNeeded*
+
+# raw genomap source data (materialized via git-lfs from data-branch; large)
+genomap_data/

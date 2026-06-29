@@ -23,7 +23,7 @@ M=(16 32 64 128 256); MM=${M[$SLURM_ARRAY_TASK_ID]}
 echo "[msweep] M=$MM host=$(hostname) date=$(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.singlecell --data data/singlecell \
     --out "results_msweep/M$MM" \
-    --datasets tabula_muris pancreas common_class prototype baron segerstolpe \
+    --datasets tabula_muris pancreas common_class prototype baron segerstolpe lung oesophagus spleen tcell \
     --epochs 80 --d_model 96 --n_markers $MM --batch_size 128 --lr 0.001 \
     --weight_decay 0.00001 --patience 12 --device cuda --recursion_mode expert --seed 0
 echo "[msweep] M=$MM DONE rc=$? date=$(date)"

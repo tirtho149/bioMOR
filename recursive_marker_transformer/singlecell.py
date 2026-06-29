@@ -127,7 +127,15 @@ def _fit_eval(Xs_full, y, tr, va, te, cfg, F, K, device):
     cw = _class_weights(torch.from_numpy(y[tr]), K).to(device)
     criterion = RMTLoss(cfg, _DTYPES, {HEAD: cw})
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg.epochs)
+    # Linear LR warmup (1%->100% over the first ~10% of epochs) then cosine anneal.
+    # Without warmup, wide models (d_model 192/384) hit full LR at step 0 and collapse
+    # to majority-class prediction; warmup stabilises training across all widths/archs.
+    warm = max(1, round(0.1 * cfg.epochs))
+    sched = torch.optim.lr_scheduler.SequentialLR(
+        opt,
+        [torch.optim.lr_scheduler.LinearLR(opt, start_factor=0.01, total_iters=warm),
+         torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(1, cfg.epochs - warm))],
+        milestones=[warm])
 
     best_f1, best_state, bad = -1.0, None, 0
     for ep in range(cfg.epochs):
@@ -140,6 +148,9 @@ def _fit_eval(Xs_full, y, tr, va, te, cfg, F, K, device):
             loss = criterion(out, yb)["total"]
             opt.zero_grad()
             loss.backward()
+            if not torch.isfinite(loss):     # skip non-finite steps instead of poisoning weights
+                opt.zero_grad(set_to_none=True)
+                continue
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             opt.step()
         sched.step()

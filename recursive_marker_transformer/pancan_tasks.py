@@ -122,7 +122,14 @@ def _fit_eval(task, X, y, tr, va, te, cfg, G, K, dtypes, device):
     cw = _class_weights(torch.from_numpy(y[tr]), K).to(device)
     criterion = RMTLoss(cfg, dtypes, {task: cw})
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg.epochs)
+    # Linear LR warmup (1%->100% over first ~10% of epochs) then cosine; prevents the
+    # wide-model collapse-to-majority-class seen without warmup.
+    _warm = max(1, round(0.1 * cfg.epochs))
+    sched = torch.optim.lr_scheduler.SequentialLR(
+        opt,
+        [torch.optim.lr_scheduler.LinearLR(opt, start_factor=0.01, total_iters=_warm),
+         torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(1, cfg.epochs - _warm))],
+        milestones=[_warm])
 
     best_f1, best_state, bad = -1.0, None, 0
     for ep in range(cfg.epochs):

@@ -560,6 +560,7 @@ _TEX = r"""\documentclass[letterpaper]{article}
 \usepackage{helvet}
 \usepackage{courier}
 \usepackage{booktabs}
+\usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -1273,6 +1274,34 @@ compute-allocated recursion-depth signal. We evaluate the prior with a controlle
 none / co-expression / random-graph ablation and report the outcome transparently. The
 complete pipeline, including all experiments and this paper, regenerates from a single
 command.
+
+\section{Broader Impact and Ethics Statement}
+\emph{Positive applications.} SMART targets cell-type annotation and bulk-omics
+subtyping with an order-of-magnitude fewer transformer parameters and an explicit,
+auditable marker-gene and recursion-depth signal; cheaper, more interpretable models
+lower the barrier for biological discovery and make automated annotation easier to
+scrutinise before it informs downstream science.
+\emph{Risks and mitigations.} Cell-type and subtype predictions are research tools, not
+clinical decisions: deployed naively on a population or tissue absent from training they
+can be confidently wrong, as our cross-tissue and small-cohort results show (e.g.\ the
+Segerstolpe and pancreas-image cases). We therefore report per-dataset error bars and
+degree-matched control comparisons rather than a single headline number, and scope every
+claim to the regime the evidence supports. The learned marker panels are interpretable
+and should be inspected for confounds (batch, donor, ambient RNA) before any biological
+conclusion is drawn.
+\emph{Data and privacy.} All datasets are public, de-identified single-cell and
+bulk-omics resources used under their original licenses; we add no re-identifying
+information and release no individual-level data. Genomic data is inherently sensitive,
+and any extension of this method to non-public cohorts should pass the corresponding IRB
+and data-governance review.
+\emph{Compute footprint.} The efficiency that motivates the method also bounds its
+environmental cost: every run in this paper fits on a single GPU, and weight sharing
+plus marker compression cut both parameters and attention FLOPs, reducing rather than
+inflating training cost.
+\emph{Reproducibility and tooling disclosure.} The full pipeline---data preparation,
+training, ablations, tables and figures---regenerates from a single command, and
+automated tooling was used to assist with code and manuscript preparation; all reported
+numbers trace to committed result files.
 
 \bibliographystyle{aaai}
 \bibliography{refs}
