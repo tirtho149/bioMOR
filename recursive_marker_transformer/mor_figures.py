@@ -18,7 +18,12 @@ ROOT = Path(__file__).resolve().parents[1]
 FIGS = ROOT / "paper" / "figs"
 GENOMAP = ["tabula_muris", "pancreas", "common_class", "prototype", "baron", "segerstolpe"]
 SIZES = [48, 96, 192, 384]
+# MoR-paper palette (Bae et al. 2025, Fig. 3): Vanilla=green, Recursive=blue, MoR=orange
+COL = {"vanilla": "#2CA02C", "recursive": "#1F77B4", "mor": "#FF7F0E"}
 ARCHS = [("vanilla", "Vanilla"), ("recursive", "Recursive"), ("mor", "MoR (SMART)")]
+plt.rcParams.update({"font.size": 10, "axes.facecolor": "white",
+                     "axes.edgecolor": "#444444", "axes.grid": True,
+                     "grid.color": "#DDDDDD", "grid.linewidth": 0.6})
 
 
 def _present(ds):
@@ -48,7 +53,7 @@ def fig_scaling():
             xs = [s for s, y in zip(SIZES, ys) if y is not None]
             yy = [y for y in ys if y is not None]
             if yy:
-                ax.plot(xs, yy, marker="o", label=lab)
+                ax.plot(xs, yy, marker="o", color=COL[a], linewidth=2, label=lab)
         ax.set_title(d); ax.set_xlabel("d_model"); ax.set_ylabel("macro-F1")
         ax.grid(alpha=0.3)
     for j in range(n, rows * cols):
@@ -96,7 +101,7 @@ def fig_param_efficiency():
                     if tp and f1 is not None:
                         xs.append(tp); ys.append(f1); got = True
         if xs:
-            ax.scatter(xs, ys, label=lab, alpha=0.7)
+            ax.scatter(xs, ys, label=lab, alpha=0.8, s=40, color=COL[a])
     if not got:
         plt.close(fig); return None
     ax.set_xscale("log"); ax.set_xlabel("transformer params (log)"); ax.set_ylabel("macro-F1")

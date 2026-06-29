@@ -528,9 +528,14 @@ def main():
     src = mor_tables.ROOT / "paper" / "mor_tables.tex"
     if src.exists() and src.resolve() != (args.outdir / "mor_tables.tex").resolve():
         (args.outdir / "mor_tables.tex").write_text(src.read_text())
-    doc = mor_paper.build()                         # self-contained; \input{mor_tables}
+    doc = mor_paper.build()                         # AAAI paper; \input{mor_tables}
     (args.outdir / "genomicrecursiveformer.tex").write_text(doc)
-    print("[make_paper] wrote MoR-reproduction paper (narrative + 14 tables + figures)")
+    # AAAI style files must sit beside the .tex
+    for s in ("aaai.sty", "aaai.bst", "fixbib.sty"):
+        srcs = _TEMPLATE_DIR / s
+        if srcs.exists():
+            (args.outdir / s).write_text(srcs.read_text())
+    print("[make_paper] wrote AAAI paper (story narrative + story-named tables + figures)")
     unresolved = []
     print(f"[make_paper] wrote {args.outdir}/genomicrecursiveformer.tex")
     if unresolved:

@@ -1,8 +1,29 @@
-# SMART × genomap: reproduction of all MoR-paper tables
+# SMART: experiments behind the three claims (genomap + pathway, no TCGA)
 
-macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/common_class/prototype + Baron/Segerstolpe).
+macro-F1 (mean±std); `--` = job still running.
 
-## Adaptive depth — K=1 (no recursion) vs fixed-depth vs adaptive routed depth (MoR's core claim)
+## How few tokens suffice — macro-F1 as the number of marker/pathway tokens $M$ is reduced (token reduction)
+| Dataset / #tokens M | M=16 | M=32 | M=64 | M=128 | M=256 |
+|---|---|---|---|---|---|
+| tabula_muris | 36.3 | 53.2 | 65.2 | 70.9 | 76.8 |
+| pancreas | 36.1 | 50.3 | 54.0 | 59.0 | 57.2 |
+| common_class | 14.7 | 30.9 | 33.9 | 64.8 | -- |
+| prototype | 63.2 | -- | -- | -- | -- |
+| baron | -- | -- | -- | -- | -- |
+| segerstolpe | -- | -- | -- | -- | -- |
+
+## Routing and marker-token selection — expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1
+| Variant (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
+|---|---|---|---|---|---|---|
+| expert-choice MoR (shared) | 72.7±1.1 | 53.5±1.1 | 66.2±2.9 | 94.2±0.4 | 64.5±0.0 | 5.9±0.0 |
+| token-choice MoR | 75.1±2.1 | 58.7±5.3 | 67.4±3.4 | 94.3±0.6 | 58.6±0.0 | 5.5±0.0 |
+| fixed-depth (no routing) | 77.1±2.1 | 53.6±1.6 | 68.5±2.7 | 94.1±0.3 | 65.8±0.0 | 9.8±0.0 |
+| K=1 (no recursion) | 73.1±2.4 | 51.7±5.2 | 66.2±3.7 | 93.2±0.5 | 57.5±0.0 | 7.7±0.0 |
+| independent blocks | 75.5±0.8 | 57.3±1.9 | 66.6±4.4 | 94.2±0.4 | 58.3±0.0 | 7.0±0.0 |
+| random markers | 74.6±3.1 | 59.0±2.0 | 63.6±3.9 | 96.8±0.0 | 65.5±0.0 | 5.5±0.0 |
+| variance markers | 75.6±0.7 | 59.2±2.3 | 72.2±1.8 | 95.4±0.6 | 73.3±0.0 | 9.6±0.0 |
+
+## Adaptive recursion depth — single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved
 | Dataset | K=1 (no recursion) | fixed depth K | adaptive depth (MoR) | mean token depth | compute saved |
 |---|---|---|---|---|---|
 | tabula_muris | 73.1 | 77.1 | 72.7 | 2.75/4 | 31% |
@@ -12,7 +33,7 @@ macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/co
 | baron | 57.5 | 65.8 | 64.5 | 2.75/4 | 31% |
 | segerstolpe | 7.7 | 9.8 | 5.9 | 2.75/4 | 31% |
 
-## T3 / T7 — MoR vs Recursive vs Vanilla across model sizes
+## Recursion versus independent layers across model sizes — macro-F1 of independent layers (Vanilla), one weight-shared block (Recursive), and adaptive routing (SMART)
 | Arch x size (macro_f1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
 |---|---|---|---|---|---|---|
 | Vanilla (independent) d=48 | 74.5 | 51.1 | 78.8 | 95.5 | 69.8 | 7.3 |
@@ -28,18 +49,7 @@ macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/co
 | MoR (SMART) d=192 | 74.0 | 65.6 | 61.5 | 95.3 | 62.4 | 10.0 |
 | MoR (SMART) d=384 | 65.8 | 53.4 | 42.8 | 91.6 | 60.1 | 9.9 |
 
-## T4 — expert/token-choice router + marker-selection ablation
-| Variant (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| expert-choice MoR (shared) | 72.7±1.1 | 53.5±1.1 | 66.2±2.9 | 94.2±0.4 | 64.5±0.0 | 5.9±0.0 |
-| token-choice MoR | 75.1±2.1 | 58.7±5.3 | 67.4±3.4 | 94.3±0.6 | 58.6±0.0 | 5.5±0.0 |
-| fixed-depth (no routing) | 77.1±2.1 | 53.6±1.6 | 68.5±2.7 | 94.1±0.3 | 65.8±0.0 | 9.8±0.0 |
-| K=1 (no recursion) | 73.1±2.4 | 51.7±5.2 | 66.2±3.7 | 93.2±0.5 | 57.5±0.0 | 7.7±0.0 |
-| independent blocks | 75.5±0.8 | 57.3±1.9 | 66.6±4.4 | 94.2±0.4 | 58.3±0.0 | 7.0±0.0 |
-| random markers | 74.6±3.1 | 59.0±2.0 | 63.6±3.9 | 96.8±0.0 | 65.5±0.0 | 5.5±0.0 |
-| variance markers | 75.6±0.7 | 59.2±2.3 | 72.2±1.8 | 95.4±0.6 | 73.3±0.0 | 9.6±0.0 |
-
-## T6 — model-size config + parameter reduction (MoR vs Vanilla params)
+## Parameter reduction from weight sharing — transformer parameters of each size variant and the shared-vs-independent reduction factor
 | Size | Recursions | MoR params | Vanilla params | param reduction |
 |---|---|---|---|---|
 | d_model=48 | K=4 | 19,152 | 75,840 | 4.0x |
@@ -47,7 +57,7 @@ macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/co
 | d_model=192 | K=4 | 297,792 | 1,188,096 | 4.0x |
 | d_model=384 | K=4 | 1,185,408 | 4,735,488 | 4.0x |
 
-## T1 / T5 / T8 — parameter-sharing schemes (Cycle/Sequence/Middle-*)
+## Weight-sharing schemes — Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes
 | Sharing scheme (K=6) | params | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
 |---|---|---|---|---|---|---|---|
 | shared (1 block) | 74,784 | 75.1 | 61.0 | 68.9 | 93.6 | 60.2 | 3.4 |
@@ -57,31 +67,7 @@ macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/co
 | Middle-Sequence (3) | 224,352 | 80.1 | 56.4 | 67.0 | 94.9 | 61.0 | 7.8 |
 | independent (6) | 448,704 | 79.9 | 57.0 | 3.0 | 95.4 | 65.3 | 7.2 |
 
-## T2 / T12 / T13 — step-cache: reuse vs recompute step-1 K/V
-| KV strategy (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| recompute K/V (no cache) | 79.9 | 54.1 | 70.4 | 93.9 | 65.6 | 8.6 |
-| reuse step-1 K/V (step-cache) | 71.6 | 58.5 | 71.8 | 93.2 | 59.6 | 6.4 |
-
-## T9 — warm-start (uptraining analogue: fixed-depth source -> MoR)
-| Warm-start (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| fixed-depth source | 75.2 | 51.8 | 69.0 | 92.9 | 68.1 | 8.3 |
-| MoR from scratch | 71.7 | 62.8 | 65.8 | 95.5 | 61.5 | 5.4 |
-| MoR warm-started | 65.8 | 61.6 | 64.8 | 93.3 | 55.8 | 6.9 |
-| warm-start gain | -5.9 | -1.2 | -0.9 | -2.2 | -5.6 | +1.5 |
-
-## T10 / T11 — expert/token router under different routing configs
-| Routing config (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
-|---|---|---|---|---|---|---|
-| expert linear | 71.9 | 56.7 | 68.6 | 93.3 | 60.3 | 5.9 |
-| expert MLP | 67.2 | 51.9 | 70.2 | 93.2 | 49.4 | 7.1 |
-| expert temp=2 | 73.5 | 57.6 | 66.7 | 94.1 | 66.2 | 6.5 |
-| token linear | 74.7 | 53.7 | 70.1 | 94.5 | 52.6 | 5.4 |
-| token MLP | 78.8 | 59.7 | 64.4 | 94.0 | 60.9 | 5.5 |
-| token balance=0.01 | 75.6 | 57.6 | 67.5 | 93.7 | 58.6 | 5.0 |
-
-## T14 / Fig5 — per-marker recursion depth + active-fraction-per-step
+## Where computation is spent — mean recursion depth per marker token and the fraction of tokens still active at each step
 | Dataset | mean token depth | active fraction per step (1..K) |
 |---|---|---|
 | tabula_muris | 2.75/4 | 1.00, 0.75, 0.50, 0.50 |
@@ -91,7 +77,31 @@ macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/co
 | baron | 2.75/4 | 1.00, 0.75, 0.50, 0.50 |
 | segerstolpe | 2.75/4 | 1.00, 0.75, 0.50, 0.50 |
 
-## Pathway data — GitHub P-NET/Reactome cohorts through the architecture ablation
+## Key/value reuse across recursions — recomputing vs reusing the first-step attention keys/values across recursion steps
+| KV strategy (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
+|---|---|---|---|---|---|---|
+| recompute K/V (no cache) | 79.9 | 54.1 | 70.4 | 93.9 | 65.6 | 8.6 |
+| reuse step-1 K/V (step-cache) | 71.6 | 58.5 | 71.8 | 93.2 | 59.6 | 6.4 |
+
+## Warm-starting recursion from a fixed-depth model — initialising the shared block from a trained fixed-depth model vs training from scratch
+| Warm-start (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
+|---|---|---|---|---|---|---|
+| fixed-depth source | 75.2 | 51.8 | 69.0 | 92.9 | 68.1 | 8.3 |
+| MoR from scratch | 71.7 | 62.8 | 65.8 | 95.5 | 61.5 | 5.4 |
+| MoR warm-started | 65.8 | 61.6 | 64.8 | 93.3 | 55.8 | 6.9 |
+| warm-start gain | -5.9 | -1.2 | -0.9 | -2.2 | -5.6 | +1.5 |
+
+## Routing configurations — router head, temperature and load balancing for the expert- and token-choice routers
+| Routing config (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
+|---|---|---|---|---|---|---|
+| expert linear | 71.9 | 56.7 | 68.6 | 93.3 | 60.3 | 5.9 |
+| expert MLP | 67.2 | 51.9 | 70.2 | 93.2 | 49.4 | 7.1 |
+| expert temp=2 | 73.5 | 57.6 | 66.7 | 94.1 | 66.2 | 6.5 |
+| token linear | 74.7 | 53.7 | 70.1 | 94.5 | 52.6 | 5.4 |
+| token MLP | 78.8 | 59.7 | 64.4 | 94.0 | 60.9 | 5.5 |
+| token balance=0.01 | 75.6 | 57.6 | 67.5 | 93.7 | 58.6 | 5.0 |
+
+## Transfer to pathway-informed multi-omics — the same architecture ablation on the Reactome/P-NET cohorts (mutation/CNV/expression)
 | Pathway cohort (macro-F1) | prostate | blca | stad | brca | panmeta_response | panmeta_subtype |
 |---|---|---|---|---|---|---|
 | adaptive MoR (shared) | 50.9 | 43.3 | 38.8 | 27.7 | 93.0 | 50.3 |

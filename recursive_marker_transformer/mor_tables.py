@@ -212,6 +212,18 @@ def t_pathway_arch():
     return _md_table(["Pathway cohort (macro-F1)"] + tasks, rows)
 
 
+def t_token_reduction():
+    """Token reduction: macro-F1 as a function of the number of marker tokens M
+    (results_msweep/M<n>/<ds>.json) -- how few interpretable tokens suffice."""
+    Ms = [16, 32, 64, 128, 256]
+    ds = _present(GENOMAP)
+    rows = []
+    for d in ds:
+        cells = [_cell(_metric(ROOT / f"results_msweep/M{m}" / f"{d}.json")) for m in Ms]
+        rows.append([d] + cells)
+    return _md_table(["Dataset / #tokens M"] + [f"M={m}" for m in Ms], rows)
+
+
 def t9_warmstart():
     """T9: warm-start (uptraining analogue) -- results_warmstart/<ds>.json."""
     ds = _present(GENOMAP)
@@ -262,68 +274,93 @@ def t14_depth():
 PENDING = {}
 
 
-# (title, caption, builder). Order = adaptive-depth first, then MoR tables 1-14.
+# Story-named tables (title, one-line caption, builder, label). No "T1/T2/T3" -- each
+# table is a result of the paper, ordered to tell the SMART story: token reduction ->
+# adaptive recursion -> parameter sharing -> compute allocation -> transfer.
 SECTIONS = [
-    ("Adaptive depth", "K=1 (no recursion) vs fixed-depth vs adaptive routed depth (MoR's core claim)", t_adaptive_depth),
-    ("T3 / T7", "MoR vs Recursive vs Vanilla across model sizes", t3_arch_scaling),
-    ("T4", "expert/token-choice router + marker-selection ablation", t4_router_ablation),
-    ("T6", "model-size config + parameter reduction (MoR vs Vanilla params)", t6_config),
-    ("T1 / T5 / T8", "parameter-sharing schemes (Cycle/Sequence/Middle-*)", t158_sharing),
-    ("T2 / T12 / T13", "step-cache: reuse vs recompute step-1 K/V", t2_12_13_stepcache),
-    ("T9", "warm-start (uptraining analogue: fixed-depth source -> MoR)", t9_warmstart),
-    ("T10 / T11", "expert/token router under different routing configs", t1011_routing),
-    ("T14 / Fig5", "per-marker recursion depth + active-fraction-per-step", t14_depth),
-    ("Pathway data", "GitHub P-NET/Reactome cohorts through the architecture ablation", t_pathway_arch),
+    ("How few tokens suffice",
+     "macro-F1 as the number of marker/pathway tokens $M$ is reduced (token reduction)",
+     t_token_reduction, "tab:tokens"),
+    ("Routing and marker-token selection",
+     "expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1",
+     t4_router_ablation, "tab:selection"),
+    ("Adaptive recursion depth",
+     "single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved",
+     t_adaptive_depth, "tab:adaptive"),
+    ("Recursion versus independent layers across model sizes",
+     "macro-F1 of independent layers (Vanilla), one weight-shared block (Recursive), and adaptive routing (SMART)",
+     t3_arch_scaling, "tab:scaling"),
+    ("Parameter reduction from weight sharing",
+     "transformer parameters of each size variant and the shared-vs-independent reduction factor",
+     t6_config, "tab:config"),
+    ("Weight-sharing schemes",
+     "Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes",
+     t158_sharing, "tab:sharing"),
+    ("Where computation is spent",
+     "mean recursion depth per marker token and the fraction of tokens still active at each step",
+     t14_depth, "tab:depth"),
+    ("Key/value reuse across recursions",
+     "recomputing vs reusing the first-step attention keys/values across recursion steps",
+     t2_12_13_stepcache, "tab:cache"),
+    ("Warm-starting recursion from a fixed-depth model",
+     "initialising the shared block from a trained fixed-depth model vs training from scratch",
+     t9_warmstart, "tab:warmstart"),
+    ("Routing configurations",
+     "router head, temperature and load balancing for the expert- and token-choice routers",
+     t1011_routing, "tab:routing"),
+    ("Transfer to pathway-informed multi-omics",
+     "the same architecture ablation on the Reactome/P-NET cohorts (mutation/CNV/expression)",
+     t_pathway_arch, "tab:pathway"),
 ]
 
-# Per-table description paragraph (maps each to its MoR table(s) + the claim it supports).
+# Story description paragraph per table (keyed by title). Prose, not "MoR table N".
 DESC = {
-    "Adaptive depth":
-        "SMART's core adaptive-computation result. Single-pass (K=1), fixed-depth "
-        "recursion, and adaptive per-token routed depth (expert-choice MoR) are compared; "
-        "mean token depth and compute-saved quantify the funnel -- uninformative marker "
-        "tokens exit early, cutting recursion FLOPs while tracking fixed-depth accuracy.",
-    "T3 / T7":
-        "MoR Tables 3 and 7. Macro-F1 of Vanilla (K independent blocks), Recursive (one "
-        "shared block applied K times), and MoR (shared block + expert-choice routing) "
-        "across four model sizes -- Recursive matches Vanilla at about 1/K the parameters.",
-    "T4":
-        "MoR Table 4 (the headline router ablation). Expert- vs token-choice routing and "
-        "the marker-selection baselines (random/variance) vs the learned router; mean+-std "
-        "over seeds across the genomap suite.",
-    "T6":
-        "MoR Table 6. Parameter counts of the size variants and the MoR-vs-Vanilla "
-        "reduction factor (about K, from weight sharing).",
-    "T1 / T5 / T8":
-        "MoR Tables 1, 5, 8. The four parameter-sharing schemes (Cycle, Sequence, "
-        "Middle-Cycle, Middle-Sequence) at K=6 with three unique blocks, bracketed by the "
-        "fully-shared (1 block) and fully-independent (6 blocks) extremes.",
-    "T2 / T12 / T13":
-        "MoR Tables 2, 12, 13 (adapted to a non-autoregressive set encoder). Step-cache: "
-        "reusing the step-1 attention key/value across recursions vs recomputing -- the "
-        "analogue of MoR's recursion-wise KV-cache sharing.",
-    "T9":
-        "MoR Table 9 (adapted). Warm-start / uptraining: a MoR model whose shared block is "
-        "initialised from a trained fixed-depth model, vs trained from scratch.",
-    "T10 / T11":
-        "MoR Tables 10 and 11. Expert- and token-choice routers under different routing "
-        "configurations (linear vs MLP router head, temperature, load balancing).",
-    "T14 / Fig5":
-        "MoR Table 14 / Figure 5. Per-marker recursion depth and the fraction of marker "
-        "tokens still active at each recursion step (the compute-allocation funnel).",
-    "Pathway data":
-        "The new GitHub P-NET/Reactome multi-omics cohorts run through the same "
-        "architecture ablation, showing the three claims transfer beyond genomap to bulk "
-        "mutation/CNV/expression data.",
+    "How few tokens suffice":
+        "Token reduction. SMART keeps only $M$ interpretable tokens, so attention costs "
+        "$O(M^2)$ rather than $O(N^2)$ in the number of genes. Accuracy is reported as $M$ "
+        "shrinks; a few dozen to a few hundred tokens recover most of the full-gene signal.",
+    "Routing and marker-token selection":
+        "Two questions about the selective recursion. Expert- vs token-choice routing "
+        "allocate depth differently; and learning which genes are markers (the cross-attention "
+        "router) is compared against fixed random and variance-ranked panels.",
+    "Adaptive recursion depth":
+        "The adaptive-loop result. A single pass ($K{=}1$), fixed-depth recursion, and "
+        "adaptive per-token routed depth are compared; the mean token depth and compute saved "
+        "quantify the funnel -- uninformative tokens exit early while accuracy tracks fixed depth.",
+    "Recursion versus independent layers across model sizes":
+        "Recursion vs independent depth across model sizes: independent layers (Vanilla), one "
+        "weight-shared block applied $K$ times (Recursive), and adaptive routing (SMART). "
+        "Recursive matches independent at a fraction of the parameters.",
+    "Parameter reduction from weight sharing":
+        "The parameter-reduction result. Applying one block recursively uses $1/K$ of the "
+        "parameters of $K$ independent blocks of the same width (a $4\\times$ reduction at $K{=}4$).",
+    "Weight-sharing schemes":
+        "Between fully shared and fully independent lie graded sharing schemes -- Cycle, "
+        "Sequence, Middle-Cycle and Middle-Sequence -- trading parameters for capacity.",
+    "Where computation is spent":
+        "An interpretability view of the adaptive loop: the mean recursion depth assigned to "
+        "each marker token and the fraction of tokens still active at each recursion step.",
+    "Key/value reuse across recursions":
+        "Whether the first recursion's attention keys/values can be reused across later steps "
+        "(a cache) instead of recomputed, trading a little accuracy for compute.",
+    "Warm-starting recursion from a fixed-depth model":
+        "Whether a recursive model benefits from initialising its shared block from a trained "
+        "fixed-depth model and continuing training, versus training from scratch.",
+    "Routing configurations":
+        "How the routing behaves under different router heads (linear vs MLP), temperatures "
+        "and load-balancing strengths, for both expert- and token-choice routing.",
+    "Transfer to pathway-informed multi-omics":
+        "Whether the same design decisions hold beyond single cells: the architecture ablation "
+        "rerun on Reactome/P-NET mutation/CNV/expression cohorts.",
 }
 
 FIGURES = [
-    ("fig_scaling.png", "Fig 3 analogue: macro-F1 vs model size for Vanilla, Recursive and "
-                        "MoR on each genomap dataset.", "fig:mor-scaling"),
-    ("fig_depth.png", "Fig 5 analogue: fraction of marker tokens still active at each "
-                      "recursion step (the expert-choice depth funnel).", "fig:mor-depth"),
-    ("fig_param_efficiency.png", "Parameter efficiency: macro-F1 vs transformer parameters "
-                                 "for shared-recursion vs independent stacks.", "fig:mor-param"),
+    ("fig_scaling.png", "Macro-F1 versus model size for independent (Vanilla), weight-shared "
+                        "(Recursive) and adaptively-routed (SMART) stacks on each dataset.", "fig:scaling"),
+    ("fig_depth.png", "The expert-choice funnel: fraction of marker tokens still active at each "
+                      "recursion step.", "fig:depth"),
+    ("fig_param_efficiency.png", "Accuracy versus transformer parameters for weight-shared "
+                                 "recursion against independent layers.", "fig:param"),
 ]
 
 
@@ -335,40 +372,32 @@ def main():
     def render(fmt):
         global FMT
         FMT = fmt
-        return [(t, c, fn()) for t, c, fn in SECTIONS]
+        return [(t, c, fn(), lab) for t, c, fn, lab in SECTIONS]
 
     # ---- markdown ----
-    md = ["# SMART × genomap: reproduction of all MoR-paper tables\n",
-          "macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite "
-          "(TM/pancreas/common_class/prototype + Baron/Segerstolpe).\n"]
-    for t, c, body in render("md"):
+    md = ["# SMART: experiments behind the three claims (genomap + pathway, no TCGA)\n",
+          "macro-F1 (mean±std); `--` = job still running.\n"]
+    for t, c, body, lab in render("md"):
         md.append(f"## {t} — {c}\n{body}\n")
     (out_dir / "mor_tables.md").write_text("\n".join(md) + "\n")
 
-    # ---- latex (\input-ready section for the paper) ----
-    tex = [r"% Auto-generated by recursive_marker_transformer.mor_tables -- do not edit.",
-           r"\section{Reproduction of the Mixture-of-Recursions tables on the genomap suite}",
-           r"We reproduce every table of the Mixture-of-Recursions paper (Bae et al., 2025) with SMART on the genomap "
-           r"single-cell datasets (and the pathway/P-NET multi-omics cohorts), with no TCGA. "
-           r"Each table below names the MoR table(s) it reproduces and the claim it supports "
-           r"(adaptive recursion loop, token reduction, or parameter reduction). Cells are "
-           r"macro-F1 (mean$\pm$std over seeds where available)."]
-    for t, c, body in render("tex"):
-        label = t.split()[0].replace("/", "").lower()
+    # ---- latex (\input-ready Experiments section; full-width table* for AAAI 2-col) ----
+    tex = [r"% Auto-generated by recursive_marker_transformer.mor_tables -- do not edit."]
+    for t, c, body, lab in render("tex"):
         tex.append(r"\paragraph{" + t + ".} " + DESC.get(t, c) + ".")
-        tex.append(r"\begin{table}[htbp]\centering\footnotesize")
-        tex.append(r"\setlength{\tabcolsep}{4pt}")
-        tex.append(r"\caption{" + t + ": " + c + ".}")
-        tex.append(r"\label{tab:mor-" + label + "}")
-        # shrink-to-fit ONLY if wider than the text column (never upscale narrow tables)
-        tex.append(r"\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%")
+        # full-width float (spans both AAAI columns); shrink-to-fit only if too wide
+        tex.append(r"\begin{table*}[t]\centering\footnotesize")
+        tex.append(r"\setlength{\tabcolsep}{5pt}")
+        tex.append(r"\caption{" + c[0].upper() + c[1:] + ".}")
+        tex.append(r"\label{" + lab + "}")
+        tex.append(r"\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%")
         tex.append(body)
         tex.append(r"}")
-        tex.append(r"\end{table}")
+        tex.append(r"\end{table*}")
     for img, cap, lab in FIGURES:
         if (out_dir / "figs" / img).exists():
             tex.append(r"\begin{figure}[t]\centering")
-            tex.append(r"\includegraphics[width=0.9\linewidth]{figs/" + img + "}")
+            tex.append(r"\includegraphics[width=\columnwidth]{figs/" + img + "}")
             tex.append(r"\caption{" + cap + "}")
             tex.append(r"\label{" + lab + "}")
             tex.append(r"\end{figure}")
