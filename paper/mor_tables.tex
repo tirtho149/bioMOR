@@ -3,7 +3,7 @@
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Macro-F1 as the number of marker/pathway tokens $M$ is reduced (token reduction).}
-\label{tab:tokens}
+\label{tab:exp-tokens}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrr}
 \toprule
@@ -11,10 +11,10 @@ Dataset / #tokens M & M=16 & M=32 & M=64 & M=128 & M=256 \\
 \midrule
 tabula\_muris & 36.3 & 53.2 & 65.2 & 70.9 & 76.8 \\
 pancreas & 36.1 & 50.3 & 54.0 & 59.0 & 57.2 \\
-common\_class & 14.7 & 30.9 & 33.9 & 64.8 & -- \\
-prototype & 63.2 & -- & -- & -- & -- \\
-baron & -- & -- & -- & -- & -- \\
-segerstolpe & -- & -- & -- & -- & -- \\
+common\_class & 14.7 & 30.9 & 33.9 & 64.8 & 74.9 \\
+prototype & 63.2 & 79.1 & 87.4 & 93.8 & 97.5 \\
+baron & 28.1 & 43.3 & 42.1 & 61.9 & 72.0 \\
+segerstolpe & 5.1 & 6.1 & 10.0 & 4.5 & 7.5 \\
 \bottomrule
 \end{tabular}
 }
@@ -23,7 +23,7 @@ segerstolpe & -- & -- & -- & -- & -- \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1.}
-\label{tab:selection}
+\label{tab:exp-selection}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -44,7 +44,7 @@ variance markers & 75.6$\pm$0.7 & 59.2$\pm$2.3 & 72.2$\pm$1.8 & 95.4$\pm$0.6 & 7
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved.}
-\label{tab:adaptive}
+\label{tab:exp-adaptive}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrr}
 \toprule
@@ -64,7 +64,7 @@ segerstolpe & 7.7 & 9.8 & 5.9 & 2.75/4 & 31\% \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Macro-F1 of independent layers (Vanilla), one weight-shared block (Recursive), and adaptive routing (SMART).}
-\label{tab:scaling}
+\label{tab:exp-scaling}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -90,7 +90,7 @@ MoR (SMART) d=384 & 65.8 & 53.4 & 42.8 & 91.6 & 60.1 & 9.9 \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Transformer parameters of each size variant and the shared-vs-independent reduction factor.}
-\label{tab:config}
+\label{tab:exp-config}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
@@ -108,7 +108,7 @@ d\_model=384 & K=4 & 1,185,408 & 4,735,488 & 4.0$\times$ \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Cycle, Sequence, Middle-Cycle and Middle-Sequence sharing between the fully-shared and fully-independent extremes.}
-\label{tab:sharing}
+\label{tab:exp-sharing}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrrr}
 \toprule
@@ -128,7 +128,7 @@ independent (6) & 448,704 & 79.9 & 57.0 & 3.0 & 95.4 & 65.3 & 7.2 \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Mean recursion depth per marker token and the fraction of tokens still active at each step.}
-\label{tab:depth}
+\label{tab:exp-depth}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrr}
 \toprule
@@ -148,7 +148,7 @@ segerstolpe & 2.75/4 & 1.00, 0.75, 0.50, 0.50 \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Recomputing vs reusing the first-step attention keys/values across recursion steps.}
-\label{tab:cache}
+\label{tab:exp-cache}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -164,7 +164,7 @@ reuse step-1 K/V (step-cache) & 71.6 & 58.5 & 71.8 & 93.2 & 59.6 & 6.4 \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Initialising the shared block from a trained fixed-depth model vs training from scratch.}
-\label{tab:warmstart}
+\label{tab:exp-warmstart}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -182,7 +182,7 @@ warm-start gain & -5.9 & -1.2 & -0.9 & -2.2 & -5.6 & +1.5 \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Router head, temperature and load balancing for the expert- and token-choice routers.}
-\label{tab:routing}
+\label{tab:exp-routing}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -202,7 +202,7 @@ token balance=0.01 & 75.6 & 57.6 & 67.5 & 93.7 & 58.6 & 5.0 \\
 \begin{table*}[t]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{The same architecture ablation on the Reactome/P-NET cohorts (mutation/CNV/expression).}
-\label{tab:pathway}
+\label{tab:exp-pathway}
 \resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule

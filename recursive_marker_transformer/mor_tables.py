@@ -389,7 +389,7 @@ def main():
         tex.append(r"\begin{table*}[t]\centering\footnotesize")
         tex.append(r"\setlength{\tabcolsep}{5pt}")
         tex.append(r"\caption{" + c[0].upper() + c[1:] + ".}")
-        tex.append(r"\label{" + lab + "}")
+        tex.append(r"\label{" + lab.replace("tab:", "tab:exp-") + "}")  # avoid collision w/ main paper
         tex.append(r"\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{%")
         tex.append(body)
         tex.append(r"}")

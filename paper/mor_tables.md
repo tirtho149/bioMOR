@@ -7,10 +7,10 @@ macro-F1 (mean±std); `--` = job still running.
 |---|---|---|---|---|---|
 | tabula_muris | 36.3 | 53.2 | 65.2 | 70.9 | 76.8 |
 | pancreas | 36.1 | 50.3 | 54.0 | 59.0 | 57.2 |
-| common_class | 14.7 | 30.9 | 33.9 | 64.8 | -- |
-| prototype | 63.2 | -- | -- | -- | -- |
-| baron | -- | -- | -- | -- | -- |
-| segerstolpe | -- | -- | -- | -- | -- |
+| common_class | 14.7 | 30.9 | 33.9 | 64.8 | 74.9 |
+| prototype | 63.2 | 79.1 | 87.4 | 93.8 | 97.5 |
+| baron | 28.1 | 43.3 | 42.1 | 61.9 | 72.0 |
+| segerstolpe | 5.1 | 6.1 | 10.0 | 4.5 | 7.5 |
 
 ## Routing and marker-token selection — expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1
 | Variant (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |

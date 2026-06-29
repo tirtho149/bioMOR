@@ -506,11 +506,12 @@ def main():
     ap.add_argument("--outdir", type=Path, default=Path("paper"))
     args = ap.parse_args()
     args.outdir.mkdir(parents=True, exist_ok=True)
-    # New paper: the narrative is the MoR-reproduction story (mor_paper.build()), and
-    # the results are the freshly-rendered MoR tables + figures (mor_tables/mor_figures).
-    # The old single-cell template (build_tex/_TEX) is retired -- its story no longer
-    # matches the content; kept in-module only for reference.
-    from . import mor_tables, mor_figures, mor_paper
+    # Keep the FULL original paper (whole text + teaser figure fig:overview); its own
+    # tables re-render from the current result dirs. Then ADD the new extended results
+    # (6-dataset genomap suite + pathway cohorts + the design-decision tables/figures)
+    # as a dedicated section so the new runs are incorporated without losing anything.
+    doc = build_tex()
+    from . import mor_tables, mor_figures
     import sys as _sys
     _argv = _sys.argv
     _sys.argv = ["mor"]
@@ -519,7 +520,6 @@ def main():
         mor_tables.main()                          # <repo>/paper/mor_tables.{md,tex}
     finally:
         _sys.argv = _argv
-    # copy figures + the tables \input next to the .tex if outdir differs from repo/paper
     figsrc = mor_tables.ROOT / "paper" / "figs"
     if figsrc.exists() and figsrc.resolve() != (args.outdir / "figs").resolve():
         (args.outdir / "figs").mkdir(exist_ok=True)
@@ -528,15 +528,26 @@ def main():
     src = mor_tables.ROOT / "paper" / "mor_tables.tex"
     if src.exists() and src.resolve() != (args.outdir / "mor_tables.tex").resolve():
         (args.outdir / "mor_tables.tex").write_text(src.read_text())
-    doc = mor_paper.build()                         # AAAI paper; \input{mor_tables}
+    if "\\input{mor_tables}" not in doc:
+        sec = ("\\section{Extended Results: Full Genomap Suite and Pathway Cohorts}\n"
+               "These experiments extend the study above to all six genomap datasets "
+               "(adding common\\_class, prototype, Baron and Segerstolpe) and to the "
+               "Reactome/P-NET multi-omics cohorts, and add the design-decision "
+               "validations (token count, sharing schemes, adaptive depth, routing).\n"
+               "\\input{mor_tables}\n")
+        if "\\bibliographystyle" in doc:
+            doc = doc.replace("\\bibliographystyle", sec + "\\bibliographystyle", 1)
+        else:
+            doc = doc.replace("\\end{document}", sec + "\\end{document}")
     (args.outdir / "genomicrecursiveformer.tex").write_text(doc)
-    # AAAI style files must sit beside the .tex
+    (args.outdir / "refs.bib").write_text(_BIB)
     for s in ("aaai.sty", "aaai.bst", "fixbib.sty"):
         srcs = _TEMPLATE_DIR / s
         if srcs.exists():
             (args.outdir / s).write_text(srcs.read_text())
-    print("[make_paper] wrote AAAI paper (story narrative + story-named tables + figures)")
-    unresolved = []
+    print("[make_paper] full paper (text+teaser) + extended new-results section")
+    import re
+    unresolved = sorted(set(re.findall(r"@@[A-Z0-9_]+@@", (args.outdir / "genomicrecursiveformer.tex").read_text())))
     print(f"[make_paper] wrote {args.outdir}/genomicrecursiveformer.tex")
     if unresolved:
         print(f"[make_paper] WARNING unresolved tokens: {unresolved}")
