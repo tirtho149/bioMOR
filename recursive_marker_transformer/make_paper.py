@@ -506,49 +506,32 @@ def main():
     ap.add_argument("--outdir", type=Path, default=Path("paper"))
     args = ap.parse_args()
     args.outdir.mkdir(parents=True, exist_ok=True)
-    doc = build_tex()
-    # The paper must present ONLY the new-run tables (the MoR reproduction). Strip every
-    # pre-existing table float from the body; the \input{mor_tables} below supplies the
-    # current tables, all rendered from the fresh result dirs.
-    import re as _re
-    doc = _re.sub(r"\\begin\{table\*?\}.*?\\end\{table\*?\}\s*", "", doc, flags=_re.DOTALL)
-    # Inject the full MoR-table reproduction (all 14 tables + adaptive-depth) as a
-    # \input before \end{document}; regenerate mor_tables.tex from current results.
+    # New paper: the narrative is the MoR-reproduction story (mor_paper.build()), and
+    # the results are the freshly-rendered MoR tables + figures (mor_tables/mor_figures).
+    # The old single-cell template (build_tex/_TEX) is retired -- its story no longer
+    # matches the content; kept in-module only for reference.
+    from . import mor_tables, mor_figures, mor_paper
+    import sys as _sys
+    _argv = _sys.argv
+    _sys.argv = ["mor"]
     try:
-        from . import mor_tables, mor_figures
-        import sys as _sys
-        _argv = _sys.argv
-        _sys.argv = ["mor"]
-        try:
-            mor_figures.main()                     # writes <repo>/paper/figs/*.png
-            mor_tables.main()                      # writes <repo>/paper/mor_tables.{md,tex}
-        finally:
-            _sys.argv = _argv
-        # copy figures next to the .tex if outdir differs from repo/paper
-        figsrc = mor_tables.ROOT / "paper" / "figs"
-        if figsrc.exists() and figsrc.resolve() != (args.outdir / "figs").resolve():
-            (args.outdir / "figs").mkdir(exist_ok=True)
-            for p in figsrc.glob("*.png"):
-                (args.outdir / "figs" / p.name).write_bytes(p.read_bytes())
-        src = mor_tables.ROOT / "paper" / "mor_tables.tex"
-        if src.exists() and src.resolve() != (args.outdir / "mor_tables.tex").resolve():
-            (args.outdir / "mor_tables.tex").write_text(src.read_text())
-        if "\\input{mor_tables}" not in doc:
-            doc = doc.replace("\\end{document}", "\\clearpage\n\\input{mor_tables}\n\\end{document}")
-        print("[make_paper] injected \\input{mor_tables} (14 MoR tables)")
-    except Exception as e:                          # never block the paper build
-        print(f"[make_paper] WARNING could not inject MoR tables: {e}")
+        mor_figures.main()                         # <repo>/paper/figs/*.png
+        mor_tables.main()                          # <repo>/paper/mor_tables.{md,tex}
+    finally:
+        _sys.argv = _argv
+    # copy figures + the tables \input next to the .tex if outdir differs from repo/paper
+    figsrc = mor_tables.ROOT / "paper" / "figs"
+    if figsrc.exists() and figsrc.resolve() != (args.outdir / "figs").resolve():
+        (args.outdir / "figs").mkdir(exist_ok=True)
+        for p in figsrc.glob("*.png"):
+            (args.outdir / "figs" / p.name).write_bytes(p.read_bytes())
+    src = mor_tables.ROOT / "paper" / "mor_tables.tex"
+    if src.exists() and src.resolve() != (args.outdir / "mor_tables.tex").resolve():
+        (args.outdir / "mor_tables.tex").write_text(src.read_text())
+    doc = mor_paper.build()                         # self-contained; \input{mor_tables}
     (args.outdir / "genomicrecursiveformer.tex").write_text(doc)
-    (args.outdir / "refs.bib").write_text(_BIB)
-    # ensure the style files are alongside the .tex
-    for s in ("aaai.sty", "aaai.bst", "fixbib.sty"):
-        src = _TEMPLATE_DIR / s
-        if src.exists():
-            (args.outdir / s).write_text(src.read_text())
-    # report unresolved tokens
-    tex = (args.outdir / "genomicrecursiveformer.tex").read_text()
-    import re
-    unresolved = sorted(set(re.findall(r"@@[A-Z0-9_]+@@", tex)))
+    print("[make_paper] wrote MoR-reproduction paper (narrative + 14 tables + figures)")
+    unresolved = []
     print(f"[make_paper] wrote {args.outdir}/genomicrecursiveformer.tex")
     if unresolved:
         print(f"[make_paper] WARNING unresolved tokens: {unresolved}")

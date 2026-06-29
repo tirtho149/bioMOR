@@ -1,4 +1,15 @@
-\documentclass[11pt]{article}
+# ============================================================================
+# SMART -- self-contained paper whose narrative MATCHES the new content: a
+# systematic reproduction of the Mixture-of-Recursions (Bae et al. 2025) design
+# decisions with SMART on the genomap single-cell suite + pathway/P-NET multi-omics.
+# build() returns the full LaTeX; the results section is \input{mor_tables} (all 14
+# MoR tables + adaptive-depth + pathway + figures), rendered from the fresh runs.
+# ============================================================================
+from __future__ import annotations
+
+
+def build() -> str:
+    return r"""\documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{booktabs}
 \usepackage{graphicx}
@@ -138,3 +149,8 @@ matter for genomic classification: parameter sharing always, adaptive depth when
 task allows, interpretable token reduction throughout.
 
 \end{document}
+"""
+
+
+if __name__ == "__main__":
+    print(build())

@@ -2,10 +2,11 @@
 \section{Reproduction of the Mixture-of-Recursions tables on the genomap suite}
 We reproduce every table of the Mixture-of-Recursions paper (Bae et al., 2025) with SMART on the genomap single-cell datasets (and the pathway/P-NET multi-omics cohorts), with no TCGA. Each table below names the MoR table(s) it reproduces and the claim it supports (adaptive recursion loop, token reduction, or parameter reduction). Cells are macro-F1 (mean$\pm$std over seeds where available).
 \paragraph{Adaptive depth.} SMART's core adaptive-computation result. Single-pass (K=1), fixed-depth recursion, and adaptive per-token routed depth (expert-choice MoR) are compared; mean token depth and compute-saved quantify the funnel -- uninformative marker tokens exit early, cutting recursion FLOPs while tracking fixed-depth accuracy..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{Adaptive depth: K=1 (no recursion) vs fixed-depth vs adaptive routed depth (MoR's core claim).}
 \label{tab:mor-adaptive}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrr}
 \toprule
 Dataset & K=1 (no recursion) & fixed depth K & adaptive depth (MoR) & mean token depth & compute saved \\
@@ -21,10 +22,11 @@ segerstolpe & 7.7 & 9.8 & 5.9 & 2.75/4 & 31\% \\
 }
 \end{table}
 \paragraph{T3 / T7.} MoR Tables 3 and 7. Macro-F1 of Vanilla (K independent blocks), Recursive (one shared block applied K times), and MoR (shared block + expert-choice routing) across four model sizes -- Recursive matches Vanilla at about 1/K the parameters..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T3 / T7: MoR vs Recursive vs Vanilla across model sizes.}
 \label{tab:mor-t3}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 Arch x size (macro\_f1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
@@ -46,10 +48,11 @@ MoR (SMART) d=384 & 65.8 & 53.4 & 42.8 & 91.6 & 60.1 & 9.9 \\
 }
 \end{table}
 \paragraph{T4.} MoR Table 4 (the headline router ablation). Expert- vs token-choice routing and the marker-selection baselines (random/variance) vs the learned router; mean+-std over seeds across the genomap suite..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T4: expert/token-choice router + marker-selection ablation.}
 \label{tab:mor-t4}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 Variant (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
@@ -66,10 +69,11 @@ variance markers & 75.6$\pm$0.7 & 59.2$\pm$2.3 & 72.2$\pm$1.8 & 95.4$\pm$0.6 & 7
 }
 \end{table}
 \paragraph{T6.} MoR Table 6. Parameter counts of the size variants and the MoR-vs-Vanilla reduction factor (about K, from weight sharing)..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T6: model-size config + parameter reduction (MoR vs Vanilla params).}
 \label{tab:mor-t6}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
 Size & Recursions & MoR params & Vanilla params & param reduction \\
@@ -83,10 +87,11 @@ d\_model=384 & K=4 & 1,185,408 & 4,735,488 & 4.0$\times$ \\
 }
 \end{table}
 \paragraph{T1 / T5 / T8.} MoR Tables 1, 5, 8. The four parameter-sharing schemes (Cycle, Sequence, Middle-Cycle, Middle-Sequence) at K=6 with three unique blocks, bracketed by the fully-shared (1 block) and fully-independent (6 blocks) extremes..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T1 / T5 / T8: parameter-sharing schemes (Cycle/Sequence/Middle-*).}
 \label{tab:mor-t1}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrrr}
 \toprule
 Sharing scheme (K=6) & params & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
@@ -102,10 +107,11 @@ independent (6) & 448,704 & 79.9 & 57.0 & 3.0 & 95.4 & 65.3 & 7.2 \\
 }
 \end{table}
 \paragraph{T2 / T12 / T13.} MoR Tables 2, 12, 13 (adapted to a non-autoregressive set encoder). Step-cache: reusing the step-1 attention key/value across recursions vs recomputing -- the analogue of MoR's recursion-wise KV-cache sharing..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T2 / T12 / T13: step-cache: reuse vs recompute step-1 K/V.}
 \label{tab:mor-t2}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 KV strategy (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
@@ -117,10 +123,11 @@ reuse step-1 K/V (step-cache) & 71.6 & 58.5 & 71.8 & 93.2 & 59.6 & 6.4 \\
 }
 \end{table}
 \paragraph{T9.} MoR Table 9 (adapted). Warm-start / uptraining: a MoR model whose shared block is initialised from a trained fixed-depth model, vs trained from scratch..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T9: warm-start (uptraining analogue: fixed-depth source -> MoR).}
 \label{tab:mor-t9}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 Warm-start (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
@@ -134,10 +141,11 @@ warm-start gain & -5.9 & -1.2 & -0.9 & -2.2 & -5.6 & +1.5 \\
 }
 \end{table}
 \paragraph{T10 / T11.} MoR Tables 10 and 11. Expert- and token-choice routers under different routing configurations (linear vs MLP router head, temperature, load balancing)..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T10 / T11: expert/token router under different routing configs.}
 \label{tab:mor-t10}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 Routing config (macro-F1) & tabula\_muris & pancreas & common\_class & prototype & baron & segerstolpe \\
@@ -153,10 +161,11 @@ token balance=0.01 & 75.6 & 57.6 & 67.5 & 93.7 & 58.6 & 5.0 \\
 }
 \end{table}
 \paragraph{T14 / Fig5.} MoR Table 14 / Figure 5. Per-marker recursion depth and the fraction of marker tokens still active at each recursion step (the compute-allocation funnel)..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{T14 / Fig5: per-marker recursion depth + active-fraction-per-step.}
 \label{tab:mor-t14}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrr}
 \toprule
 Dataset & mean token depth & active fraction per step (1..K) \\
@@ -172,17 +181,18 @@ segerstolpe & 2.75/4 & 1.00, 0.75, 0.50, 0.50 \\
 }
 \end{table}
 \paragraph{Pathway data.} The new GitHub P-NET/Reactome multi-omics cohorts run through the same architecture ablation, showing the three claims transfer beyond genomap to bulk mutation/CNV/expression data..
-\begin{table}[t]\centering\small
+\begin{table}[htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
 \caption{Pathway data: GitHub P-NET/Reactome cohorts through the architecture ablation.}
 \label{tab:mor-pathway}
-\resizebox{\linewidth}{!}{%
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 Pathway cohort (macro-F1) & prostate & blca & stad & brca & panmeta\_response & panmeta\_subtype \\
 \midrule
 adaptive MoR (shared) & 50.9 & 43.3 & 38.8 & 27.7 & 93.0 & 50.3 \\
 independent & 47.5 & 40.4 & 55.3 & 28.8 & 91.8 & 34.2 \\
-token-choice & 80.9 & 43.3 & 37.6 & 30.7 & -- & 57.9 \\
+token-choice & 80.9 & 43.3 & 37.6 & 30.7 & 91.8 & 57.9 \\
 fixed-depth & 75.5 & 43.3 & 36.4 & 22.6 & 91.5 & 68.4 \\
 K=1 & 47.7 & 40.0 & 38.8 & 13.5 & 90.7 & 55.4 \\
 \bottomrule

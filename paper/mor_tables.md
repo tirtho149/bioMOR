@@ -96,7 +96,7 @@ macro-F1 (mean±std); `--` = job running. No TCGA. genomap suite (TM/pancreas/co
 |---|---|---|---|---|---|---|
 | adaptive MoR (shared) | 50.9 | 43.3 | 38.8 | 27.7 | 93.0 | 50.3 |
 | independent | 47.5 | 40.4 | 55.3 | 28.8 | 91.8 | 34.2 |
-| token-choice | 80.9 | 43.3 | 37.6 | 30.7 | -- | 57.9 |
+| token-choice | 80.9 | 43.3 | 37.6 | 30.7 | 91.8 | 57.9 |
 | fixed-depth | 75.5 | 43.3 | 36.4 | 22.6 | 91.5 | 68.4 |
 | K=1 | 47.7 | 40.0 | 38.8 | 13.5 | 90.7 | 55.4 |
 
