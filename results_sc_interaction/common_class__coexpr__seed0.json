@@ -1,0 +1,18 @@
+{
+ "dataset": "common_class",
+ "mode": "coexpr",
+ "seed": 0,
+ "n_samples": 27499,
+ "n_features": 1089,
+ "n_classes": 19,
+ "n_train": 16361,
+ "n_test": 8250,
+ "transformer_params": 75168,
+ "total_params": 214791,
+ "accuracy": 0.8255757575757576,
+ "macro_f1": 0.6778397701753741,
+ "weighted_f1": 0.8304217239562718,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

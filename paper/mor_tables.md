@@ -23,6 +23,13 @@ macro-F1 (mean±std); `--` = job still running.
 | random markers | 74.6±3.1 | 59.0±2.0 | 63.6±3.9 | 96.8±0.0 | 65.5±0.0 | 5.5±0.0 |
 | variance markers | 75.6±0.7 | 59.2±2.3 | 72.2±1.8 | 95.4±0.6 | 73.3±0.0 | 9.6±0.0 |
 
+## Biology-informed routing — label-free co-expression centrality prior on the recursion router vs no prior and a random-graph control
+| Biology prior (macro-F1) | tabula_muris | pancreas | common_class | prototype | baron | segerstolpe |
+|---|---|---|---|---|---|---|
+| no prior | 71.5±3.0 | 54.6±1.1 | 66.2±2.9 | 94.2±0.4 | 61.5±1.8 | 5.7±0.6 |
+| co-expression prior | 69.9±1.5 | 59.1±4.1 | 70.2±2.2 | 94.1±0.1 | 57.1±7.3 | 8.4±1.4 |
+| random-graph control | 72.4±1.2 | 52.8±1.6 | 69.1±0.6 | -- | 60.1±3.2 | 7.8±0.5 |
+
 ## Adaptive recursion depth — single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved
 | Dataset | K=1 (no recursion) | fixed depth K | adaptive depth (MoR) | mean token depth | compute saved |
 |---|---|---|---|---|---|

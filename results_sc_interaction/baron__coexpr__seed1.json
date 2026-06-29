@@ -1,0 +1,18 @@
+{
+ "dataset": "baron",
+ "mode": "coexpr",
+ "seed": 1,
+ "n_samples": 8569,
+ "n_features": 1936,
+ "n_classes": 14,
+ "n_train": 5098,
+ "n_test": 2571,
+ "transformer_params": 75168,
+ "total_params": 295133,
+ "accuracy": 0.6985608712563205,
+ "macro_f1": 0.4787079466316545,
+ "weighted_f1": 0.7219097425836665,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

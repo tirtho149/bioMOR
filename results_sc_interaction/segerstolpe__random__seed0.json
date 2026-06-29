@@ -1,0 +1,18 @@
+{
+ "dataset": "segerstolpe",
+ "mode": "random",
+ "seed": 0,
+ "n_samples": 2122,
+ "n_features": 1936,
+ "n_classes": 10,
+ "n_train": 1262,
+ "n_test": 637,
+ "transformer_params": 75168,
+ "total_params": 294357,
+ "accuracy": 0.12244897959183673,
+ "macro_f1": 0.08405307635816044,
+ "weighted_f1": 0.14319024641877157,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

@@ -1,0 +1,18 @@
+{
+ "dataset": "prototype",
+ "mode": "none",
+ "seed": 1,
+ "n_samples": 90579,
+ "n_features": 752,
+ "n_classes": 10,
+ "n_train": 53894,
+ "n_test": 27174,
+ "transformer_params": 75168,
+ "total_params": 180693,
+ "accuracy": 0.9502833590932509,
+ "macro_f1": 0.9465354231555315,
+ "weighted_f1": 0.9502477780487075,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

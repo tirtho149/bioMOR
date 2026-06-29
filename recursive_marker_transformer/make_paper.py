@@ -609,17 +609,24 @@ only its $M\ll N$ markers, cutting self-attention from $\mathcal{O}(N^2)$ to
 $\mathcal{O}(M^2)$; and (iii) processes the marker tokens with a \emph{single}
 transformer block applied recursively, where a Mixture-of-Recursions router grants
 each gene its own adaptive recursion depth, so depth becomes an intrinsic
-compute-allocation importance score. Our central contribution is a
-\textbf{biology-informed router}: we take genomap's gene-gene interaction
-identification, read a label-free network-centrality prior off the co-expression
-graph, and inject it as an annealed additive bias into the recursion router, so
-co-expression hub genes are nudged to recurse deeper before any label is seen. We
-evaluate on the genomap-native single-cell benchmarks, Tabula Muris
-(@@TM_CELLS@@ cells, @@TM_CLASSES@@ cell types) and a pancreas atlas, reaching
-@@TM_ACC@@\% accuracy on Tabula Muris with @@RATIO4@@$\times$ fewer transformer-stack
-parameters than independent layers. The headline experiment is a controlled
-none / co-expression / random-graph ablation of the prior @@BIO_ABSTRACT@@. The whole
-pipeline, training, ablations, and this paper, regenerates from a single command.
+compute-allocation importance score. The same interface extends beyond expression:
+for bulk multi-omics the tokens are fixed \emph{Reactome pathway} tokens that pool a
+pathway's mutation, copy-number and expression channels. A label-free
+\textbf{biology-informed router} injects a network-centrality prior (gene-gene
+co-expression, or the Reactome pathway hierarchy) into the depth decision, so hub
+genes/pathways recurse deeper before any label is seen. We run a controlled study of
+the full recursive-transformer design space and validate three claims: \emph{token
+reduction} (a few dozen to a few hundred interpretable tokens recover most full-gene
+accuracy), an \emph{adaptive recursion loop} (adaptive per-token depth matches fixed
+depth at $\sim$31\% less recursion compute), and \emph{parameter reduction} (one
+shared block uses $1/K$ of the parameters of $K$ independent layers, a $4\times$
+reduction at $K{=}4$, at comparable accuracy). We evaluate on six genomap single-cell
+datasets (Tabula Muris, pancreas, common\_class, prototype, Baron, Segerstolpe;
+reaching @@TM_ACC@@\% on Tabula Muris with @@RATIO4@@$\times$ fewer transformer-stack
+parameters) and on Reactome/P-NET multi-omics cohorts, with no TCGA. We report
+negative results transparently: adaptive routing and the biological prior help only
+when the task has computational slack. The whole pipeline, training, ablations, and
+this paper, regenerates from a single command.
 \end{quote}
 \end{abstract}
 
@@ -674,15 +681,28 @@ biological (empirical-Bayes) grounding.
 \item We evaluate the prior with a controlled none / co-expression / random-graph
 ablation on the genomap-native single-cell datasets, the regime where a co-expression
 prior should be on-distribution, isolating real network structure from generic bias.
-\item We propose SMART, a transformer for transcriptomics in which marker selection,
-token compression, and parameter-shared recursion are co-designed and trained
-end-to-end, with each gene's recursion depth serving as an intrinsic
-compute-allocation importance score.
-\item We show on Tabula Muris and a pancreas atlas that SMART classifies cell types
-with several times fewer transformer parameters than independent layers, and we
-ablate every architectural choice with multi-seed mean$\pm$std reporting.
+\item We propose SMART, a transformer for genomic classification in which token
+selection, token compression, and parameter-shared recursion are co-designed and
+trained end-to-end, with each token's recursion depth serving as an intrinsic
+compute-allocation importance score. The token interface is interpretable and
+modality-general: \emph{learned marker genes} for single-cell expression, and fixed
+\emph{Reactome pathway tokens} (pooling each pathway's mutation, copy-number and
+expression channels) for bulk multi-omics.
+\item We run a controlled study of the full recursive-transformer design space --
+token count, marker vs pathway tokens, weight-sharing schemes (Cycle, Sequence,
+Middle-Cycle, Middle-Sequence), expert- vs token-choice routing, key/value reuse and
+warm-starting -- validating three claims: \textbf{token reduction} (a few dozen to a
+few hundred tokens recover most full-gene accuracy), an \textbf{adaptive recursion
+loop} (adaptive depth matches fixed depth at $\sim$31\% less recursion compute), and
+\textbf{parameter reduction} (one shared block uses $1/K$ of the parameters of $K$
+independent layers, a $4\times$ reduction at $K{=}4$, at comparable accuracy).
+\item We evaluate on \emph{six} genomap single-cell datasets (Tabula Muris, pancreas,
+common\_class, prototype, Baron, Segerstolpe) and on Reactome/P-NET multi-omics
+cohorts (prostate, bladder, stomach, breast, and pan-cancer metastatic-vs-primary and
+32-class cancer-type tasks), with no TCGA bulk data, showing the same design decisions
+transfer across modalities; all ablations report multi-seed mean$\pm$std.
 \item We release a fully reproducible pipeline in which a single command runs all
-experiments and regenerates this paper, numbers and tables included.
+experiments and regenerates this paper, numbers, tables and figures included.
 \end{itemize}
 
 \section{Related Work}
@@ -733,6 +753,19 @@ move a label-free network prior \emph{into} the routing decision. Standard tooli
 
 \section{Method}
 
+\paragraph{Token interface (markers and pathways).}
+SMART turns the input into $M\ll N$ interpretable tokens before any quadratic
+attention. For single-cell expression these are \emph{learned marker} tokens from the
+cross-attention router. For bulk multi-omics they are fixed \emph{Reactome pathway}
+tokens: a sparse gene$\to$pathway membership pools each pathway's per-gene channels
+(mean pooling for dense assays such as copy-number and expression; burden/sum pooling
+for sparse binary mutation), so every token is a named pathway. Both feed the same
+recursive stack, and on top of token selection we study the full design space --
+token count, weight-sharing scheme (Cycle / Sequence / Middle-Cycle / Middle-Sequence,
+from one shared block to $K$ independent ones), expert- vs token-choice depth routing,
+reuse of the first-step attention key/value across recursions, and warm-starting the
+shared block from a fixed-depth model.
+
 \begin{figure*}[t]
 \centering
 \resizebox{\linewidth}{!}{%
@@ -748,21 +781,21 @@ move a label-free network prior \emph{into} the routing decision. Standard tooli
 ]
 \node[stage] (inp) {{\large\textcolor{accentA}{\faDna}}\\[2pt]\textbf{Expression}\\[1pt]{\scriptsize\textcolor{subcap}{$x\!\in\!\mathbb{R}^{B\times N}$}}};
 \node[stage, right=of inp] (emb) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[2pt]\textbf{Gene Embedding}\\[1pt]{\scriptsize\textcolor{subcap}{identity $+$ value proj.}}};
-\node[stage, right=of emb] (router) {{\large\textcolor{accentA}{\faSearch}}\\[2pt]\textbf{Marker Router}\\[1pt]{\scriptsize\textcolor{subcap}{$M$ query slots, $\tau$-anneal}}};
-\node[stage, right=of router] (mtok) {{\large\textcolor{accentA}{\faTags}}\\[2pt]\textbf{Marker Tokens}\\[1pt]{\scriptsize\textcolor{subcap}{$\mathbf{C}\!\in\!\mathbb{R}^{B\times M\times d}$}}};
+\node[stage, right=of emb] (router) {{\large\textcolor{accentA}{\faSearch}}\\[2pt]\textbf{Marker / Pathway Router}\\[1pt]{\scriptsize\textcolor{subcap}{$M$ slots or Reactome sets}}};
+\node[stage, right=of router] (mtok) {{\large\textcolor{accentA}{\faTags}}\\[2pt]\textbf{Marker / Pathway Tokens}\\[1pt]{\scriptsize\textcolor{subcap}{$\mathbf{C}\!\in\!\mathbb{R}^{B\times M\times d}$}}};
 \draw[flow] (inp) -- (emb);
 \draw[flow] (emb) -- (router);
 \draw[flow] (router) -- (mtok);
 
-\node[stage, below=52mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
+\node[stage, below=38mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
 \node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{funnel; logit $+\,\beta_t\pi_m$}}};
 \node[stage, right=of mor] (pool) {{\large\textcolor{accentB}{\faCompress}}\\[2pt]\textbf{Mean-pool}\\[1pt]{\scriptsize\textcolor{subcap}{over $M$ markers}}};
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
-\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Cell type}\\[1pt]{\tiny\textcolor{subcap}{Tabula Muris\\ Pancreas}}};
+\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Phenotype}\\[1pt]{\tiny\textcolor{subcap}{6 genomap sets\\ + pathway cohorts}}};
 % biology-informed router: genomap gene-gene interaction graph -> centrality prior.
 % Label-free prior built from expression alone, so it has NO incoming arrow; its
 % centrality prior pi is consumed by the MoR Depth Router (annealed into the logit).
-\node[stage, right=of mtok, text width=22mm, draw=accentA, line width=1.4pt, fill=panelA] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{genomap co-expr.\\ centrality $\pi$ (label-free)}}};
+\node[stage, right=of mtok, text width=22mm, draw=accentA, line width=1.4pt, fill=panelA] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene / Pathway Graph}\\[1pt]{\tiny\textcolor{subcap}{co-expr.\,/\,Reactome\\ centrality $\pi$ (label-free)}}};
 \node[ptab=accentA, anchor=south east, font=\tiny\bfseries] at ([yshift=0.5mm]gint.north east) {biological prior};
 \draw[flow] (shared) -- (mor);
 \draw[flow] (mor) -- (pool);

@@ -212,6 +212,22 @@ def t_pathway_arch():
     return _md_table(["Pathway cohort (macro-F1)"] + tasks, rows)
 
 
+def t_biorouter():
+    """Biology-informed routing: co-expression centrality prior on the recursion
+    router vs no prior and a degree-matched random-graph control, all datasets."""
+    ds = _present(GENOMAP)
+    rows = []
+    for m, lab in [("none", "no prior"), ("coexpr", "co-expression prior"),
+                   ("random", "random-graph control")]:
+        cells = []
+        for d in ds:
+            xs = [json.loads(Path(f).read_text())["macro_f1"] * 100
+                  for f in glob.glob(str(ROOT / "results_sc_interaction" / f"{d}__{m}__seed*.json"))]
+            cells.append(f"{st.mean(xs):.1f}±{st.pstdev(xs):.1f}" if xs else "--")
+        rows.append([lab] + cells)
+    return _md_table(["Biology prior (macro-F1)"] + ds, rows)
+
+
 def t_token_reduction():
     """Token reduction: macro-F1 as a function of the number of marker tokens M
     (results_msweep/M<n>/<ds>.json) -- how few interpretable tokens suffice."""
@@ -284,6 +300,9 @@ SECTIONS = [
     ("Routing and marker-token selection",
      "expert- vs token-choice recursion routing and learned vs random/variance marker panels, macro-F1",
      t4_router_ablation, "tab:selection"),
+    ("Biology-informed routing",
+     "label-free co-expression centrality prior on the recursion router vs no prior and a random-graph control",
+     t_biorouter, "tab:bio"),
     ("Adaptive recursion depth",
      "single pass ($K{=}1$) vs fixed-depth vs adaptive per-token routed depth, with mean depth and compute saved",
      t_adaptive_depth, "tab:adaptive"),
@@ -323,6 +342,12 @@ DESC = {
         "Two questions about the selective recursion. Expert- vs token-choice routing "
         "allocate depth differently; and learning which genes are markers (the cross-attention "
         "router) is compared against fixed random and variance-ranked panels.",
+    "Biology-informed routing":
+        "SMART's headline component: a label-free prior from the gene-gene co-expression "
+        "graph (network centrality) is added to the recursion-depth router, nudging "
+        "co-expression hubs to recurse deeper. We compare it against no prior and a "
+        "degree-matched random-graph control across all datasets; gains are small and "
+        "mostly within noise, so we report it as a stabiliser rather than an accuracy driver.",
     "Adaptive recursion depth":
         "The adaptive-loop result. A single pass ($K{=}1$), fixed-depth recursion, and "
         "adaptive per-token routed depth are compared; the mean token depth and compute saved "
