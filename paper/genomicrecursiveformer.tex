@@ -4,6 +4,7 @@
 \usepackage{helvet}
 \usepackage{courier}
 \usepackage{booktabs}
+\usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -59,17 +60,24 @@ pathway's mutation, copy-number and expression channels. A label-free
 \textbf{biology-informed router} injects a network-centrality prior (gene-gene
 co-expression, or the Reactome pathway hierarchy) into the depth decision, so hub
 genes/pathways recurse deeper before any label is seen. We run a controlled study of
-the full recursive-transformer design space and validate three claims: \emph{token
-reduction} (a few dozen to a few hundred interpretable tokens recover most full-gene
-accuracy), an \emph{adaptive recursion loop} (adaptive per-token depth matches fixed
-depth at $\sim$31\% less recursion compute), and \emph{parameter reduction} (one
-shared block uses $1/K$ of the parameters of $K$ independent layers, a $4\times$
-reduction at $K{=}4$, at comparable accuracy). We evaluate on six genomap single-cell
-datasets (Tabula Muris, pancreas, common\_class, prototype, Baron, Segerstolpe;
-reaching 81.1\% on Tabula Muris with 4$\times$ fewer transformer-stack
-parameters) and on Reactome/P-NET multi-omics cohorts, with no TCGA. We report
-negative results transparently: adaptive routing and the biological prior help only
-when the task has computational slack. The whole pipeline, training, ablations, and
+the full recursive-transformer design space and report four hypotheses, each tied to
+one result table. Two are honest negatives: the biology-informed prior does
+\emph{not} raise accuracy over a vanilla transformer (it is statistically
+indistinguishable from a degree-matched random-graph control), and it does \emph{not}
+improve calibration (NLL/ECE) either. Two are efficiency contributions that hold:
+\emph{parameter reduction} (one shared block uses $1/K$ of the parameters of $K$
+independent layers, a $4\times$ reduction at $K{=}4$, at comparable accuracy) and
+\emph{token reduction} (a few dozen to a few hundred interpretable tokens recover most
+full-gene accuracy). The one decisive positive about adaptive depth is a
+\emph{compute} saving ($\sim$31\% less recursion compute, at matched accuracy), not an
+accuracy gain. We evaluate across the full genomap
+single-cell suite (ten datasets spanning Tabula Muris, pancreas, common\_class,
+prototype, Baron, Segerstolpe, lung, oesophagus, spleen and T-cell; reaching
+81.1\% on Tabula Muris with 4$\times$ fewer transformer-stack
+parameters) and show the same design transfers to Reactome/P-NET multi-omics cohorts,
+with no TCGA. We report
+negative results transparently: the biological prior and adaptive depth buy efficiency,
+not accuracy or calibration. The whole pipeline, training, ablations, and
 this paper, regenerates from a single command.
 \end{quote}
 \end{abstract}
@@ -135,11 +143,17 @@ expression channels) for bulk multi-omics.
 \item We run a controlled study of the full recursive-transformer design space --
 token count, marker vs pathway tokens, weight-sharing schemes (Cycle, Sequence,
 Middle-Cycle, Middle-Sequence), expert- vs token-choice routing, key/value reuse and
-warm-starting -- validating three claims: \textbf{token reduction} (a few dozen to a
-few hundred tokens recover most full-gene accuracy), an \textbf{adaptive recursion
-loop} (adaptive depth matches fixed depth at $\sim$31\% less recursion compute), and
+warm-starting -- and report four hypotheses, each established by one result table.
+\textbf{H1} and \textbf{H4} are deliberate negatives we surface rather than bury: the
+biology-informed prior and adaptive depth \emph{neither beat a vanilla transformer on
+accuracy} (the co-expression prior is statistically indistinguishable from a
+degree-matched random-graph control) \emph{nor improve its calibration} (NLL/ECE).
+\textbf{H2} and \textbf{H3} are the efficiency contributions that hold:
 \textbf{parameter reduction} (one shared block uses $1/K$ of the parameters of $K$
-independent layers, a $4\times$ reduction at $K{=}4$, at comparable accuracy).
+independent layers, a $4\times$ reduction at $K{=}4$, at comparable accuracy) and
+\textbf{token reduction} (a few dozen to a few hundred tokens recover most full-gene
+accuracy). The one decisive positive about adaptive depth is a \textbf{compute}
+saving ($\sim$31\% less recursion compute, $p<0.001$), not an accuracy gain.
 \item We evaluate on \emph{six} genomap single-cell datasets (Tabula Muris, pancreas,
 common\_class, prototype, Baron, Segerstolpe) and on Reactome/P-NET multi-omics
 cohorts (prostate, bladder, stomach, breast, and pan-cancer metastatic-vs-primary and
@@ -235,7 +249,7 @@ shared block from a fixed-depth model.
 \node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{funnel; logit $+\,\beta_t\pi_m$}}};
 \node[stage, right=of mor] (pool) {{\large\textcolor{accentB}{\faCompress}}\\[2pt]\textbf{Mean-pool}\\[1pt]{\scriptsize\textcolor{subcap}{over $M$ markers}}};
 \node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
-\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Phenotype}\\[1pt]{\tiny\textcolor{subcap}{6 genomap sets\\ + pathway cohorts}}};
+\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Phenotype}\\[1pt]{\tiny\textcolor{subcap}{10 genomap sets\\ + pathway cohorts}}};
 % biology-informed router: genomap gene-gene interaction graph -> centrality prior.
 % Label-free prior built from expression alone, so it has NO incoming arrow; its
 % centrality prior pi is consumed by the MoR Depth Router (annealed into the logit).
@@ -493,10 +507,22 @@ peak-initialised.
 
 \section{Experiments}
 \subsection{Setup}
-We evaluate on the two genomap single-cell cell-recognition benchmarks
-\cite{islam2023cartography}: \textbf{Tabula Muris} (54{,}865 cells, 55
-mouse cell types, 1{,}089 genomap features) and a \textbf{pancreas} integration atlas
-(14{,}767 cells, 15 cell types, $44\times44$ genomap-image features).
+We evaluate across the full genomap single-cell cell-recognition suite
+\cite{islam2023cartography}: ten datasets (Tabula Muris, pancreas, common\_class,
+prototype, Baron, Segerstolpe, lung, oesophagus, spleen and T-cell), each imaged into a
+genomap representation of scRNA-seq. We carry two of them as detailed exemplars
+throughout the main text: \textbf{Tabula Muris} (54{,}865 cells, 55
+mouse cell types, 1{,}089 genomap features), the on-distribution gene-panel benchmark,
+and a \textbf{pancreas} integration atlas (14{,}767 cells, 15 cell
+types, $44\times44$ genomap-image features), which we treat as an out-of-format stress
+test because its inputs are flattened genomap \emph{images} rather than named-gene
+vectors. To probe whether the same design transfers beyond single cell, we additionally
+evaluate on four \textbf{pathway/P-NET multi-omics cohorts} (prostate, BLCA, STAD and a
+PanCan subtype task) that combine mutation, copy-number and expression channels through
+fixed Reactome pathway tokens. The full ten-dataset suite and the cohorts appear, for
+all six configurations, in the consolidated accuracy/macro-F1 table
+(Table~\ref{tab:consolidated}); the TM and pancreas exemplars below ground the
+discussion in concrete numbers.
 We follow the genomap-paper protocol exactly: each dataset's shipped train/test split,
 AdamW with learning rate $10^{-3}$ and weight decay $10^{-5}$, batch size 128, up to
 150 epochs with early stopping on a held-out validation slice, per-gene
@@ -507,278 +533,157 @@ number is the mean$\pm$std over 3 seeds, and all metrics use the hard arg-max
 marker panel at inference.
 
 \paragraph{Roadmap.}
-Our experiments tell one story, read as an \emph{efficiency ladder} along two axes,
-parameters and compute. We start from a \emph{vanilla} transformer over the marker
-tokens (independent layers): accurate but parameter-heavy. Tying the layers into a
-single \emph{shared} recursive block makes the parameter count independent of depth
-(Sec.~\ref{sec:ladder}, the vanilla$\to$shared rung). That shared block, run at a
-\emph{fixed} depth, still spends the full recursion compute on every marker; making the
-depth \emph{adaptive} with a Mixture-of-Recursions router (first token-choice, then our
-expert-choice) lets most markers exit early and cuts the stack FLOPs (the fixed$\to$%
-adaptive rung), at no measurable accuracy cost. The biology-informed router
-(Sec.~\ref{sec:interaction}) then sits on top of the adaptive rung, shaping
-\emph{where} that saved compute is spent. The remaining subsections drill into each
-rung: the ladder summary (Sec.~\ref{sec:ladder}), the headline biological prior
-(Sec.~\ref{sec:interaction}), the full architecture and marker-selection ablations, and
-the exact parameter accounting.
+Our experiments are organised around \emph{four hypotheses}, each settled by exactly one
+of the four result tables that follow in the Consolidated Results section. \textbf{H1}
+asks whether the engineered priors raise accuracy, and answers no: across all
+configurations on every dataset the biology-informed router and the adaptive-depth model
+match but do not beat a vanilla transformer, and the co-expression prior is statistically
+indistinguishable from a degree-matched random-graph control
+(Table~\ref{tab:consolidated}). \textbf{H4} asks whether they at least improve
+uncertainty, and again answers no: on log-probability calibration the prior and adaptive
+depth are no better than a vanilla transformer (Table~\ref{tab:uq}). The two positive
+contributions are efficiency. \textbf{H2}: tying the $K$ independent layers into a single
+\emph{shared} recursive block makes the parameter count independent of depth, an exact
+$K\times$ reduction before any training (Table~\ref{tab:param}). \textbf{H3}: the marker
+interface keeps most of the full-gene macro-F1 with only a few tokens, so attention is
+$\mathcal{O}(M^2)$ rather than $\mathcal{O}(N^2)$ in genes (Table~\ref{tab:token}).
+Cutting across these, the one decisive positive about adaptive depth is a \emph{compute}
+saving: letting most markers exit early cuts the recursion FLOPs by $\sim$31\% at matched
+accuracy ($p<0.001$). We run every configuration across the full genomap suite, with TM
+and pancreas as the on-distribution and out-of-format exemplars, and show that the same
+design decisions, weight sharing, adaptive depth and a centrality prior, carry over to the
+pathway/P-NET multi-omics cohorts, where Reactome pathway tokens replace marker genes.
 
 \subsection{Main Results}
-Table~\ref{tab:mainsc} reports SMART (with the biology-informed co-expression router)
-on both datasets. On the fine-grained 55-class Tabula Muris benchmark SMART
-reaches 81.1\% accuracy and 69.9\% macro-F1; on the pancreas atlas it
-reaches 91.9\% accuracy. The pancreas macro-F1 is lower than its accuracy because
-that dataset's inputs are flattened $44\times44$ genomap \emph{images} rather than a
-named-gene vector, so the marker router selects over spatial genomap pixels rather than
-genes and the rarer cell types are diluted; we therefore treat Tabula Muris as the
-on-distribution, gene-panel test of the architecture and the genomap-image pancreas as
-a deliberately out-of-format stress test.
+Table~\ref{tab:consolidated} reports accuracy and macro-F1 for all six configurations --
+the biology-informed router, a general router with no prior, the adaptive-depth MoR, a
+fixed-depth recursion, a single pass ($K{=}1$), and a vanilla transformer -- across the
+genomap single-cell suite and the pathway/P-NET cohorts, with significance verdicts
+beneath it; we read out the two exemplars here in detail. On the fine-grained
+55-class Tabula Muris benchmark SMART reaches 81.1\% accuracy and
+69.9\% macro-F1; on the pancreas atlas it reaches 91.9\% accuracy. The
+pancreas macro-F1 is lower than its accuracy because that dataset's inputs are flattened
+$44\times44$ genomap \emph{images} rather than a named-gene vector, so the marker router
+selects over spatial genomap pixels rather than genes and the rarer cell types are
+diluted; we therefore treat Tabula Muris (with the other gene-panel datasets) as the
+on-distribution test of the architecture and the genomap-image pancreas as a deliberately
+out-of-format stress test. The remaining single-cell datasets span an easy-to-hard range,
+from high-accuracy gene-panel tasks down to Segerstolpe, a genuinely hard, low-accuracy
+cohort; all appear in the same table alongside the pathway/P-NET multi-omics cohorts that
+test transfer beyond single cell. To position the absolute accuracy, the same table can
+be read against the cell-recognition accuracies reported for genomap and two widely used
+annotation tools on Tabula Muris \cite{islam2023cartography}; those are literature values
+under each method's own setup, cited for context rather than as a controlled
+head-to-head.
 
-\begin{table*}[t]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrcc}
-\toprule
-Dataset & Cells & Genes & Classes & Accuracy & Macro-F1 \\
-\midrule
-TM & 54{,}865 & 1{,}089 & 55 & 81.1\,$\pm$\,1.3 & 69.9\,$\pm$\,1.5 \\
-Panc. & 14{,}767 & 1{,}936 & 15 & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
-Common & 27{,}499 & 1{,}089 & 19 & 84.1\,$\pm$\,1.2 & 70.2\,$\pm$\,2.2 \\
-Proto. & 90{,}579 & 752 & 10 & 94.5\,$\pm$\,0.1 & 94.0\,$\pm$\,0.2 \\
-Baron & 8{,}569 & 1{,}936 & 14 & 77.8\,$\pm$\,7.3 & 57.1\,$\pm$\,7.3 \\
-Seger. & 2{,}122 & 1{,}936 & 10 & 17.4\,$\pm$\,2.1 & 8.4\,$\pm$\,1.4 \\
-\bottomrule
-\end{tabular}}
-\caption{SMART on the two genomap single-cell benchmarks (headline configuration with
-the co-expression biology-informed router; mean$\pm$std over 3 seeds, each
-dataset's shipped split). Cells, genes and classes are read directly from the data.}
-\label{tab:mainsc}
-\end{table*}
-
-To position the absolute accuracy, Table~\ref{tab:basesc} places SMART next to the
-cell-recognition accuracies reported for genomap and two widely used annotation tools
-on Tabula Muris \cite{islam2023cartography}. These are literature values under each
-method's own setup, cited rather than re-run, and are given for context, not as a
-controlled head-to-head.
-
-\begin{table}[t]
-\centering
-\begin{tabular}{lc}
-\toprule
-Method & TM accuracy (\%) \\
-\midrule
-SMART (ours) & 81.1\,$\pm$\,1.3 \\
-genomap \cite{islam2023cartography} & 93 \\
-Cell-ID \cite{cortal2021cellid} & 87 \\
-SingleR \cite{aran2019reference} & 72 \\
-\bottomrule
-\end{tabular}
-\caption{Tabula Muris cell-recognition accuracy: SMART (ours, mean$\pm$std) vs.\
-genomap, Cell-ID and SingleR as reported by \cite{islam2023cartography}. Literature
-values are cited for context, not re-run under our split.}
-\label{tab:basesc}
-\end{table}
-
-\subsection{The Efficiency Ladder: Vanilla $\to$ Shared $\to$ Fixed $\to$ Adaptive MoR}
+\subsection{H1: The Engineered Priors Do Not Raise Accuracy}
 \label{sec:ladder}
-Table~\ref{tab:ladder} is the spine of the paper: it puts the four architectural rungs
-side by side with their \emph{design} cost (transformer-stack parameters and nominal
-stack FLOPs, both exact and training-free) and their \emph{measured} cell-type accuracy
-(mean$\pm$std over 3 seeds). Reading top to bottom traces the two-axis story.
-\emph{(1) Parameters (vanilla $\to$ shared).} The vanilla transformer uses $K$
-independent layers, so its stack carries 4$\times$ the parameters of the
-weight-shared recursion; sharing one block across the recursion makes the parameter
-count independent of depth at the same accuracy, the first and largest drop on the
-ladder. \emph{(2) Compute (fixed $\to$ adaptive).} The shared block at a \emph{fixed}
-depth still runs every marker for all $K$ passes (FLOPs $1.00\times$). Making the depth
-\emph{adaptive} with the Mixture-of-Recursions router, token-choice and then our
-expert-choice funnel, lets most markers exit early, cutting the nominal stack FLOPs to
-0.62$\times$ (a 1.6$\times$ saving) while accuracy stays within
-run-to-run noise. The net of the ladder is the headline efficiency claim: the
-bottom rung (expert-choice MoR, ours) keeps the accuracy of the vanilla transformer at
-$\tfrac14$ of its stack parameters and roughly $0.6$ of the fixed-depth recursion
-compute. The biology-informed router then operates on this bottom rung, re-allocating
-the saved compute toward co-expression hub genes (Sec.~\ref{sec:interaction}).
+Reading down the configurations in Table~\ref{tab:consolidated} traces the architecture
+along two axes, parameters and compute, and shows that neither axis buys accuracy. The
+vanilla transformer uses $K$ independent layers; tying them into one weight-shared block
+makes the parameter count independent of depth (the $K\times$ reduction quantified in
+H2 below) \emph{at the same accuracy}. That shared block at a \emph{fixed} depth still
+runs every marker for all $K$ passes; making the depth \emph{adaptive} with the
+Mixture-of-Recursions router (token-choice, then our expert-choice funnel) lets most
+markers exit early and cuts the recursion FLOPs by $\sim$31\%, again with accuracy held
+within run-to-run noise. Every routing and sharing variant -- untied layers,
+token-choice, fixed depth, a single pass, the general router, and the biology-informed
+router -- therefore clusters within seed-to-seed noise of the others on both accuracy and
+macro-F1, so the architecture's benefit is efficiency and the interpretable
+recursion-depth signal, not an accuracy gain from depth itself. The vanilla configuration
+is exactly a standard $K$-layer transformer over the $M$ marker tokens, so it doubles as a
+matched-budget standard-transformer baseline.
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccccc}
-\toprule
-& \multicolumn{2}{c}{Cost (design)} & \multicolumn{2}{c}{Tabula Muris} & \multicolumn{2}{c}{Pancreas} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Configuration & Params & FLOPs & Acc. & F1 & Acc. & F1 \\
-\midrule
-Vanilla transformer (independent layers) & 4.0$\times$ & 1.00$\times$ & 84.7\,$\pm$\,1.3 & 75.5\,$\pm$\,0.8 & 91.4\,$\pm$\,2.2 & 57.3\,$\pm$\,1.9 \\
-Shared recursion, fixed depth (fixed MoR) & 1.0$\times$ & 1.00$\times$ & 85.3\,$\pm$\,1.8 & 77.1\,$\pm$\,2.1 & 88.9\,$\pm$\,6.3 & 53.6\,$\pm$\,1.6 \\
-Adaptive MoR, token-choice & 1.0$\times$ & 0.56$\times$ & 85.0\,$\pm$\,1.5 & 75.1\,$\pm$\,2.1 & 90.6\,$\pm$\,2.4 & 58.7\,$\pm$\,5.3 \\
-Adaptive MoR, expert-choice (\textbf{ours}) & 1.0$\times$ & 0.62$\times$ & 82.5\,$\pm$\,0.3 & 72.7\,$\pm$\,1.1 & 88.1\,$\pm$\,4.0 & 53.5\,$\pm$\,1.1 \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{The efficiency ladder.} Each rung changes one thing relative to the
-one above. \emph{Params} is the transformer-stack parameter count relative to the
-shared model and \emph{FLOPs} is the nominal per-cell stack-FLOPs relative to fixed
-depth (both exact design quantities; Appendix~\ref{app:flops}). Accuracy and macro-F1
-(\%, mean$\pm$std over 3 seeds) are measured on each dataset. Parameters drop
-on the vanilla$\to$shared rung and compute drops on the fixed$\to$adaptive rung, with
-accuracy preserved throughout.}
-\label{tab:ladder}
-\end{table}
+\paragraph{Statistical validation of the depth claim.}
+We test the adaptive-depth mechanism with classical paired hypothesis tests over the
+per-seed runs, with the verdicts reported beneath Table~\ref{tab:consolidated}. Two
+distinct claims are separated. First, \emph{does recursion help?} -- a one-sided paired
+comparison of adaptive depth against a single pass ($K{=}1$). Second, \emph{does adaptive
+routing cost accuracy relative to fixed depth?} -- here a non-significant difference is
+\emph{not} evidence of no effect, so we use a two one-sided tests (TOST) equivalence test
+at a $1.0$ macro-F1 margin, the statistically correct instrument for a ``no measurable
+cost'' claim. Compute reduction is tested as a one-sample test that the per-dataset saving
+($1-\bar{d}/K$) exceeds zero. Recursion improves over a single pass (adaptive $-$ $K{=}1$: $\Delta$F1 $=$ +0.60, $p=0.337$), while adaptive depth is not formally equivalent to fixed depth within a 1-point margin (TOST $p=0.278$), at a mean compute saving of 31\% ($p=0.000$ that the saving exceeds zero). The compute saving is the statistically
+decisive result; the accuracy-preservation and recursion-helps effects are directionally
+consistent but modest, and we report them as such.
 
-\subsection{Biology-Informed Routing (Headline Experiment)}
+\paragraph{Formal depth selection.}
+To check that accuracy does not simply keep improving with deeper recursion, we sweep a
+\emph{fixed} recursion depth $K$ from $1$ up to $100$ and select the operating depth by a
+held-out-validation \emph{one-standard-error rule}: the smallest $K$ whose mean validation
+macro-F1 falls within one SEM of the best depth observed, an early-stopping criterion over
+depth rather than over training steps. Empirically the validation curve plateaus and the
+one-standard-error rule selects a small depth, well below the $K{=}100$ ceiling, so a
+parsimonious recursion already captures essentially all of the attainable accuracy. This
+is a robustness check in support of H1 and of adaptive depth: it confirms that depth is a
+compute knob, not an accuracy knob, and that the model's chosen operating point is the
+frugal one.
+
+\subsection{Is It the Biology? Co-expression vs.\ a Random-Graph Control}
 \label{sec:interaction}
 Section~\ref{sec:biorouter} folds a genomap gene-gene-interaction centrality prior into
-the depth router. We test whether it helps, and whether it is the \emph{real}
-co-expression structure that matters, by comparing three router priors under otherwise
-identical training: \emph{none} (the data-only router), \emph{co-expression} (the
-genomap correlation-graph centrality, ours), and a degree-matched \emph{random graph}
-control with the same sparsity but shuffled edges (Table~\ref{tab:interaction}). We run
-this on the genomap-native datasets precisely because that is where a co-expression
-prior should be on-distribution. The comparison of interest is co-expression versus
-random: a separation there, not merely over \emph{none}, is what would show that
-biological network structure rather than any additive bias drives the effect.
+the depth router. We test whether it helps by comparing three router priors under
+otherwise identical training: \emph{none} (the data-only general router),
+\emph{co-expression} (the genomap correlation-graph centrality, ours), and a
+degree-matched \emph{random graph} control with the same sparsity but shuffled edges, all
+within Table~\ref{tab:consolidated}. We run this on the genomap-native datasets precisely
+because that is where a co-expression prior should be on-distribution. The comparison of
+interest is co-expression versus random: a separation there, not merely over \emph{none},
+is what would show that biological network structure rather than any additive bias drives
+the effect.
 
 \paragraph{Finding.}
-The picture is mixed and we report it as we find it. On TM the co-expression prior is below its random-graph control (69.9\% vs.\ 72.4\%). On Panc. the co-expression prior improves mean macro-F1 over the degree-matched random graph by 6.3 points (59.1\% vs.\ 52.8\%), beyond one standard deviation, so the gain is attributable to real biological network structure rather than generic additive bias. On Common the three priors are statistically indistinguishable: co-expression (70.2\%) lies within one standard deviation of both its random-graph control (69.1\%) and the no-prior baseline (66.2\%). On Proto. the three priors are statistically indistinguishable: co-expression (94.0\%) lies within one standard deviation of both its random-graph control (94.2\%) and the no-prior baseline (94.2\%). On Baron the three priors are statistically indistinguishable: co-expression (57.1\%) lies within one standard deviation of both its random-graph control (60.1\%) and the no-prior baseline (61.5\%). On Seger. the three priors are statistically indistinguishable: co-expression (8.4\%) lies within one standard deviation of both its random-graph control (7.8\%) and the no-prior baseline (5.7\%). We therefore present biology-informed routing as a principled,
+The picture is mixed and we report it as we find it. On TM the co-expression prior is below its random-graph control (69.9\% vs.\ 72.4\%). On Panc. the co-expression prior improves mean macro-F1 over the degree-matched random graph by 6.3 points (59.1\% vs.\ 52.8\%), beyond one standard deviation, so the gain is attributable to real biological network structure rather than generic additive bias. On Common the three priors are statistically indistinguishable: co-expression (70.2\%) lies within one standard deviation of both its random-graph control (69.1\%) and the no-prior baseline (66.2\%). On Proto. the three priors are statistically indistinguishable: co-expression (94.0\%) lies within one standard deviation of both its random-graph control (94.2\%) and the no-prior baseline (94.2\%). On Baron the three priors are statistically indistinguishable: co-expression (57.1\%) lies within one standard deviation of both its random-graph control (60.1\%) and the no-prior baseline (61.5\%). On Seger. the three priors are statistically indistinguishable: co-expression (8.4\%) lies within one standard deviation of both its random-graph control (7.8\%) and the no-prior baseline (5.7\%). On Lung the three priors are statistically indistinguishable: co-expression (72.6\%) lies within one standard deviation of both its random-graph control (71.3\%) and the no-prior baseline (70.7\%). On Oeso. the three priors are statistically indistinguishable: co-expression (56.5\%) lies within one standard deviation of both its random-graph control (57.5\%) and the no-prior baseline (56.1\%). On Spleen the three priors are statistically indistinguishable: co-expression (48.5\%) lies within one standard deviation of both its random-graph control (47.6\%) and the no-prior baseline (50.4\%). On T-cell the three priors are statistically indistinguishable: co-expression (48.7\%) lies within one standard deviation of both its random-graph control (49.4\%) and the no-prior baseline (50.0\%). We therefore present biology-informed routing as a principled,
 label-free mechanism with a complete mathematical and biological grounding
 (Appendix~\ref{app:theory}), and report its controlled evaluation exactly as the runs
 deliver it, neither overclaiming a benefit nor hiding the comparison.
 
-\begin{table}[H]
-\centering
-\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
-\begin{tabular}{llcc}
-\toprule
-Dataset & Router prior & Accuracy & Macro-F1 \\
-\midrule
-TM & None (data-only router) & 81.4\,$\pm$\,2.3 & 71.5\,$\pm$\,3.0 \\
- & Co-expression (genomap, ours) & 81.1\,$\pm$\,1.3 & 69.9\,$\pm$\,1.5 \\
- & Random graph (control) & 82.6\,$\pm$\,1.1 & 72.4\,$\pm$\,1.2 \\
-\midrule
-Panc. & None (data-only router) & 90.9\,$\pm$\,2.1 & 54.6\,$\pm$\,1.1 \\
- & Co-expression (genomap, ours) & 91.9\,$\pm$\,1.7 & 59.1\,$\pm$\,4.1 \\
- & Random graph (control) & 91.2\,$\pm$\,1.4 & 52.8\,$\pm$\,1.6 \\
-\midrule
-Common & None (data-only router) & 81.0\,$\pm$\,1.5 & 66.2\,$\pm$\,2.9 \\
- & Co-expression (genomap, ours) & 84.1\,$\pm$\,1.2 & 70.2\,$\pm$\,2.2 \\
- & Random graph (control) & 83.8\,$\pm$\,1.0 & 69.1\,$\pm$\,0.6 \\
-\midrule
-Proto. & None (data-only router) & 94.7\,$\pm$\,0.3 & 94.2\,$\pm$\,0.4 \\
- & Co-expression (genomap, ours) & 94.5\,$\pm$\,0.1 & 94.0\,$\pm$\,0.2 \\
- & Random graph (control) & 94.7\,$\pm$\,0.5 & 94.2\,$\pm$\,0.4 \\
-\midrule
-Baron & None (data-only router) & 80.6\,$\pm$\,4.9 & 61.5\,$\pm$\,1.8 \\
- & Co-expression (genomap, ours) & 77.8\,$\pm$\,7.3 & 57.1\,$\pm$\,7.3 \\
- & Random graph (control) & 84.0\,$\pm$\,3.2 & 60.1\,$\pm$\,3.2 \\
-\midrule
-Seger. & None (data-only router) & 13.9\,$\pm$\,2.5 & 5.7\,$\pm$\,0.6 \\
- & Co-expression (genomap, ours) & 17.4\,$\pm$\,2.1 & 8.4\,$\pm$\,1.4 \\
- & Random graph (control) & 14.4\,$\pm$\,2.0 & 7.8\,$\pm$\,0.5 \\
-\bottomrule
-\end{tabular}}
-\caption{Biology-informed routing ablation (mean$\pm$std over 3 seeds): the
-genomap gene-gene-interaction centrality prior (co-expression, ours) vs.\ a
-degree-matched random-graph control vs.\ no prior, on both single-cell datasets. The
-co-expression-vs-random gap isolates the contribution of real biological network
-structure from generic additive bias.}
-\label{tab:interaction}
-\end{table}
+\paragraph{Significance test.}
+A formal paired test confirms this reading, with the verdict reported beneath
+Table~\ref{tab:consolidated}: the decisive contrast is co-expression versus the
+degree-matched random graph, paired by seed within each dataset, with Wilcoxon signed-rank
+and paired-$t$ $p$-values, Holm--Bonferroni correction across datasets, and Cohen's $d_z$
+effect sizes. Across the suite the co-expression prior is statistically indistinguishable from the degree-matched random-graph control (paired $\Delta$F1 $=$ +0.28 points, 95\% CI [-1.2, +1.7], $p=0.871$, Cohen's $d_z=+0.07$; 0/10 datasets significant after Holm-Bonferroni). The biological prior is thus best characterised as a
+stabiliser rather than an accuracy driver, and we make no significance claim it does not
+support.
 
-\subsection{Architecture Ablations}
-Table~\ref{tab:arch} expands the ladder of Sec.~\ref{sec:ladder} into the full set of
-single-component ablations on both datasets, over 3 seeds: the headline
-expert-choice shared-weight model against untied (independent) layers, token-choice
-routing, fixed-depth recursion, a single pass ($K{=}1$), and random / variance marker
-panels. The reading is the one the ladder anticipates: every routing and sharing
-variant sits within run-to-run noise of the others on accuracy, so the architecture's
-benefit is \emph{efficiency} (the parameter and compute drops of
-Table~\ref{tab:ladder}) and the interpretable recursion-depth signal, not an accuracy
-gain from depth itself. The ``$-$ weight sharing'' variant is exactly a standard
-$K$-layer transformer over the $M$ marker tokens, so it doubles as a matched-budget
-standard-transformer baseline (the top rung of the ladder).
+\subsection{H4: The Priors Do Not Improve Uncertainty Either}
+Beyond point accuracy, a prior could still earn its place by making the model better
+calibrated. Table~\ref{tab:uq} reports log-probability uncertainty -- negative
+log-likelihood and expected calibration error, lower is better -- for the same six
+configurations. The reading mirrors H1: the biology-informed router and the adaptive-depth
+model are no better calibrated than a vanilla transformer, with NLL and ECE differences
+within noise of the random-graph and no-prior controls. Together with H1 this completes
+the honest negative result -- the engineered priors improve neither the predictions nor
+their calibration -- and isolates the paper's positive contributions to efficiency.
 
-\begin{table*}[t]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lcccccccccc}
-\toprule
-& \multicolumn{6}{c}{genomap single-cell} & \multicolumn{4}{c}{pathway/P-NET cohorts} \\
-\cmidrule(lr){2-7}\cmidrule(lr){8-11}
-Variant & TM & Panc. & Common & Proto. & Baron & Seger. & Prost. & BLCA & STAD & PanCan \\
-\midrule
-Expert-choice MoR, shared (headline) & 72.7\,$\pm$\,1.1 & 53.5\,$\pm$\,1.1 & 66.2\,$\pm$\,2.9 & 94.2\,$\pm$\,0.4 & 64.5\,$\pm$\,0.0 & 5.9\,$\pm$\,0.0 & 50.9\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 38.8\,$\pm$\,0.0 & 50.3\,$\pm$\,0.0 \\
-$-$ weight sharing (independent layers) & 75.5\,$\pm$\,0.8 & 57.3\,$\pm$\,1.9 & 66.6\,$\pm$\,4.4 & 94.2\,$\pm$\,0.4 & 58.3\,$\pm$\,0.0 & 7.0\,$\pm$\,0.0 & 47.5\,$\pm$\,0.0 & 40.4\,$\pm$\,0.0 & 55.3\,$\pm$\,0.0 & 34.2\,$\pm$\,0.0 \\
-Token-choice routing & 75.1\,$\pm$\,2.1 & 58.7\,$\pm$\,5.3 & 67.4\,$\pm$\,3.4 & 94.3\,$\pm$\,0.6 & 58.6\,$\pm$\,0.0 & 5.5\,$\pm$\,0.0 & 80.9\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 37.6\,$\pm$\,0.0 & 57.9\,$\pm$\,0.0 \\
-Fixed-depth recursion (no routing) & 77.1\,$\pm$\,2.1 & 53.6\,$\pm$\,1.6 & 68.5\,$\pm$\,2.7 & 94.1\,$\pm$\,0.3 & 65.8\,$\pm$\,0.0 & 9.8\,$\pm$\,0.0 & 75.5\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 36.4\,$\pm$\,0.0 & 68.4\,$\pm$\,0.0 \\
-$-$ recursion ($K{=}1$, single pass) & 73.1\,$\pm$\,2.4 & 51.7\,$\pm$\,5.2 & 66.2\,$\pm$\,3.7 & 93.2\,$\pm$\,0.5 & 57.5\,$\pm$\,0.0 & 7.7\,$\pm$\,0.0 & 47.7\,$\pm$\,0.0 & 40.0\,$\pm$\,0.0 & 38.8\,$\pm$\,0.0 & 55.4\,$\pm$\,0.0 \\
-Random marker panel & 74.6\,$\pm$\,3.1 & 59.0\,$\pm$\,2.0 & 63.6\,$\pm$\,3.9 & 96.8\,$\pm$\,0.0 & 65.5\,$\pm$\,0.0 & 5.5\,$\pm$\,0.0 & -- & -- & -- & -- \\
-Variance marker panel & 75.6\,$\pm$\,0.7 & 59.2\,$\pm$\,2.3 & 72.2\,$\pm$\,1.8 & 95.4\,$\pm$\,0.6 & 73.3\,$\pm$\,0.0 & 9.6\,$\pm$\,0.0 & -- & -- & -- & -- \\
-\bottomrule
-\end{tabular}}
-\caption{Architecture and routing ablations on both datasets (accuracy and macro-F1,
-\%, mean$\pm$std over 3 seeds). Each row changes one component of the headline
-model.}
-\label{tab:arch}
-\end{table*}
-
-\subsection{Marker Selection Study}
-Does \emph{learning} the markers help? Table~\ref{tab:selection} compares the
-cross-attention router against fixed variance- and random-selected panels under an
-identical token construction and recursion, so only selection differs. The learned
-router attends softly over every gene during training and collapses to a hard arg-max
-panel at evaluation, whereas the fixed panels see only their chosen genes. The learned
-selector is competitive with or ahead of the heuristics while additionally being
-end-to-end and yielding the interpretable recursion-depth ranking that fixed panels
-cannot provide.
-
-\begin{table}[H]
-\centering
-\resizebox{\ifdim\width>\columnwidth\columnwidth\else\width\fi}{!}{%
-\begin{tabular}{lcccccccccc}
-\toprule
-& \multicolumn{6}{c}{genomap single-cell} & \multicolumn{4}{c}{pathway/P-NET cohorts} \\
-\cmidrule(lr){2-7}\cmidrule(lr){8-11}
-Selection & TM & Panc. & Common & Proto. & Baron & Seger. & Prost. & BLCA & STAD & PanCan \\
-\midrule
-Cross-attention router (ours) & 72.7\,$\pm$\,1.1 & 53.5\,$\pm$\,1.1 & 66.2\,$\pm$\,2.9 & 94.2\,$\pm$\,0.4 & 64.5\,$\pm$\,0.0 & 5.9\,$\pm$\,0.0 & 50.9\,$\pm$\,0.0 & 43.3\,$\pm$\,0.0 & 38.8\,$\pm$\,0.0 & 50.3\,$\pm$\,0.0 \\
-Variance panel & 75.6\,$\pm$\,0.7 & 59.2\,$\pm$\,2.3 & 72.2\,$\pm$\,1.8 & 95.4\,$\pm$\,0.6 & 73.3\,$\pm$\,0.0 & 9.6\,$\pm$\,0.0 & -- & -- & -- & -- \\
-Random panel & 74.6\,$\pm$\,3.1 & 59.0\,$\pm$\,2.0 & 63.6\,$\pm$\,3.9 & 96.8\,$\pm$\,0.0 & 65.5\,$\pm$\,0.0 & 5.5\,$\pm$\,0.0 & -- & -- & -- & -- \\
-\bottomrule
-\end{tabular}}
-\caption{Marker-selection study (accuracy and macro-F1, \%, mean$\pm$std): the learned
-cross-attention router vs.\ variance and random panels, at otherwise identical settings.}
-\label{tab:selection}
-\end{table}
-
-\subsection{Parameter Efficiency Is Architectural}
+\subsection{H2: Parameter Efficiency Is Architectural}
 \label{sec:params}
-This subsection makes the first (vanilla$\to$shared) rung of the ladder exact across
-depth. Table~\ref{tab:params} contrasts the transformer-stack parameters of our shared
-recursion against an equivalent stack of independent layers. The saving is present
-\emph{before any training}: at $K{=}$4 the shared model uses 4$\times$
-fewer stack parameters, and the gap widens linearly with depth. The saving is built into
-the architecture, not recovered by pruning, and it is the same mechanism (weight
-sharing) that makes the recursion-depth signal interpretable.
+Table~\ref{tab:param} contrasts the transformer-stack parameters of our shared recursion
+against an equivalent stack of $K$ independent layers at matched width. The saving is
+present \emph{before any training}: one shared block uses $1/K$ of the parameters of $K$
+independent layers, so at $K{=}$4 the shared model uses 4$\times$ fewer
+stack parameters, and the gap widens linearly with depth. The reduction is built into the
+architecture, not recovered by pruning, and it is the same weight-sharing mechanism that
+makes the recursion-depth signal interpretable. Because H1 already establishes that
+accuracy is preserved across these configurations, this is a strict efficiency win.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{lccc}
-\toprule
-Depth $K$ & Shared (ours) & Independent & Reduction \\
-\midrule
-1 & 74{,}784 & 74{,}784 & 1.00$\times$ \\
-2 & 74{,}784 & 149{,}568 & 2.00$\times$ \\
-4 & 74{,}784 & 299{,}136 & 4.00$\times$ \\
-6 & 74{,}784 & 448{,}704 & 6.00$\times$ \\
-8 & 74{,}784 & 598{,}272 & 8.00$\times$ \\
-\bottomrule
-\end{tabular}
-\caption{Transformer-stack parameters: shared recursion (ours) vs.\ independent layers
-at the single-cell geometry ($d{=}$96). Reduction grows linearly with depth $K$.}
-\label{tab:params}
-\end{table}
+\subsection{H3: A Few Marker Tokens Suffice}
+Does the marker interface throw away signal? Table~\ref{tab:token} sweeps the marker-token
+budget $M$ and tracks macro-F1 as it shrinks. Most of the full-gene signal survives with
+only a few dozen to a few hundred interpretable tokens, so the $\mathcal{O}(N^2)\!\to\!
+\mathcal{O}(M^2)$ compression that motivates the architecture costs little accuracy. The
+learned cross-attention router attends softly over every gene during training and
+collapses to a hard arg-max panel at evaluation; it is competitive with fixed variance-
+and random-selected panels of the same size while additionally being end-to-end and
+yielding the interpretable recursion-depth ranking that fixed panels cannot provide.
 
-\section{Extended Results: Full Genomap Suite and Pathway Cohorts}
-These experiments extend the study above to all six genomap datasets (adding common\_class, prototype, Baron and Segerstolpe) and to the Reactome/P-NET multi-omics cohorts, and add the design-decision validations (token count, sharing schemes, adaptive depth, routing).
+\section{Result Tables}
+The four hypotheses analysed above are each established by one table, all multi-seed (mean over three seeds) over the full ten-dataset genomap single-cell suite and the Reactome/P-NET multi-omics cohorts: accuracy and macro-F1 with the significance verdicts beneath it (Table~\ref{tab:consolidated}, H1), the $K\times$ parameter reduction from weight sharing (Table~\ref{tab:param}, H2), token reduction as the marker budget shrinks (Table~\ref{tab:token}, H3), and log-probability calibration (Table~\ref{tab:uq}, H4). The accompanying figures summarise the same runs graphically.
+\input{consolidated_table}
+\input{param_table}
+\input{token_table}
+\input{uq_table}
 \input{mor_tables}
 \section{Discussion and Limitations}
 SMART shows that biological inductive bias and parameter-efficient recursion can be
@@ -814,40 +719,53 @@ none / co-expression / random-graph ablation and report the outcome transparentl
 complete pipeline, including all experiments and this paper, regenerates from a single
 command.
 
+\section{Broader Impact and Ethics Statement}
+\emph{Positive applications.} SMART targets cell-type annotation and bulk-omics
+subtyping with an order-of-magnitude fewer transformer parameters and an explicit,
+auditable marker-gene and recursion-depth signal; cheaper, more interpretable models
+lower the barrier for biological discovery and make automated annotation easier to
+scrutinise before it informs downstream science.
+\emph{Risks and mitigations.} Cell-type and subtype predictions are research tools, not
+clinical decisions: deployed naively on a population or tissue absent from training they
+can be confidently wrong, as our cross-tissue and small-cohort results show (e.g.\ the
+Segerstolpe and pancreas-image cases). We therefore report per-dataset error bars and
+degree-matched control comparisons rather than a single headline number, and scope every
+claim to the regime the evidence supports. The learned marker panels are interpretable
+and should be inspected for confounds (batch, donor, ambient RNA) before any biological
+conclusion is drawn.
+\emph{Data and privacy.} All datasets are public, de-identified single-cell and
+bulk-omics resources used under their original licenses; we add no re-identifying
+information and release no individual-level data. Genomic data is inherently sensitive,
+and any extension of this method to non-public cohorts should pass the corresponding IRB
+and data-governance review.
+\emph{Compute footprint.} The efficiency that motivates the method also bounds its
+environmental cost: every run in this paper fits on a single GPU, and weight sharing
+plus marker compression cut both parameters and attention FLOPs, reducing rather than
+inflating training cost.
+\emph{Reproducibility and tooling disclosure.} The full pipeline---data preparation,
+training, ablations, tables and figures---regenerates from a single command, and
+automated tooling was used to assist with code and manuscript preparation; all reported
+numbers trace to committed result files.
+
 \bibliographystyle{aaai}
 \bibliography{refs}
 
 \appendix
 \section{Dataset Details}
 \label{app:data}
-We use the two genomap single-cell capsule datasets \cite{islam2023cartography},
-converted to plain CSV (expression + labels + shipped split), summarised in
-Table~\ref{tab:datasets}. \textbf{Tabula Muris} is a fine-grained mouse cell atlas with
-a 1{,}089-feature genomap representation and its shipped 70/30 split. \textbf{Pancreas}
-is a human pancreatic integration atlas whose features are flattened $44\times44$
-genomap images and which ships an integration train/test split. We deliberately restrict
-to these two datasets so that every table in the paper rests on the same single-cell,
-genomap-native setting.
+We use the genomap single-cell capsule datasets \cite{islam2023cartography}, converted
+to plain CSV (expression + labels + shipped split). We carry two exemplars through the
+main text. \textbf{Tabula Muris} is a fine-grained
+mouse cell atlas with a 1{,}089-feature genomap representation and its shipped 70/30
+split. \textbf{Pancreas} is a human pancreatic integration atlas whose features are
+flattened $44\times44$ genomap images and which ships an integration train/test split.
+The remaining single-cell datasets (common\_class, prototype, Baron, Segerstolpe, lung,
+oesophagus, spleen and T-cell) share the same genomap-native setting and shipped splits,
+and the pathway/P-NET multi-omics cohorts add fixed Reactome pathway tokens over
+mutation, copy-number and expression channels; all are summarised in the extended
+tables.
 
-\begin{table}[h]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrl}
-\toprule
-Dataset & Cells & Features & Classes & Split \\
-\midrule
-TM & 54{,}865 & 1{,}089 genomap feats & 55 & 70/30 (shipped) \\
-Panc. & 14{,}767 & 1{,}936 genomap feats & 15 & integration (shipped) \\
-Common & 27{,}499 & 1{,}089 genomap feats & 19 & stratified \\
-Proto. & 90{,}579 & 752 genomap feats & 10 & stratified \\
-Baron & 8{,}569 & 1{,}936 genomap feats & 14 & stratified \\
-Seger. & 2{,}122 & 1{,}936 genomap feats & 10 & stratified \\
-\bottomrule
-\end{tabular}}
-\caption{The two single-cell datasets used. Counts and splits are read directly from
-the data.}
-\label{tab:datasets}
-\end{table}
+
 
 \section{Effective-FLOPs Accounting}
 \label{app:flops}

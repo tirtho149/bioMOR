@@ -107,7 +107,7 @@ def _zscore_train(X: np.ndarray, tr: np.ndarray) -> np.ndarray:
     return (X - mu) / sd
 
 
-def _fit_eval(task, coh, X, y, tr, va, te, cfg, G, K, dtypes, device):
+def _fit_eval(task, coh, X, y, tr, va, te, cfg, G, K, dtypes, device, init_block=None):
     Xs = _zscore_train(X, tr)
     dl_tr = _DictLoader(Xs, y, tr, cfg.batch_size, True, task)
     dl_va = _DictLoader(Xs, y, va, cfg.batch_size, False, task)
@@ -115,6 +115,8 @@ def _fit_eval(task, coh, X, y, tr, va, te, cfg, G, K, dtypes, device):
 
     pathway = torch.from_numpy(coh.P) if cfg.marker_mode == "pathway" else None
     model = RecursiveMarkerTransformer(cfg, G, {task: K}, dtypes, pathway=pathway).to(device)
+    if init_block is not None:                       # warm-start: seed the shared block
+        model.stack.blocks[0].load_state_dict(init_block)
     # variance prior uses the mutation/first channel
     expr_tr = Xs[tr] if Xs.ndim == 2 else Xs[tr, :, 0]
     model.set_gene_variance(torch.from_numpy(expr_tr.var(0).astype(np.float32)))

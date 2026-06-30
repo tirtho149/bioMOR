@@ -1,0 +1,8 @@
+{
+ "dataset": "baron",
+ "K": 10,
+ "seed": 1,
+ "val_macro_f1": 58.52906738748139,
+ "test_macro_f1": 63.602019118502504,
+ "test_accuracy": 83.04161804745235
+}

@@ -1,0 +1,8 @@
+{
+ "dataset": "pancreas",
+ "K": 16,
+ "seed": 1,
+ "val_macro_f1": 74.71685209274509,
+ "test_macro_f1": 49.574686043929326,
+ "test_accuracy": 92.7127409496944
+}

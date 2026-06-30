@@ -108,6 +108,25 @@ def _cols_all():
     return _present(GENOMAP) + PATHWAY_COH
 
 
+def _pw_warm(task: str, key: str):
+    """Warm-start field for a pathway cohort: results_pathway_warmstart/<task>.json."""
+    p = ROOT / "results_pathway_warmstart" / f"{task}.json"
+    if not p.exists():
+        return None
+    return json.loads(p.read_text()).get(key)
+
+
+def _pw_depth(task: str):
+    """Adaptive-depth stats for a cohort from its expert-choice (shared) arch run:
+    (mean_recursion_depth, K, compute_saving_ratio)."""
+    hits = glob.glob(str(ROOT / "results_pathway_arch" / "shared" / f"{task}__*.json"))
+    if not hits:
+        return None
+    d = json.loads(Path(hits[0]).read_text())
+    K = d.get("config", {}).get("recursion_depth", 4)
+    return (d.get("mean_recursion_depth"), K, d.get("compute_saving_ratio"))
+
+
 # ----------------------------------------------------------------------------- tables
 def t_adaptive_depth():
     """ADAPTIVE-DEPTH table (MoR's core claim): fixed-depth recursion vs adaptive
@@ -134,6 +153,21 @@ def t_adaptive_depth():
                      "--" if fx is None else f"{fx[0]:.1f}",
                      "--" if ad is None else f"{ad[0]:.1f}",
                      mdepth, saved])
+    for t in PATHWAY_COH:                 # pathway/P-NET cohorts (arch ablation + depth run)
+        k1 = _pw("arch", "depth1", t)
+        fx = _pw("arch", "fixed", t)
+        ad = _pw("arch", "shared", t)
+        dp = _pw_depth(t)
+        mdepth = saved = "--"
+        if dp and dp[0] is not None:
+            mdepth = f"{dp[0]:.2f}/{dp[1]}"
+            if dp[2] is not None:
+                saved = f"{100*(1 - dp[2]):.0f}%"
+        rows.append([t,
+                     "--" if k1 is None else f"{k1:.1f}",
+                     "--" if fx is None else f"{fx:.1f}",
+                     "--" if ad is None else f"{ad:.1f}",
+                     mdepth, saved])
     return _md_table(["Dataset", "K=1 (no recursion)", "fixed depth K",
                       "adaptive depth (MoR)", "mean token depth", "compute saved"], rows)
 
@@ -159,17 +193,21 @@ def t3_arch_scaling(key="macro_f1"):
     """T3/T7: MoR vs Recursive vs Vanilla across model sizes (results_scaling)."""
     archs = [("vanilla", "Vanilla (independent)"), ("recursive", "Recursive (shared)"),
              ("mor", "MoR (SMART)")]
-    sizes = [48, 96, 192, 384]
+    # shared size rungs: single-cell d in {48,96,192,384}, the larger cohorts in
+    # {64,128,256} (no cohort xlarge run). One row per (arch, rung); each column reads
+    # its own modality's d for that rung.
+    rungs = [("small", 48, 64), ("medium", 96, 128), ("large", 192, 256), ("xlarge", 384, None)]
     ds = _present(GENOMAP)
     rows = []
     for a, label in archs:
-        for D in sizes:
-            cells = []
-            for d in ds:
-                r = _metric(ROOT / f"results_scaling/{a}_d{D}" / f"{d}.json", key)
-                cells.append(_cell(r))
-            rows.append([f"{label} d={D}"] + cells)
-    return _md_table([f"Arch x size ({key})"] + ds, rows)
+        for rlab, Dsc, Dco in rungs:
+            cells = [_cell(_metric(ROOT / f"results_scaling/{a}_d{Dsc}" / f"{d}.json", key))
+                     for d in ds]
+            for t in PATHWAY_COH:
+                v = _pw("scaling", f"{a}_d{Dco}", t, key) if Dco else None
+                cells.append(f"{v:.1f}" if v is not None else "TODO")
+            rows.append([f"{label} {rlab}"] + cells)
+    return _md_table([f"Arch x size ({key})"] + ds + PATHWAY_COH, rows)
 
 
 def t6_config():
@@ -257,6 +295,10 @@ def t_token_reduction():
     for d in ds:
         cells = [_cell(_metric(ROOT / f"results_msweep/M{m}" / f"{d}.json")) for m in Ms]
         rows.append([d] + cells)
+    for t in PATHWAY_COH:                 # pathway/P-NET cohorts (learned-token M-sweep)
+        cells = [(lambda v: f"{v:.1f}" if v is not None else "TODO")(_pw("msweep", f"M{m}", t))
+                 for m in Ms]
+        rows.append([t] + cells)
     return _md_table(["Dataset / #tokens M"] + [f"M={m}" for m in Ms], rows)
 
 
@@ -276,8 +318,14 @@ def t9_warmstart():
                 cells.append(f"{v:+.1f}" if key == "warm_start_gain" else f"{v:.1f}")
             else:
                 cells.append("--")
+        for t in PATHWAY_COH:             # pathway/P-NET cohorts (bulk warm-start)
+            v = _pw_warm(t, key)
+            if v is None:
+                cells.append("TODO")
+            else:
+                cells.append(f"{v:+.1f}" if key == "warm_start_gain" else f"{v:.1f}")
         rows.append([label] + cells)
-    return _md_table(["Warm-start (macro-F1)"] + ds, rows)
+    return _md_table(["Warm-start (macro-F1)"] + ds + PATHWAY_COH, rows)
 
 
 def t1011_routing():
@@ -289,8 +337,11 @@ def t1011_routing():
     rows = []
     for tag, label in tags:
         cells = [_cell(_metric(ROOT / f"results_routing/{tag}" / f"{d}.json")) for d in ds]
+        for t in PATHWAY_COH:             # same router configs on the pathway cohorts
+            v = _pw("routing", tag, t)
+            cells.append(f"{v:.1f}" if v is not None else "TODO")
         rows.append([label] + cells)
-    return _md_table(["Routing config (macro-F1)"] + ds, rows)
+    return _md_table(["Routing config (macro-F1)"] + ds + PATHWAY_COH, rows)
 
 
 def t14_depth():
@@ -304,6 +355,13 @@ def t14_depth():
         r = json.loads(p.read_text())
         af = ", ".join(f"{x:.2f}" for x in r.get("active_fraction_per_step", []))
         rows.append([d, f"{r.get('mean_token_depth', 0):.2f}/{r.get('recursion_depth')}", af])
+    for t in PATHWAY_COH:                 # pathway/P-NET cohorts (depth from the adaptive run)
+        r = _pw_depth(t)
+        if r is None or r[0] is None:
+            rows.append([t, "TODO", "TODO"]); continue
+        md, K, saving = r
+        rows.append([t, f"{md:.2f}/{K}",
+                     f"compute {saving:.2f}x (saving)" if saving is not None else "--"])
     return _md_table(["Dataset", "mean token depth", "active fraction per step (1..K)"], rows)
 
 
@@ -315,7 +373,7 @@ PENDING = {}
 # adaptive recursion -> parameter sharing -> compute allocation -> transfer.
 SECTIONS = [
     # Only design dimensions NOT already in the main-paper tables (which now report
-    # all 6 genomap datasets + the pathway cohorts). No redundancy.
+    # all 10 genomap datasets + the pathway/P-NET cohorts). No redundancy.
     ("How few tokens suffice",
      "macro-F1 as the number of marker tokens $M$ is reduced (token reduction)",
      t_token_reduction, "tab:tokens"),
@@ -389,7 +447,7 @@ DESC = {
 FIGURES = [
     ("fig_scaling.png", "Macro-F1 versus model size for independent (Vanilla), weight-shared "
                         "(Recursive) and adaptively-routed (SMART) stacks on each dataset.", "fig:scaling"),
-    ("fig_depth.png", "Adaptive recursion depth across all six genomap datasets: macro-F1 under "
+    ("fig_depth.png", "Adaptive recursion depth across the genomap datasets: macro-F1 under "
                       "no recursion (K=1), fixed depth, and adaptive routed depth.", "fig:depth"),
     ("fig_param_efficiency.png", "Accuracy versus transformer parameters for weight-shared "
                                  "recursion against independent layers.", "fig:param"),

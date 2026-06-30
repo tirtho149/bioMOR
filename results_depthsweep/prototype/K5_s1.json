@@ -1,0 +1,8 @@
+{
+ "dataset": "prototype",
+ "K": 5,
+ "seed": 1,
+ "val_macro_f1": 95.67632977331712,
+ "test_macro_f1": 95.91027601821884,
+ "test_accuracy": 96.29057187017001
+}

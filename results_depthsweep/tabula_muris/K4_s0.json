@@ -1,0 +1,8 @@
+{
+ "dataset": "tabula_muris",
+ "K": 4,
+ "seed": 0,
+ "val_macro_f1": 82.72539089289305,
+ "test_macro_f1": 75.78294519833558,
+ "test_accuracy": 84.61538461538461
+}

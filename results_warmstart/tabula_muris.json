@@ -1,7 +1,0 @@
-{
- "dataset": "tabula_muris",
- "fixed_source_macro_f1": 75.1978901970048,
- "mor_from_scratch_macro_f1": 71.70761306179104,
- "mor_warm_start_macro_f1": 65.78148143179202,
- "warm_start_gain": -5.926131629999009
-}

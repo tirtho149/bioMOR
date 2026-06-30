@@ -1,0 +1,8 @@
+{
+ "dataset": "tcell",
+ "K": 6,
+ "seed": 1,
+ "val_macro_f1": 46.01115142240185,
+ "test_macro_f1": 45.17753065182079,
+ "test_accuracy": 61.057892544773004
+}

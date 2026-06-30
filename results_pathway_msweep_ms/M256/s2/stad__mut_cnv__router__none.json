@@ -1,0 +1,108 @@
+{
+ "task": "stad",
+ "channel_set": "mut_cnv",
+ "channels": [
+  "mut",
+  "cnv"
+ ],
+ "n_channels": 2,
+ "marker_mode": "router",
+ "gene_interaction": "none",
+ "recursion_mode": "expert",
+ "pathway_attn_bias": false,
+ "n_samples": 414,
+ "n_genes": 10333,
+ "n_pathways": 1258,
+ "n_classes": 2,
+ "n_train": 281,
+ "n_test": 83,
+ "class_names": [
+  "0",
+  "1"
+ ],
+ "transformer_params": 132992,
+ "total_params": 1522693,
+ "mean_recursion_depth": 2.75,
+ "compute_saving_ratio": 0.041398458058649217,
+ "config": {
+  "heads": [
+   "stad"
+  ],
+  "cohorts": null,
+  "n_hvg": null,
+  "n_channels": 2,
+  "batch_size": 32,
+  "val_frac": 0.15,
+  "test_frac": 0.15,
+  "d_model": 128,
+  "n_heads": 4,
+  "d_ff": 256,
+  "dropout": 0.1,
+  "n_markers": 256,
+  "marker_mode": "router",
+  "pathway_pool": "mean",
+  "compress_mode": "aggregate",
+  "recursive_marker_refine": true,
+  "peak_init": true,
+  "anneal_markers": true,
+  "recursion_depth": 4,
+  "share_weights": true,
+  "share_strategy": "cycle",
+  "n_unique_blocks": null,
+  "step_cache": false,
+  "adaptive_depth": false,
+  "marker_ffn": false,
+  "recursion_mode": "expert",
+  "router_capacity": null,
+  "router_alpha": 1.0,
+  "router_temp": 1.0,
+  "router_type": "linear",
+  "router_z_coeff": 0.001,
+  "router_balance_coeff": 0.1,
+  "gene_interaction": "none",
+  "interaction_knn": 16,
+  "router_prior_beta": 1.0,
+  "router_prior_anneal": true,
+  "pathway_attn_bias": false,
+  "pathway_attn_lambda": 2.0,
+  "lambda_marker": 0.1,
+  "gamma_diversity": 0.05,
+  "beta_compression": 0.01,
+  "lr": 0.0003,
+  "weight_decay": 0.01,
+  "epochs": 40,
+  "patience": 8,
+  "seed": 2,
+  "device": "cuda"
+ },
+ "accuracy": 0.46987951807228917,
+ "macro_f1": 0.46040189125295505,
+ "weighted_f1": 0.46815631319604667,
+ "per_class": {
+  "0": {
+   "precision": 0.4,
+   "recall": 0.3783783783783784,
+   "f1-score": 0.3888888888888889,
+   "support": 37.0
+  },
+  "1": {
+   "precision": 0.5208333333333334,
+   "recall": 0.5434782608695652,
+   "f1-score": 0.5319148936170213,
+   "support": 46.0
+  },
+  "accuracy": 0.46987951807228917,
+  "macro avg": {
+   "precision": 0.4604166666666667,
+   "recall": 0.4609283196239718,
+   "f1-score": 0.46040189125295505,
+   "support": 83.0
+  },
+  "weighted avg": {
+   "precision": 0.4669678714859439,
+   "recall": 0.46987951807228917,
+   "f1-score": 0.46815631319604667,
+   "support": 83.0
+  }
+ }
+}

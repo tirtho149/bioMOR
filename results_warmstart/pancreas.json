@@ -1,7 +1,0 @@
-{
- "dataset": "pancreas",
- "fixed_source_macro_f1": 51.84171960827327,
- "mor_from_scratch_macro_f1": 62.84542731740478,
- "mor_warm_start_macro_f1": 61.615411791085364,
- "warm_start_gain": -1.2300155263194168
-}

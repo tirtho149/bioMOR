@@ -1,0 +1,18 @@
+{
+ "dataset": "oesophagus",
+ "mode": "none",
+ "seed": 0,
+ "n_samples": 87947,
+ "n_features": 1089,
+ "n_classes": 18,
+ "n_train": 52327,
+ "n_test": 26385,
+ "transformer_params": 75168,
+ "total_params": 214597,
+ "accuracy": 0.8209209778283115,
+ "macro_f1": 0.6139028005134392,
+ "weighted_f1": 0.8256428695538164,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

@@ -60,3 +60,6 @@ TableNeeded*
 
 # raw genomap source data (materialized via git-lfs from data-branch; large)
 genomap_data/
+
+# ---- archived old results/sbatch/PDFs (~16GB local scratch; not for the repo) ----
+archive/

@@ -1,0 +1,8 @@
+{
+ "dataset": "common_class",
+ "K": 2,
+ "seed": 0,
+ "val_macro_f1": 68.724042266949,
+ "test_macro_f1": 68.85118578556609,
+ "test_accuracy": 82.76363636363637
+}

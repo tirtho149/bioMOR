@@ -1,7 +1,0 @@
-{
- "dataset": "common_class",
- "fixed_source_macro_f1": 69.02007257425919,
- "mor_from_scratch_macro_f1": 65.76728482799695,
- "mor_warm_start_macro_f1": 64.83000455613005,
- "warm_start_gain": -0.9372802718669027
-}

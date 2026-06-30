@@ -1,0 +1,18 @@
+{
+ "dataset": "spleen",
+ "mode": "coexpr",
+ "seed": 0,
+ "n_samples": 94129,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_train": 56006,
+ "n_test": 28239,
+ "transformer_params": 75168,
+ "total_params": 216537,
+ "accuracy": 0.5405998795991359,
+ "macro_f1": 0.4685306635274684,
+ "weighted_f1": 0.5626346055580312,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

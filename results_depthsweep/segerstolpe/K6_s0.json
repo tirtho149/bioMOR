@@ -1,0 +1,8 @@
+{
+ "dataset": "segerstolpe",
+ "K": 6,
+ "seed": 0,
+ "val_macro_f1": 9.665576840266995,
+ "test_macro_f1": 7.085850834945324,
+ "test_accuracy": 18.524332810047095
+}

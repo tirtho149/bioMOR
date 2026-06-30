@@ -1,0 +1,18 @@
+{
+ "dataset": "tcell",
+ "mode": "coexpr",
+ "seed": 0,
+ "n_samples": 24007,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_train": 14283,
+ "n_test": 7203,
+ "transformer_params": 75168,
+ "total_params": 212463,
+ "accuracy": 0.6204359294738303,
+ "macro_f1": 0.48534546114444665,
+ "weighted_f1": 0.6616392554242942,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

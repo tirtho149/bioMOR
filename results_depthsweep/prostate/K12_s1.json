@@ -1,0 +1,8 @@
+{
+ "dataset": "prostate",
+ "K": 12,
+ "seed": 1,
+ "val_macro_f1": 51.329787234042556,
+ "test_macro_f1": 50.88709677419354,
+ "test_accuracy": 64.5320197044335
+}

@@ -1,7 +1,0 @@
-{
- "dataset": "prototype",
- "fixed_source_macro_f1": 92.94230958959663,
- "mor_from_scratch_macro_f1": 95.53192522528062,
- "mor_warm_start_macro_f1": 93.29865811169894,
- "warm_start_gain": -2.2332671135816717
-}

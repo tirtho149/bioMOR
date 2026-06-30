@@ -1,9 +1,0 @@
-{
- "macro_f1": 0.98548565026942,
- "accuracy": 0.9866156787762906,
- "transformer_params": 132992,
- "total_params": 712457,
- "seed": 0,
- "peak_init": true,
- "anneal_markers": false
-}

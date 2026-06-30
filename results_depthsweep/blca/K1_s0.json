@@ -1,0 +1,8 @@
+{
+ "dataset": "blca",
+ "K": 1,
+ "seed": 0,
+ "val_macro_f1": 56.02564102564103,
+ "test_macro_f1": 43.297899922219344,
+ "test_accuracy": 66.66666666666666
+}

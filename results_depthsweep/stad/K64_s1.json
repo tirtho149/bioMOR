@@ -1,0 +1,8 @@
+{
+ "dataset": "stad",
+ "K": 64,
+ "seed": 1,
+ "val_macro_f1": 54.8440065681445,
+ "test_macro_f1": 56.315789473684205,
+ "test_accuracy": 56.62650602409639
+}

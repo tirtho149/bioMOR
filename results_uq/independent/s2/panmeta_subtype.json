@@ -1,0 +1,12 @@
+{
+ "dataset": "panmeta_subtype",
+ "config": "independent",
+ "seed": 2,
+ "n_classes": 32,
+ "n_test": 1718,
+ "nll": 1.438367113775125,
+ "ece": 0.03525833014539633,
+ "brier": 0.5989856065255671,
+ "conf": 0.5195136730152176,
+ "auroc": 0.7724561568166578
+}

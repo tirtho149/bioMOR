@@ -1,7 +1,0 @@
-{
- "dataset": "baron",
- "fixed_source_macro_f1": 68.1144157471681,
- "mor_from_scratch_macro_f1": 61.458163406037336,
- "mor_warm_start_macro_f1": 55.84909144197086,
- "warm_start_gain": -5.6090719640664695
-}

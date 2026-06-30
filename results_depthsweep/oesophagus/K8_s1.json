@@ -1,0 +1,8 @@
+{
+ "dataset": "oesophagus",
+ "K": 8,
+ "seed": 1,
+ "val_macro_f1": 55.03400714714017,
+ "test_macro_f1": 53.916243224855634,
+ "test_accuracy": 79.8408186469585
+}

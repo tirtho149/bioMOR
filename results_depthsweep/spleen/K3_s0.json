@@ -1,0 +1,8 @@
+{
+ "dataset": "spleen",
+ "K": 3,
+ "seed": 0,
+ "val_macro_f1": 48.95209581684578,
+ "test_macro_f1": 45.99505122484997,
+ "test_accuracy": 52.91972095329155
+}

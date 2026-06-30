@@ -1,0 +1,18 @@
+{
+ "dataset": "tcell",
+ "mode": "random",
+ "seed": 1,
+ "n_samples": 24007,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_train": 14283,
+ "n_test": 7203,
+ "transformer_params": 75168,
+ "total_params": 212463,
+ "accuracy": 0.6001665972511454,
+ "macro_f1": 0.45424665242760226,
+ "weighted_f1": 0.6457007019334914,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

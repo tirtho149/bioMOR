@@ -1,0 +1,18 @@
+{
+ "dataset": "lung",
+ "mode": "random",
+ "seed": 0,
+ "n_samples": 57020,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_train": 33926,
+ "n_test": 17106,
+ "transformer_params": 75168,
+ "total_params": 215955,
+ "accuracy": 0.7693791652051911,
+ "macro_f1": 0.6862690155136633,
+ "weighted_f1": 0.7793022517930173,
+ "beta": 1.0,
+ "knn": 16,
+ "anneal": true
+}

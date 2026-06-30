@@ -1,2 +1,0 @@
-/Users/tirthoroy/Desktop/RecusrsiveQFormer/.venv/lib/python3.11/site-packages/torch/backends/mps/__init__.py:22: UserWarning: Skipping device NVIDIA GeForce GT 755M that does not support Metal 2.0 (Triggered internally at /Users/runner/work/pytorch/pytorch/pytorch/aten/src/ATen/mps/MPSDevice.mm:101.)
-  return torch._C._mps_is_available()

@@ -1,7 +1,0 @@
-{
- "dataset": "segerstolpe",
- "fixed_source_macro_f1": 8.302602290356154,
- "mor_from_scratch_macro_f1": 5.4012601298363405,
- "mor_warm_start_macro_f1": 6.93286143885357,
- "warm_start_gain": 1.5316013090172296
-}

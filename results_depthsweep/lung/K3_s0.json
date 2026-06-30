@@ -1,0 +1,8 @@
+{
+ "dataset": "lung",
+ "K": 3,
+ "seed": 0,
+ "val_macro_f1": 73.24296200349204,
+ "test_macro_f1": 71.43403475460315,
+ "test_accuracy": 79.52765111656728
+}

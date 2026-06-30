@@ -1,0 +1,35 @@
+\begin{table*}[p]
+\centering
+\caption{\textbf{Consolidated results: every configuration on every dataset.} Each cell is accuracy / macro-F1$\pm$std (\%). \textbf{All numbers are multi-seed} (mean over 3 seeds for the genomap single-cell datasets and the P-NET/Reactome cohorts; any cell not yet backed by $\ge2$ seeds is left blank rather than reported). For the cohorts the two router columns use the Reactome pathway prior as the biological-prior analogue of the single-cell co-expression prior. Statistical-significance verdicts for the two contested mechanisms (biological prior, adaptive depth) are given beneath the table.}
+\label{tab:consolidated}
+\renewcommand{\arraystretch}{1.35}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Dataset & \textbf{Bio-informed router} & \textbf{General router (no prior)} & \textbf{Adaptive depth (MoR)} & \textbf{Fixed depth} & \textbf{No recursion (K=1)} & \textbf{Vanilla transformer} \\
+\midrule
+\multicolumn{7}{l}{\textit{Genomap single-cell suite (3 seeds)}}\\
+\midrule
+Tabula Muris & 81.1$\pm$1.3 / 69.9$\pm$1.5 & 81.4$\pm$2.3 / 71.5$\pm$3.0 & 82.5$\pm$0.3 / 72.7$\pm$1.1 & 85.3$\pm$1.8 / 77.1$\pm$2.1 & 82.1$\pm$1.7 / 73.1$\pm$2.4 & 84.7$\pm$1.3 / 75.5$\pm$0.8 \\
+Pancreas & 91.9$\pm$1.7 / 59.1$\pm$4.1 & 90.9$\pm$2.1 / 54.6$\pm$1.1 & 88.1$\pm$4.0 / 53.5$\pm$1.1 & 88.9$\pm$6.3 / 53.6$\pm$1.6 & 90.9$\pm$2.9 / 51.7$\pm$5.2 & 91.4$\pm$2.2 / 57.3$\pm$1.9 \\
+Common & 84.1$\pm$1.2 / 70.2$\pm$2.2 & 81.0$\pm$1.5 / 66.2$\pm$2.9 & 81.0$\pm$1.5 / 66.2$\pm$2.9 & 82.9$\pm$0.4 / 68.5$\pm$2.7 & 81.1$\pm$2.1 / 66.2$\pm$3.7 & 81.3$\pm$2.1 / 66.6$\pm$4.4 \\
+Prototype & 94.5$\pm$0.1 / 94.0$\pm$0.2 & 94.7$\pm$0.3 / 94.2$\pm$0.4 & 94.7$\pm$0.3 / 94.2$\pm$0.4 & 94.7$\pm$0.2 / 94.1$\pm$0.3 & 93.8$\pm$0.2 / 93.2$\pm$0.5 & 94.7$\pm$0.2 / 94.2$\pm$0.4 \\
+Baron & 77.8$\pm$7.3 / 57.1$\pm$7.3 & 80.6$\pm$4.9 / 61.5$\pm$1.8 & 84.8$\pm$4.8 / 61.1$\pm$1.3 & 86.4$\pm$2.3 / 66.2$\pm$1.8 & 81.9$\pm$0.8 / 56.2$\pm$2.6 & 78.6$\pm$8.6 / 58.8$\pm$4.5 \\
+Segerstolpe & 17.4$\pm$2.1 / 8.4$\pm$1.4 & 13.9$\pm$2.5 / 5.7$\pm$0.6 & 20.0$\pm$6.5 / 7.7$\pm$0.8 & 17.3$\pm$1.1 / 8.1$\pm$0.7 & 18.9$\pm$2.2 / 10.1$\pm$0.8 & 14.9$\pm$0.6 / 6.7$\pm$1.6 \\
+Lung & 79.6$\pm$0.5 / 72.6$\pm$1.6 & 78.3$\pm$2.0 / 70.7$\pm$4.2 & 78.3$\pm$2.0 / 70.7$\pm$4.2 & 77.6$\pm$1.6 / 70.3$\pm$1.9 & 78.5$\pm$1.8 / 70.3$\pm$1.3 & 79.8$\pm$0.2 / 72.5$\pm$2.4 \\
+Oesophagus & 80.7$\pm$2.0 / 56.5$\pm$5.0 & 80.6$\pm$1.4 / 56.1$\pm$3.8 & 80.6$\pm$1.4 / 56.1$\pm$3.8 & 81.0$\pm$0.2 / 55.1$\pm$1.3 & 79.3$\pm$1.8 / 56.5$\pm$4.0 & 81.3$\pm$0.7 / 55.8$\pm$2.9 \\
+Spleen & 56.3$\pm$3.0 / 48.5$\pm$2.4 & 58.9$\pm$1.1 / 50.4$\pm$2.3 & 58.9$\pm$1.1 / 50.4$\pm$2.3 & 53.2$\pm$2.7 / 46.7$\pm$3.5 & 56.0$\pm$1.1 / 48.8$\pm$2.7 & 56.6$\pm$2.4 / 49.4$\pm$3.6 \\
+T-cell & 65.4$\pm$2.5 / 48.7$\pm$1.4 & 69.2$\pm$2.3 / 50.0$\pm$3.2 & 67.6$\pm$1.5 / 49.7$\pm$2.0 & 65.2$\pm$1.4 / 49.3$\pm$1.8 & 67.3$\pm$1.7 / 50.4$\pm$1.9 & 65.8$\pm$4.6 / 47.7$\pm$2.4 \\
+\midrule
+\multicolumn{7}{l}{\textit{P-NET / Reactome multi-omics cohorts}}\\
+\midrule
+Prostate & 66.0$\pm$4.5 / 55.0$\pm$9.0 & 68.0$\pm$3.1 / 54.3$\pm$9.3 & 68.6$\pm$2.4 / 55.5$\pm$8.7 & 62.2$\pm$3.0 / 58.3$\pm$2.4 & 61.6$\pm$2.4 / 50.4$\pm$5.9 & 67.8$\pm$5.7 / 56.8$\pm$12.3 \\
+BLCA & 59.7$\pm$7.3 / 41.6$\pm$3.2 & 59.3$\pm$5.6 / 41.8$\pm$4.5 & 58.8$\pm$7.6 / 41.1$\pm$2.9 & 62.6$\pm$3.1 / 41.3$\pm$2.9 & 55.6$\pm$16.6 / 36.0$\pm$8.4 & 66.7$\pm$1.0 / 40.0$\pm$0.4 \\
+STAD & 46.6$\pm$8.8 / 45.0$\pm$7.5 & 50.6$\pm$6.0 / 45.4$\pm$7.3 & 48.2$\pm$8.1 / 44.7$\pm$7.7 & 53.8$\pm$5.4 / 49.4$\pm$3.5 & 45.8$\pm$2.0 / 40.7$\pm$2.0 & 51.8$\pm$4.3 / 47.8$\pm$3.5 \\
+PanCan & 62.0$\pm$4.9 / 57.9$\pm$5.9 & 62.1$\pm$6.9 / 57.6$\pm$6.9 & 63.0$\pm$4.3 / 58.4$\pm$4.0 & 73.0$\pm$2.5 / 69.4$\pm$2.3 & 64.2$\pm$2.0 / 59.9$\pm$1.9 & 56.3$\pm$6.5 / 52.1$\pm$8.7 \\
+\bottomrule
+\end{tabular}}
+\vspace{6pt}
+\par\noindent\footnotesize\textbf{Statistical significance.} 
+\textbullet~Biological prior (co-expression vs degree-matched random-graph control, paired over all dataset $\times$ seed): mean $\Delta$F1 = +0.28 pts, 95\% CI [-1.2, +1.7], p = 0.871, Cohen's $d_z$ = +0.07; 0/10 datasets significant after Holm-Bonferroni. Verdict: NOT significant -- statistically indistinguishable from a random graph. \textbullet~Adaptive depth: recursion vs single pass (K=1) $\Delta$F1 = +0.60 (p = 0.337); adaptive vs fixed depth is not formally equivalent at a 1.0-pt margin (TOST p = 0.278); mean compute saving 31\% (p = 0.000 that saving $>$ 0). Verdict: the compute reduction is the decisive, significant effect; accuracy/depth gains are modest.
+\end{table*}

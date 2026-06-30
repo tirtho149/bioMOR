@@ -1,0 +1,317 @@
+{
+ "task": "panmeta_subtype",
+ "channel_set": "expr",
+ "channels": [
+  "expr"
+ ],
+ "n_channels": 1,
+ "marker_mode": "router",
+ "gene_interaction": "none",
+ "recursion_mode": "expert",
+ "pathway_attn_bias": false,
+ "n_samples": 8586,
+ "n_genes": 10013,
+ "n_pathways": 1257,
+ "n_classes": 32,
+ "n_train": 5837,
+ "n_test": 1718,
+ "class_names": [
+  "adrenocortical cancer",
+  "bladder urothelial carcinoma",
+  "brain lower grade glioma",
+  "breast invasive carcinoma",
+  "cervical & endocervical cancer",
+  "cholangiocarcinoma",
+  "colon adenocarcinoma",
+  "diffuse large B-cell lymphoma",
+  "esophageal carcinoma",
+  "glioblastoma multiforme",
+  "head & neck squamous cell carcinoma",
+  "kidney chromophobe",
+  "kidney clear cell carcinoma",
+  "kidney papillary cell carcinoma",
+  "liver hepatocellular carcinoma",
+  "lung adenocarcinoma",
+  "lung squamous cell carcinoma",
+  "mesothelioma",
+  "ovarian serous cystadenocarcinoma",
+  "pancreatic adenocarcinoma",
+  "pheochromocytoma & paraganglioma",
+  "prostate adenocarcinoma",
+  "rectum adenocarcinoma",
+  "sarcoma",
+  "skin cutaneous melanoma",
+  "stomach adenocarcinoma",
+  "testicular germ cell tumor",
+  "thymoma",
+  "thyroid carcinoma",
+  "uterine carcinosarcoma",
+  "uterine corpus endometrioid carcinoma",
+  "uveal melanoma"
+ ],
+ "transformer_params": 132992,
+ "total_params": 1460673,
+ "mean_recursion_depth": 2.75,
+ "compute_saving_ratio": 0.0032389668747282237,
+ "config": {
+  "heads": [
+   "panmeta_subtype"
+  ],
+  "cohorts": null,
+  "n_hvg": null,
+  "n_channels": 1,
+  "batch_size": 128,
+  "val_frac": 0.15,
+  "test_frac": 0.15,
+  "d_model": 128,
+  "n_heads": 4,
+  "d_ff": 256,
+  "dropout": 0.1,
+  "n_markers": 32,
+  "marker_mode": "router",
+  "pathway_pool": "mean",
+  "compress_mode": "aggregate",
+  "recursive_marker_refine": true,
+  "peak_init": true,
+  "anneal_markers": true,
+  "recursion_depth": 4,
+  "share_weights": true,
+  "share_strategy": "cycle",
+  "n_unique_blocks": null,
+  "step_cache": false,
+  "adaptive_depth": false,
+  "marker_ffn": false,
+  "recursion_mode": "expert",
+  "router_capacity": null,
+  "router_alpha": 1.0,
+  "router_temp": 1.0,
+  "router_type": "linear",
+  "router_z_coeff": 0.001,
+  "router_balance_coeff": 0.1,
+  "gene_interaction": "none",
+  "interaction_knn": 16,
+  "router_prior_beta": 1.0,
+  "router_prior_anneal": true,
+  "pathway_attn_bias": false,
+  "pathway_attn_lambda": 2.0,
+  "lambda_marker": 0.1,
+  "gamma_diversity": 0.05,
+  "beta_compression": 0.01,
+  "lr": 0.0003,
+  "weight_decay": 0.01,
+  "epochs": 40,
+  "patience": 8,
+  "seed": 1,
+  "device": "cuda"
+ },
+ "accuracy": 0.7834691501746216,
+ "macro_f1": 0.7372491520468184,
+ "weighted_f1": 0.788796742010851,
+ "per_class": {
+  "0": {
+   "precision": 0.7333333333333333,
+   "recall": 0.7333333333333333,
+   "f1-score": 0.7333333333333333,
+   "support": 15.0
+  },
+  "1": {
+   "precision": 0.7464788732394366,
+   "recall": 0.6625,
+   "f1-score": 0.7019867549668874,
+   "support": 80.0
+  },
+  "2": {
+   "precision": 0.9887640449438202,
+   "recall": 0.8627450980392157,
+   "f1-score": 0.9214659685863874,
+   "support": 102.0
+  },
+  "3": {
+   "precision": 0.9057971014492754,
+   "recall": 0.7961783439490446,
+   "f1-score": 0.847457627118644,
+   "support": 157.0
+  },
+  "4": {
+   "precision": 0.46153846153846156,
+   "recall": 0.5454545454545454,
+   "f1-score": 0.5,
+   "support": 55.0
+  },
+  "5": {
+   "precision": 0.5,
+   "recall": 0.7142857142857143,
+   "f1-score": 0.5882352941176471,
+   "support": 7.0
+  },
+  "6": {
+   "precision": 0.7045454545454546,
+   "recall": 0.5344827586206896,
+   "f1-score": 0.6078431372549019,
+   "support": 58.0
+  },
+  "7": {
+   "precision": 0.875,
+   "recall": 1.0,
+   "f1-score": 0.9333333333333333,
+   "support": 7.0
+  },
+  "8": {
+   "precision": 0.6176470588235294,
+   "recall": 0.5675675675675675,
+   "f1-score": 0.5915492957746479,
+   "support": 37.0
+  },
+  "9": {
+   "precision": 0.6511627906976745,
+   "recall": 0.9655172413793104,
+   "f1-score": 0.7777777777777778,
+   "support": 29.0
+  },
+  "10": {
+   "precision": 0.7222222222222222,
+   "recall": 0.6565656565656566,
+   "f1-score": 0.6878306878306878,
+   "support": 99.0
+  },
+  "11": {
+   "precision": 0.631578947368421,
+   "recall": 0.9230769230769231,
+   "f1-score": 0.75,
+   "support": 13.0
+  },
+  "12": {
+   "precision": 0.921875,
+   "recall": 0.8194444444444444,
+   "f1-score": 0.8676470588235294,
+   "support": 72.0
+  },
+  "13": {
+   "precision": 0.8148148148148148,
+   "recall": 0.7857142857142857,
+   "f1-score": 0.8,
+   "support": 56.0
+  },
+  "14": {
+   "precision": 0.9565217391304348,
+   "recall": 0.9428571428571428,
+   "f1-score": 0.9496402877697842,
+   "support": 70.0
+  },
+  "15": {
+   "precision": 0.8350515463917526,
+   "recall": 0.801980198019802,
+   "f1-score": 0.8181818181818182,
+   "support": 101.0
+  },
+  "16": {
+   "precision": 0.5729166666666666,
+   "recall": 0.5789473684210527,
+   "f1-score": 0.5759162303664922,
+   "support": 95.0
+  },
+  "17": {
+   "precision": 0.47368421052631576,
+   "recall": 0.5625,
+   "f1-score": 0.5142857142857142,
+   "support": 16.0
+  },
+  "18": {
+   "precision": 0.2,
+   "recall": 0.3333333333333333,
+   "f1-score": 0.25,
+   "support": 3.0
+  },
+  "19": {
+   "precision": 0.6578947368421053,
+   "recall": 0.7352941176470589,
+   "f1-score": 0.6944444444444444,
+   "support": 34.0
+  },
+  "20": {
+   "precision": 0.96875,
+   "recall": 0.96875,
+   "f1-score": 0.96875,
+   "support": 32.0
+  },
+  "21": {
+   "precision": 0.9787234042553191,
+   "recall": 0.9387755102040817,
+   "f1-score": 0.9583333333333334,
+   "support": 98.0
+  },
+  "22": {
+   "precision": 0.3,
+   "recall": 0.6666666666666666,
+   "f1-score": 0.41379310344827586,
+   "support": 18.0
+  },
+  "23": {
+   "precision": 0.8571428571428571,
+   "recall": 0.9130434782608695,
+   "f1-score": 0.8842105263157894,
+   "support": 46.0
+  },
+  "24": {
+   "precision": 0.96875,
+   "recall": 0.8611111111111112,
+   "f1-score": 0.9117647058823529,
+   "support": 72.0
+  },
+  "25": {
+   "precision": 0.7894736842105263,
+   "recall": 0.7317073170731707,
+   "f1-score": 0.759493670886076,
+   "support": 82.0
+  },
+  "26": {
+   "precision": 0.8387096774193549,
+   "recall": 0.896551724137931,
+   "f1-score": 0.8666666666666667,
+   "support": 29.0
+  },
+  "27": {
+   "precision": 0.5714285714285714,
+   "recall": 0.8333333333333334,
+   "f1-score": 0.6779661016949152,
+   "support": 24.0
+  },
+  "28": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1-score": 1.0,
+   "support": 97.0
+  },
+  "29": {
+   "precision": 0.4,
+   "recall": 0.7272727272727273,
+   "f1-score": 0.5161290322580645,
+   "support": 11.0
+  },
+  "30": {
+   "precision": 0.7222222222222222,
+   "recall": 0.7471264367816092,
+   "f1-score": 0.7344632768361582,
+   "support": 87.0
+  },
+  "31": {
+   "precision": 0.6818181818181818,
+   "recall": 0.9375,
+   "f1-score": 0.7894736842105263,
+   "support": 16.0
+  },
+  "accuracy": 0.7834691501746216,
+  "macro avg": {
+   "precision": 0.720245175032211,
+   "recall": 0.7732380117984569,
+   "f1-score": 0.7372491520468184,
+   "support": 1718.0
+  },
+  "weighted avg": {
+   "precision": 0.8025542692684199,
+   "recall": 0.7834691501746216,
+   "f1-score": 0.788796742010851,
+   "support": 1718.0
+  }
+ }
+}

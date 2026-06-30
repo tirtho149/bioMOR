@@ -1,0 +1,8 @@
+{
+ "dataset": "panmeta_subtype",
+ "K": 32,
+ "seed": 1,
+ "val_macro_f1": 0.6819878347117212,
+ "test_macro_f1": 0.7725565997706441,
+ "test_accuracy": 5.820721769499418
+}
