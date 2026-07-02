@@ -96,6 +96,7 @@ recursive_marker_transformer/      # the model + training + all experiment runne
   sweeps.py                   ── EXP 8: multi-seed ablation + depth + marker-count -> results_sweeps/
   tune.py                     ── EXP 9: hyperparameter grid (width x M x K x lr)   -> results_tune/
   token_reduction.py          ── EXP 10: token-reduction validation              -> results/token_reduction.json
+  k32_arch.py                 ── EXP 11: vanilla vs recursive vs MoR at fixed K   -> results_k{4,32}_arch/
   make_paper.py          reads results*/ -> paper/*.tex (+ TikZ figures); compiles to PDF
   bio_enrichment.py      Reactome enrichment of learned markers (supplementary)
 genomic_dataloader/      # TCGA loader (downloads/caches UCSC Xena RNA-seq)
@@ -103,9 +104,11 @@ tools/convert_capsule_to_csv.py   # genomap capsule .mat/.csv -> readable CSVs (
 data/                    # SINGLE home for all data (tcga/ + singlecell/) — git-ignored, regenerable
 results*/                # experiment JSONs that feed the paper (tracked)
 paper/                   # generated .tex/.bib + compiled PDF + conference style files
+  slides_smart.tex/.pdf  # Beamer talk deck for the paper
+  appendix1.md           # supplementary appendix notes
 assets/                  # rendered figures used by this README
 run_all.sh               # local one-command: TCGA suite -> paper -> PDF
-run_*.sbatch             # one Slurm job per experiment (GPU, scavenger partition)
+slurm/run_*.sbatch       # one Slurm job per experiment (GPU, scavenger partition)
 PLAN.md, BIO_ROUTER_PLAN.md   # design notes & honest result logs
 ```
 
@@ -340,6 +343,34 @@ retained, mean importance of kept vs. dropped tokens, and the Spearman correlati
 between a gene's selection importance and the recursion depth it is allocated. The paper's
 **"Token Reduction Validation"** subsection (Tables `tab:tokenred`, `tab:tokenredrank`)
 is filled from this JSON.
+
+### EXP 11 — Architecture sweep at fixed depth (vanilla vs. recursive vs. MoR)
+
+*The cleanest possible isolation of the weight-sharing claim: hold **everything** fixed
+(dataset, `d_model=96`, `n_markers=128`, epochs, depth `K`) and flip a single knob —
+`vanilla` (`K` **independent** blocks) → `recursive` (**one** shared block applied `×K`) →
+`mor` (shared block + adaptive expert-choice routing). Records accuracy, macro-F1, exact
+transformer/total param counts, and (for MoR) mean token depth, active fraction, and the
+realized recursion-FLOP saving. Runs across 10 single-cell datasets + 4 TCGA cohorts.*
+
+```bash
+# K=4 (accuracy sweet-spot), 3 seeds, all 14 datasets:
+python -m recursive_marker_transformer.k32_arch \
+    --K 4 --seeds 0 1 2 --archs vanilla recursive mor --epochs 60 --device cuda
+# K=32 stress test on pancreas (2 seeds):
+python -m recursive_marker_transformer.k32_arch \
+    --datasets pancreas --K 32 --seeds 0 1 --archs vanilla recursive mor --epochs 60
+# GPU: sbatch slurm/run_k4_arch.sbatch   /   sbatch slurm/run_k32_arch.sbatch
+```
+→ `results_k{4,32}_arch/<dataset>/<arch>_s<seed>.json`
+
+**Result.** Weight sharing delivers an **exactly `K×`** transformer-parameter reduction at
+matched accuracy: on pancreas the shared block uses `299,136 → 74,784` params at K=4
+(**3.99×**) and `2,393,088 → 74,784` at K=32 (**32×**), while `recursive` matches or beats
+`vanilla` macro-F1 (K=4: 51.8 vs 53.4; K=32: 54.6 vs 54.5). MoR tracks `recursive` at K=4
+but — logged as an **honest caveat** — its expert-choice routing becomes unstable at very
+large depth (K=32 F1 collapses on pancreas), so the recommended operating point is the
+moderate `K` used everywhere else in the paper.
 
 ---
 
