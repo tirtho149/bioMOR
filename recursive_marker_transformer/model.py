@@ -79,6 +79,7 @@ class RecursiveMarkerTransformer(nn.Module):
             share_strategy=getattr(cfg, "share_strategy", "cycle"),
             n_unique_blocks=getattr(cfg, "n_unique_blocks", None),
             step_cache=getattr(cfg, "step_cache", False),
+            bio_prior_gate=getattr(cfg, "bio_prior_gate", False),   # Fix B
         )
         # One classifier per head; binary heads use a single logit.
         self.classifiers = nn.ModuleDict({
@@ -111,6 +112,36 @@ class RecursiveMarkerTransformer(nn.Module):
         self._use_attn_bias = False
         self._attn_lambda = float(getattr(cfg, "pathway_attn_lambda", 0.0))
 
+        # ---- BIO-ROUTER REDESIGN state (BIO_ROUTER_REDESIGN.txt) ----------
+        # Fix A: gene-graph propagation operator S = D^-1/2 (W+I) D^-1/2 (N,N) and a
+        # LEARNABLE mix lambda (sigmoid-bounded) that smooths input expression along
+        # the co-expression graph BEFORE marker selection (sample-conditional).
+        self.register_buffer("bio_operator", torch.zeros(n_genes, n_genes),
+                             persistent=False)
+        # Fix E: gene-graph Laplacian L (N,N) for the depth-smoothness penalty.
+        self.register_buffer("bio_laplacian", torch.zeros(n_genes, n_genes),
+                             persistent=False)
+        self._bio_prop = bool(getattr(cfg, "bio_graph_prop", False))
+        self._bio_hops = int(getattr(cfg, "bio_prop_hops", 1))
+        self._bio_lap_coeff = float(getattr(cfg, "bio_depth_laplacian", 0.0))
+        self._bio_have_graph = False
+        import math as _math
+        lam0 = float(getattr(cfg, "bio_prop_lambda_init", 0.3))
+        lam0 = min(max(lam0, 1e-3), 1.0 - 1e-3)
+        self.bio_prop_logit = nn.Parameter(                     # sigmoid(.) = lambda
+            torch.tensor(_math.log(lam0 / (1.0 - lam0)), dtype=torch.float32))
+        # Fix D: persistent LEARNABLE prior strength beta = softplus(bio_beta), NOT
+        # annealed to zero, so biology can survive to convergence if data wants it.
+        self._bio_prior_learnable = bool(getattr(cfg, "bio_prior_learnable", False))
+        self.bio_beta = nn.Parameter(
+            torch.tensor(float(getattr(cfg, "bio_beta_init", 0.5)), dtype=torch.float32))
+        # DATA-DRIVEN learned gene graph: a per-gene embedding whose cosine-similarity
+        # IS the (rank-r) gene-gene affinity, trained end-to-end by the task loss.
+        self._bio_learned = bool(getattr(cfg, "bio_learned_graph", False))
+        if self._bio_learned:
+            r = int(getattr(cfg, "bio_learned_rank", 16))
+            self.gene_embed = nn.Parameter(torch.randn(n_genes, r) * 0.01)
+
     def set_gene_variance(self, variance: torch.Tensor) -> None:
         self.gene_variance.copy_(variance.to(self.gene_variance))
 
@@ -118,6 +149,16 @@ class RecursiveMarkerTransformer(nn.Module):
         """Install the genomap gene-gene-interaction centrality prior (N,)."""
         self.gene_centrality.copy_(centrality.to(self.gene_centrality))
         self._use_prior = True
+
+    def set_bio_graph(self, operator: Optional[torch.Tensor],
+                      laplacian: Optional[torch.Tensor]) -> None:
+        """Install the co-expression propagation operator S (Fix A) and Laplacian L
+        (Fix E). Enables graph-propagation / depth-smoothness for this model."""
+        if operator is not None:
+            self.bio_operator.copy_(operator.to(self.bio_operator))
+        if laplacian is not None:
+            self.bio_laplacian.copy_(laplacian.to(self.bio_laplacian))
+        self._bio_have_graph = True
 
     def set_token_prior(self, prior: torch.Tensor) -> None:
         """Install a per-pathway-token prior (M,) -- e.g. Reactome pathway-graph
@@ -168,6 +209,32 @@ class RecursiveMarkerTransformer(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict[str, object]:
         gene_identity = self.embed.gene_identity()              # (N, d)
 
+        # Fix A: sample-conditional graph propagation. Smooth the input expression
+        # along the co-expression graph, x <- (1-lam) x + lam (x S), BEFORE marker
+        # selection, so each gene token carries its module's signal (denoising with
+        # the REAL graph; noise-mixing with a shuffled one -- the falsifiable gap).
+        if self._bio_prop and self._bio_have_graph and x.dim() == 2:
+            lam = torch.sigmoid(self.bio_prop_logit)
+            xs = x
+            for _ in range(max(1, self._bio_hops)):
+                xs = (1.0 - lam) * xs + lam * (xs @ self.bio_operator)
+            x = xs
+        # DATA-DRIVEN alternative (bio_learned_graph): propagate x along the LEARNED
+        # low-rank synthetic-correlation graph A = E~ E~^T. Computed as (x E~) E~^T so
+        # it never materialises the G x G matrix. Magnitude is renormalised per sample
+        # so propagation mixes information without rescaling x (training stability);
+        # the learnable lam controls how much to trust the learned graph.
+        elif self._bio_learned and x.dim() == 2:
+            lam = torch.sigmoid(self.bio_prop_logit)
+            En = nn.functional.normalize(self.gene_embed, dim=1)     # (G, r) unit rows
+            xs = x
+            for _ in range(max(1, self._bio_hops)):
+                prop = (xs @ En) @ En.t()                            # (B, G) low-rank
+                prop = prop * (xs.norm(dim=1, keepdim=True)
+                               / (prop.norm(dim=1, keepdim=True) + 1e-6))
+                xs = (1.0 - lam) * xs + lam * prop
+            x = xs
+
         if self.selector is not None:
             # Soft selection (Concrete or cross-attention router): soft (train) /
             # hard (eval) selection over ALL genes -> M marker tokens directly, so
@@ -211,7 +278,10 @@ class RecursiveMarkerTransformer(nn.Module):
             prior_weight = self._prior_beta
         elif self._use_prior:
             prior = self.gene_centrality[marker_idx]
-            prior_weight = self._prior_beta
+            # Fix D: persistent learnable beta = softplus(bio_beta) (a tensor, so
+            # gradient flows and it need not anneal to 0), else the old annealed float.
+            prior_weight = (nn.functional.softplus(self.bio_beta)
+                            if self._bio_prior_learnable else self._prior_beta)
         else:
             prior, prior_weight = None, 0.0
 
@@ -224,6 +294,17 @@ class RecursiveMarkerTransformer(nn.Module):
 
         logits = {head: clf(pooled) for head, clf in self.classifiers.items()}
 
+        # Fix E: graph-Laplacian depth-smoothness -- co-regulated genes (adjacent in
+        # the co-expression graph) should get similar recursion depth. Penalise
+        # d^T L d over the selected markers using the soft (differentiable) depth.
+        bio_lap = h.new_zeros(())
+        if (self._bio_lap_coeff > 0.0 and self._bio_have_graph
+                and "soft_depth_per_token" in route_info):
+            d_soft = route_info["soft_depth_per_token"]         # (B, M)
+            Lsub = self.bio_laplacian[marker_idx][:, marker_idx]  # (M, M)
+            # sum_ij L_ij d_i d_j, averaged over batch and markers.
+            bio_lap = torch.einsum("bi,ij,bj->b", d_soft, Lsub, d_soft).mean() / d_soft.shape[1]
+
         return {
             "logits": logits,
             "aux_logits": aux_logits,
@@ -235,6 +316,7 @@ class RecursiveMarkerTransformer(nn.Module):
             "recursion_depth_per_token": route_info["depth_per_token"],
             "router_z_loss": route_info["z_loss"],
             "router_balance_loss": route_info["balance_loss"],
+            "bio_lap_loss": bio_lap,                             # Fix E penalty
         }
 
     def transformer_param_count(self) -> int:

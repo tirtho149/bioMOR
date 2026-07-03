@@ -194,4 +194,55 @@ accuracy        & 92.4 & 91.8 & 91.1 \\
 \end{columns}
 \end{frame}
 
+% ============ SLIDE 4: why the LEARNED data-driven graph works ==============
+\begin{frame}{Why a \emph{learned} graph beats a fixed biological one}
+\begin{columns}[T]
+\column{0.52\textwidth}
+\textbf{\footnotesize The router smooths expression along a gene graph $A$:}
+\[
+   \tilde{x} \;=\; (1-\lambda)\,x \;+\; \lambda\, A\,x .
+\]
+\textbf{\footnotesize Fixed $A$ (co-expression / Reactome):}
+\begin{itemize}\footnotesize
+  \item label-free $\Rightarrow \partial \mathcal{L}/\partial A = 0$ (edges never learn);
+  \item annealed $\Rightarrow$ converged model $\equiv$ \texttt{none};
+  \item a degree-matched \emph{shuffle} gives the same generic smoothing:
+        \bad{$\mathbb{E}[\text{bio}]=\mathbb{E}[\text{random}]$} \; (FACT B).
+\end{itemize}
+\vspace{1mm}
+\textbf{\footnotesize Learned $A=\tilde{E}\tilde{E}^{\!\top}$ (rank $r$, embedding $E$):}
+\[
+  \tilde{x} = (1-\lambda)x + \lambda\,(x\tilde{E})\tilde{E}^{\!\top},
+  \qquad \tfrac{\partial \mathcal{L}}{\partial E}\neq 0 .
+\]
+\good{Edges are chosen to cut the loss.} Low rank $\Rightarrow$ $r$ latent
+\good{gene programs}; propagation denoises each gene toward its program's consensus,
+and \good{supervision makes those programs discriminative} (not variance-maximal like
+PCA, not fixed like Reactome).
+
+\column{0.48\textwidth}
+\centering
+\textbf{\footnotesize One patient, two co-varying markers}
+\begin{block}{}\footnotesize
+Genes $g_1,g_2$: weak, \emph{noisy}, but co-vary with the label.
+\smallskip
+
+\good{Learned graph} learns $\tilde{E}_{g_1}\!\approx\!\tilde{E}_{g_2}$ (same program):
+\[
+  \tilde{x}_{g_1}\approx\tfrac12\big(x_{g_1}+x_{g_2}\big)
+\]
+independent noise averages down (\good{$\times\sqrt{2}$ SNR}), shared signal kept
+$\Rightarrow$ a \good{cleaner marker token}.
+\smallskip
+
+\bad{Random / fixed graph} links $g_1$ to \emph{unrelated} genes $\Rightarrow$ averages
+\emph{in} noise $\Rightarrow$ over-smooths, no SNR gain.
+\end{block}
+\vspace{1mm}
+{\footnotesize\good{On data (P-NET, 10 seeds):} learned $-$ none $=\mathbf{+1.9}$ F1
+(\good{$p{=}.043$}); \good{$+5.7$} on prostate. Beats co-expression, Reactome
+\emph{and} random --- the first mechanism that does.}
+\end{columns}
+\end{frame}
+
 \end{document}

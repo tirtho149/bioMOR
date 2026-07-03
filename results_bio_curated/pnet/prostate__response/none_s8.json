@@ -1,0 +1,21 @@
+{
+ "family": "pnet",
+ "cohort": "prostate",
+ "task": "response",
+ "mode": "none",
+ "K": 4,
+ "seed": 8,
+ "test_macro_f1": 58.65320679441456,
+ "test_accuracy": 70.39473684210526,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 1011,
+ "graph_diag": {
+  "n_genes": 3000,
+  "n_genes_in_reactome": 3000,
+  "reactome_coverage_frac": 1.0,
+  "mean_degree": 25.722666666666665,
+  "isolated_frac": 0.0,
+  "corr_pi_pc1": 0.0036336020566523075
+ }
+}

@@ -152,7 +152,7 @@ class RecursiveStack(nn.Module):
                  router_alpha: float = 0.1, router_temp: float = 1.0,
                  router_type: str = "linear",
                  share_strategy: str = "cycle", n_unique_blocks: Optional[int] = None,
-                 step_cache: bool = False):
+                 step_cache: bool = False, bio_prior_gate: bool = False):
         super().__init__()
         self.depth = depth
         self.share_weights = share_weights
@@ -177,7 +177,7 @@ class RecursiveStack(nn.Module):
         if recursion_mode == "expert":
             self.router = ExpertChoiceRouter(
                 d_model, depth, router_capacity or (), alpha=router_alpha,
-                temp=router_temp, router_type=router_type)
+                temp=router_temp, router_type=router_type, prior_gate=bio_prior_gate)
         elif recursion_mode == "token":
             self.router = TokenChoiceRouter(
                 d_model, depth, alpha=router_alpha, temp=router_temp,

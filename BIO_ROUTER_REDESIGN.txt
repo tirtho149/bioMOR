@@ -1,0 +1,310 @@
+================================================================================
+ SMART BIO-ROUTER: WHY IT DOES NOT BEAT VANILLA, AND HOW TO FIX IT
+ A data-driven -> biology-informed redesign, argued from the data.
+ Author notes: Tirtho Roy et al.  File: BIO_ROUTER_REDESIGN.txt   Date: 2026-07-02
+================================================================================
+
+This document does three things:
+  (1) states the measured gap precisely (numbers, not vibes);
+  (2) proves, mechanism-by-mechanism, WHY the current bio-router cannot beat the
+      data-driven router (and provably ties the degree-matched random control);
+  (3) gives a redesign in which the biological graph re-enters the model at the
+      stage where it carries information, with a falsifiable coexpr-vs-random test.
+
+The thesis in one line:
+  The current prior fails not because "biology doesn't help transcriptomics," but
+  because it injects a *label-free, sample-independent, range-restricted scalar*
+  at the *one place in the network where that scalar carries almost no gradient
+  and is then annealed to zero*. Every one of those four adjectives is a fixable
+  design choice, not a fact about biology.
+
+
+================================================================================
+ 1.  THE MEASURED GAP  (results_sc_interaction/, 10 single-cell sets x 3 seeds)
+================================================================================
+
+macro-F1, mean over 3 seeds. coexpr = genomap |corr| centrality prior (proposed);
+random = degree-matched shuffled-edge graph (control); none = plain SMART router.
+
+  dataset         none      coexpr    random    coexpr-none  coexpr-random
+  baron           0.61      0.57      0.60        -0.04        -0.03
+  common_class    0.66      0.70      0.69        +0.04        +0.01
+  lung            0.71      0.73      0.71        +0.02        +0.01
+  oesophagus      0.56      0.57      0.58        +0.00        -0.01
+  pancreas        0.55      0.59      0.53        +0.04        +0.06
+  prototype       0.94      0.94      0.94        -0.00        -0.00
+  segerstolpe     0.06      0.08      0.08        +0.03        +0.01
+  spleen          0.50      0.49      0.48        -0.02        +0.01
+  tabula_muris    0.72      0.70      0.72        -0.02        -0.02
+  tcell           0.50      0.49      0.49        -0.01        -0.01
+  --------------------------------------------------------------------
+  MEAN            --        --        --          +0.004       +0.003
+  wins (coexpr >) --        --        --          5/10         5/10
+
+(The bulk-TCGA ablation in BIO_ROUTER_PLAN.md tells the identical story:
+ none 96.97 / coexpr 95.63 / random 95.14 on cohort; all within one std on
+ stage/T/N.)
+
+Two facts define the problem:
+  FACT A.  coexpr - none   = +0.004  (a coin-flip: 5/10 datasets).
+  FACT B.  coexpr - random = +0.003  (co-expression structure is INDISTINGUISHABLE
+           from a shuffled graph of the same degree).
+
+FACT B is the damning one. Any story we tell about "hub genes" is refuted by B:
+whatever micro-benefit exists comes from *adding some structured bias at all*
+(a mild regulariser), NOT from the biology of co-expression. A publishable
+bio-router must produce  coexpr > random ~ none. The current one produces
+coexpr ~ random ~ none.
+
+
+================================================================================
+ 2.  THE CURRENT MECHANISM, FORMALIZED  (so we can see where it leaks)
+================================================================================
+
+Pipeline (verified in code):
+  marker.py    : selected_indices = argmax_g logits(gene_identity)   # SAMPLE-INDEP.
+  interaction.py: W = topk_knn(|corr(X_train)|), symmetrised
+                  pi = z-score( leading_eigvec(W) )        # one scalar per gene
+  model.py:190  marker_idx = <fixed M genes>               # same for all B samples
+  model.py:213  prior = gene_centrality[marker_idx]        # (M,) restricted to markers
+  model.py:164  beta_t = beta_0 * (1 - progress)           # ANNEALED TO 0
+  router.py:119 logits = w_r^T h_m / tau  +  beta_t * pi_m # additive scalar bias
+                keep m if logits in top-k(step)            # expert-choice funnel
+
+So the biological object -- the graph W -- touches the model ONLY as the term
+
+        Delta_m  =  beta_t * pi_m                                          (*)
+
+added to every marker's depth logit. Everything below is a property of (*).
+
+
+================================================================================
+ 3.  WHY IT CANNOT WIN  (five independent failure modes; each alone caps the gain)
+================================================================================
+
+--- FM-1.  The prior is SAMPLE-INDEPENDENT, so it carries zero conditional info.
+pi_m is a constant vector; marker_idx is an argmax (sample-independent); beta_t is
+a scalar. Hence Delta_m in (*) is IDENTICAL for every patient x in the batch.
+The routing decision that matters is "does THIS patient need gene m iterated
+deeper?", a function of h_m(x). A constant offset cannot express any x-conditional
+statement. Formally: the mutual information I(Delta ; y | x-agnostic) = 0 about
+which SAMPLES are hard; (*) can only shift the *marginal* depth-rank of genes.
+But the data-driven router learns the marginal gene ranking in O(1) epochs from
+w_r alone -- so (*) is redundant with something the model already recovers.
+  => A static per-gene bias is the wrong object for a per-sample router.
+
+--- FM-2.  RESTRICTION OF RANGE: the prior is read AFTER marker selection.
+pi is informative across all N genes (hubs vs. periphery). But it is gathered at
+marker_idx -- the M genes the marker router ALREADY chose as high-signal. Selection
+truncates pi to its upper tail; Var(pi | selected) << Var(pi | all genes). A
+z-scored variable conditioned on being in its own top tail is nearly flat, so the
+spread of Delta across the M tokens is tiny, so its effect on a top-k comparison
+is tiny. The information "which genes are hubs" was actionable at SELECTION time
+(which genes become tokens), not at DEPTH time (how long to iterate a chosen token).
+It is injected one stage too late, into a variable whose variance selection already
+consumed.
+
+--- FM-3.  EIGENVECTOR CENTRALITY OF A |corr| GRAPH IS A TECHNICAL, NOT BIOLOGICAL,
+statistic. A |Pearson| kNN graph over genes is one giant hairball; its leading
+eigenvector concentrates on the most globally co-varying genes -- library-size /
+depth / ribosomal / mitochondrial axes -- i.e. exactly the housekeeping genes that
+are NON-discriminative for cell type or phenotype. So "high pi" correlates with
+"technical covariation," and "recurse the hubs deeper" spends compute on the least
+label-relevant tokens. Centrality is also a GLOBAL scalar with, by construction, no
+channel to the label. This is why FACT B holds: a degree-matched random graph has
+the same global connectivity statistics, so its centrality is just as (un)useful.
+
+--- FM-4.  ANNEALED TO ZERO => cannot change the converged solution.
+beta_t = beta_0(1-progress) -> 0. At convergence the model is bit-identical to
+`none`. Therefore (*) can only perturb the OPTIMIZATION TRAJECTORY (a warm start),
+never the hypothesis class. For test accuracy to move, that early perturbation must
+land in a different basin -- but the depth routers are shallow (linear/1-layer) and
+near-convex, so all warm starts flow to the same optimum. The design self-limits to
+"a prior on the first few epochs," which for these routers is a no-op by construction.
+
+--- FM-5.  CENTRALITY->DEPTH IS THE WRONG COUPLING (semantic mismatch).
+MoR depth exists to spend compute where the representation is still CHANGING /
+UNCERTAIN (large residual ||f(h)-h||, high routing entropy). "Hub-ness" is a static,
+sample-independent property. Coupling depth to hub-ness therefore allocates compute
+by a signal uncorrelated with "needs more compute." Even a *perfect* hub score would
+be optimising the wrong objective.
+
+Corollary (why coexpr == random is forced, not unlucky): FM-1 (static) + FM-2
+(range-restricted) + FM-4 (annealed) mean the surviving effect of (*) is a small,
+early, low-variance, sample-constant nudge -- a generic regulariser. A generic
+regulariser is exactly what the degree-matched random graph ALSO supplies. The two
+must tie. The experiment is behaving correctly; the mechanism is the bug.
+
+The one genuinely biological asset -- the pairwise edge set of W (who co-varies with
+whom) -- is compressed to a per-gene scalar BEFORE it reaches the model, discarding
+all relational content. Note interaction.py even builds the GCN operator
+S = D^-1/2 (W+I) D^-1/2 (want_operator) but the routing path never uses it. The
+graph's value is in PROPAGATION; we are throwing that away and keeping a scalar.
+
+
+================================================================================
+ 4.  THE REDESIGN: PUT BIOLOGY WHERE IT CARRIES GRADIENT
+================================================================================
+
+Design rule: biology must enter as a (a) sample-conditional, (b) relational,
+(c) persistent, (d) selection-upstream, (e) task-aligned signal. Each fix below
+kills one failure mode. They compose; ship them in the order given.
+
+------------------------------------------------------------------------
+ FIX A  (kills FM-2, FM-7-relational, and half of FM-1):
+        GRAPH PROPAGATION on token construction, not a scalar on the logit.
+------------------------------------------------------------------------
+Use the operator we already build. Before marker pooling, smooth the value
+embeddings along the co-expression graph:
+
+        H~  =  (1 - lambda) H  +  lambda * S H,     S = D^-1/2 (W+I) D^-1/2   (1)
+
+with lambda in [0,1] learnable (one scalar, or per-head). Now:
+  - it acts on H(x)  -> SAMPLE-CONDITIONAL (fixes FM-1 at the source);
+  - it uses the actual EDGE SET, not a scalar -> relational content preserved;
+  - it happens BEFORE selection -> a gene's token is informed by its module even
+    if the gene itself is noisy (fixes FM-2 / the range restriction);
+  - random-graph control now propagates NOISE (mixes unrelated genes) while the
+    real graph propagates CO-REGULATION (denoises). This is the falsifiable gap:
+    a real co-expression graph should DENOISE low-count single-cell genes; a
+    shuffled graph should not. coexpr and random can now diverge in principle.
+
+One or two propagation hops (k-hop S^k H) is enough; more over-smooths.
+
+------------------------------------------------------------------------
+ FIX B  (kills the rest of FM-1): make the prior CONDITIONAL and LEARNED,
+        not a fixed additive bias.
+------------------------------------------------------------------------
+If a per-gene prior is kept at the router, gate it by the token state (FiLM):
+
+        r~_m  =  r_m  +  g_phi(h_m) * pi_m ,     g_phi = small MLP -> scalar     (2)
+
+so the model can up/down-weight the biological nudge per sample and per gene, and
+can learn to IGNORE it where data disagrees. A constant bias cannot; a gated one
+can, which is exactly what lets coexpr differ from a random pi (the gate learns to
+trust real structure and distrust shuffled structure).
+
+------------------------------------------------------------------------
+ FIX C  (kills FM-3): fix the STATISTIC. Marginal |corr| centrality is technical;
+        replace it with a direct-interaction, de-confounded, task-aligned score.
+------------------------------------------------------------------------
+  C1. Regress out technical axes first: remove the top library-size / housekeeping
+      principal component(s) from X before building W (or use log1p + size-factor
+      normalised counts). Kills the hairball that FM-3 rides on.
+  C2. Use DIRECT interactions, not marginal correlation: graphical-lasso precision
+      (partial correlation) or GRNBoost-style conditional edges. Marginal |corr|
+      links everything to everything; the precision matrix keeps only genes that
+      co-vary AFTER controlling for the rest -- a far sparser, more biological W.
+  C3. Replace global eigenvector centrality with a SEEDED / task-aligned score:
+      personalized PageRank from a small seed set of train-fold-selected markers,
+      or module-eigengene loadings. Now the "importance" points at label-relevant
+      modules instead of housekeeping hubs. (Train-fold-only => still leakage-safe
+      the same way baselines use train labels; do it inside the CV split.)
+
+------------------------------------------------------------------------
+ FIX D  (kills FM-4): do NOT anneal biology to zero. Make it a persistent, gated
+        pathway whose weight is learned and free to survive.
+------------------------------------------------------------------------
+Replace beta_t = beta_0(1-progress) with a learnable scalar beta (softplus,
+initialised small). If biology is a real inductive bias, beta stays > 0 and the
+CONVERGED model differs from `none` -- which is the only way test accuracy can move.
+The ablation then honestly asks "does the trained model want the graph?" instead of
+forcing the answer to be no. (Keep an anneal only on the graph-propagation lambda if
+over-smoothing appears; do not anneal the graph out of existence.)
+
+------------------------------------------------------------------------
+ FIX E  (kills FM-5): couple the graph to depth through SMOOTHNESS, not hub-ness.
+------------------------------------------------------------------------
+The biological hypothesis worth testing is "CO-REGULATED genes share computational
+fate," not "hubs go deep." Encode it as a graph-Laplacian penalty on the depth
+allocation d (survival depths from the router):
+
+        L_bio  =  gamma * d^T L d ,     L = D - W  (graph Laplacian)             (3)
+
+This says: genes adjacent in the co-expression graph should get SIMILAR recursion
+depth. It is satisfiable ONLY if the graph's clusters actually co-vary in the depths
+the router assigns -- which a random graph's clusters cannot, because they are not
+real modules. So (3) is a SECOND falsifiable coexpr-vs-random separator, and it
+targets what depth is for (allocating correlated compute to co-regulated programs)
+rather than static centrality.
+
+
+================================================================================
+ 5.  WHY THE REDESIGN CAN BEAT `random` WHERE THE OLD ONE PROVABLY CANNOT
+================================================================================
+
+The degree-matched random control isolates "any structure that is not real
+co-expression." The old mechanism ties it because (FM-1,2,4) reduce (*) to a
+generic early regulariser, and any graph supplies that. The redesign inserts THREE
+places where the actual edge set -- not just its degree sequence -- changes the
+forward pass:
+
+  (i)  propagation S H (Fix A): real edges denoise (average co-regulated genes),
+       shuffled edges inject cross-talk between unrelated programs. Opposite sign
+       of effect on low-count genes -> measurable divergence.
+  (ii) gated conditional prior (Fix B): the gate can learn to trust real pi and
+       gate out a random pi (which has no consistent relation to the residual).
+  (iii)Laplacian depth-smoothness (Fix E): minimisable only on real modules.
+
+Each is a mechanism by which E[coexpr] != E[random]. That is the whole game: the
+current design has NO such mechanism, so the tie is a theorem, not bad luck.
+
+
+================================================================================
+ 6.  VALIDATION PLAN  (what to run, where the headroom is, what proves success)
+================================================================================
+
+Where to look (datasets with headroom; skip the saturated ones):
+  - HIGH headroom: segerstolpe (0.06!), spleen (0.50), tcell (0.50),
+    pancreas (0.55), oesophagus (0.56)  <- denoising (Fix A) should bite hardest
+    here (rare cell types, low counts).
+  - NO headroom: prototype (0.94) -- report but do not tune on it.
+  - Bulk hard tasks: pathologic_stage / T / N -- the low-signal regime where a
+    real inductive bias is most defensible.
+
+Ablation ladder (each row adds one fix; run coexpr AND random for every row):
+  R0  none                                   (baseline, done)
+  R1  old scalar prior                       (current, done -> ties random)
+  R2  + Fix A  graph propagation S H
+  R3  + Fix C  de-confounded precision graph + seeded PPR
+  R4  + Fix B  gated conditional prior (drop the annealed scalar)
+  R5  + Fix E  Laplacian depth-smoothness
+  R6  + Fix D  persistent learned beta (final model)
+
+Success criterion (pre-registered): on the headroom sets and stage/T/N,
+        mean(coexpr) - mean(random) >= +0.02 macro-F1, 95% CI excludes 0,
+        AND coexpr >= none.
+Kill criterion: if by R3 coexpr still ties random, the co-expression graph carries
+no usable signal for these labels -- STOP and report the negative honestly (the
+paper's framing already supports this outcome).
+
+Diagnostics to log (so we can attribute, not just measure):
+  - Var(pi | selected) / Var(pi | all)        -- confirms/*fixes* FM-2.
+  - corr(pi, housekeeping-PC1)                 -- confirms FM-3 before Fix C, ~0 after.
+  - learned lambda, beta at convergence        -- did the model KEEP the graph? (FM-4)
+  - depth-Laplacian energy d^T L d, coexpr vs random -- the Fix-E separator.
+  - per-gene denoising: MSE(S H, H) on held-out, real vs shuffled graph.
+
+Minimal first experiment (cheapest signal): implement Fix A only (1-2 hop S H with
+learnable lambda, NO anneal), rerun coexpr vs random on the 5 headroom single-cell
+sets, 3 seeds. If real-graph propagation beats shuffled-graph propagation there, the
+core thesis is validated and R3-R6 are worth building. If not, we have a clean,
+honest negative with a mechanistic explanation instead of a mysterious null.
+
+
+================================================================================
+ 7.  ONE-PARAGRAPH SUMMARY FOR THE PAPER
+================================================================================
+Our first biology-informed router injected a label-free gene-gene-interaction
+centrality as an annealed additive bias on the depth-router logit. Ablations showed
+it neither beat the plain router nor separated from a degree-matched random-graph
+control (Delta macro-F1 = +0.004 and +0.003 respectively). We trace this to a
+mechanism mismatch: the prior was sample-independent, range-restricted by marker
+selection, annealed to zero, and reduced the graph to a per-gene scalar -- so it
+could act only as a generic early regulariser, which any graph supplies. We redesign
+biology to enter as sample-conditional graph PROPAGATION on token construction, a
+de-confounded direct-interaction graph, a learned persistent gate, and a
+Laplacian depth-smoothness objective -- three points at which the real edge set,
+not merely its degree sequence, changes the forward pass, giving the coexpr-vs-random
+comparison a mechanism by which it can (and, we test, does) separate.
+================================================================================

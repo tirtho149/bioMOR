@@ -76,12 +76,18 @@ class RMTLoss(nn.Module):
         bal = out.get("router_balance_loss", torch.zeros((), device=ident.device))
         router = self.cfg.router_z_coeff * z + self.cfg.router_balance_coeff * bal
 
+        # Fix E: graph-Laplacian depth-smoothness (co-regulated genes share depth).
+        bio_lap = out.get("bio_lap_loss", torch.zeros((), device=ident.device))
+        bio = float(getattr(self.cfg, "bio_depth_laplacian", 0.0)) * bio_lap
+
         total = (task
                  + self.cfg.lambda_marker * marker
                  + self.cfg.gamma_diversity * diversity
                  + self.cfg.beta_compression * compression
-                 + router)
+                 + router
+                 + bio)
         return {
             "total": total, "task": task, "marker": marker,
             "diversity": diversity, "compression": compression, "router": router,
+            "bio": bio,
         }

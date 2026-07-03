@@ -1,0 +1,23 @@
+{
+ "family": "pnet",
+ "cohort": "brca",
+ "task": "response",
+ "mode": "curated",
+ "K": 4,
+ "seed": 1,
+ "test_macro_f1": 16.70548862115127,
+ "test_accuracy": 28.205128205128204,
+ "n_features": 3000,
+ "n_classes": 5,
+ "n_samples": 518,
+ "learned_lambda": 0.30125972628593445,
+ "learned_beta": 0.9643145799636841,
+ "graph_diag": {
+  "n_genes": 3000,
+  "n_genes_in_reactome": 3000,
+  "reactome_coverage_frac": 1.0,
+  "mean_degree": 26.314,
+  "isolated_frac": 0.0,
+  "corr_pi_pc1": 0.04877123609185219
+ }
+}

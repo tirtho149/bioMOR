@@ -100,6 +100,31 @@ class RMTConfig:
     router_prior_anneal: bool = True             # decay beta_t -> 0 over training
                                                  # (warm-start prior; data takes over)
 
+    # ---- BIO-ROUTER REDESIGN (see BIO_ROUTER_REDESIGN.txt) ----------------
+    # Fix A: sample-conditional graph propagation on the input expression, using
+    #        the co-expression GCN operator S = D^-1/2 (W+I) D^-1/2.
+    bio_graph_prop: bool = False                 # smooth x along the gene graph pre-selection
+    bio_prop_lambda_init: float = 0.3            # initial mix; lambda is LEARNABLE (sigmoid)
+    bio_prop_hops: int = 1                       # # propagation hops (S^k x)
+    # Fix B: gate the per-gene prior by the token state (FiLM) instead of a fixed bias.
+    bio_prior_gate: bool = False
+    # Fix C: de-confound technical axes + direct-interaction graph + seeded score.
+    bio_deconfound_pc: int = 0                   # # top PCs to regress out of X (housekeeping)
+    bio_precision: bool = False                  # partial-correlation graph vs marginal |corr|
+    bio_centrality: str = "eigcent"              # "eigcent" | "ppr" (seeded personalized PageRank)
+    # Fix D: persistent LEARNABLE prior strength beta (softplus), NOT annealed to 0.
+    bio_prior_learnable: bool = False
+    bio_beta_init: float = 0.5                   # init for the learnable beta (pre-softplus)
+    # Fix E: graph-Laplacian depth-smoothness penalty (co-regulated genes share depth).
+    bio_depth_laplacian: float = 0.0             # gamma; 0 disables the penalty
+    # DATA-DRIVEN alternative to the fixed prior: a LEARNED low-rank gene-gene graph
+    # (synthetic correlation) trained end-to-end by the task loss. Affinity
+    # A = normalize(E) normalize(E)^T, propagated in low rank as
+    # x <- (1-lam) x + lam (x E~)(E~^T). Fixes the fixed prior's three failure modes:
+    # label-free, annealed-away, and not task-shaped.
+    bio_learned_graph: bool = False              # enable the learned gene graph
+    bio_learned_rank: int = 16                   # r: gene-embedding rank (graph is rank-r)
+
     # ---- pathway-hierarchy attention bias (Reactome pathway->pathway graph) ----
     pathway_attn_bias: bool = False              # bias self-attention so a pathway
                                                  # token attends to its Reactome

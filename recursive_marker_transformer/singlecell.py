@@ -98,9 +98,15 @@ class _DictLoader:
         return len(self.dl)
 
 
-def _fit_eval(Xs_full, y, tr, va, te, cfg, F, K, device):
+def _fit_eval(Xs_full, y, tr, va, te, cfg, F, K, device, inter="auto"):
     """Train on `tr` (z-scored on its own stats), early-stop on `va`, eval on `te`.
-    Returns (y_true, y_pred, model). Shared by the single-split and CV paths."""
+    Returns (y_true, y_pred, model). Shared by the single-split and CV paths.
+
+    ``inter`` controls the biological graph install:
+      * ``"auto"`` (default) -- build it from ``cfg`` on the train split (legacy path);
+      * ``None``            -- install nothing (the ``none`` control);
+      * an ``Interaction``  -- install this PRE-BUILT graph directly (curated-net
+        falsification, where the graph is a curated Reactome network, not co-expr)."""
     mu = Xs_full[tr].mean(0, keepdims=True)
     sd = Xs_full[tr].std(0, keepdims=True) + 1e-6
     Xs = (Xs_full - mu) / sd
@@ -111,19 +117,54 @@ def _fit_eval(Xs_full, y, tr, va, te, cfg, F, K, device):
 
     model = RecursiveMarkerTransformer(cfg, F, {HEAD: K}, _DTYPES).to(device)
     model.set_gene_variance(torch.from_numpy(Xs[tr].var(0).astype(np.float32)))
+    if inter != "auto":
+        # Externally supplied graph (curated-net falsification): install directly,
+        # bypassing the co-expression build. None => the `none` control (no graph).
+        if inter is not None:
+            model.set_gene_interaction(inter.centrality)
+            model.set_bio_graph(inter.operator, inter.laplacian)
+            print("  [bio-router CURATED] external graph installed "
+                  f"(prop={getattr(cfg,'bio_graph_prop',False)} "
+                  f"gate={getattr(cfg,'bio_prior_gate',False)} "
+                  f"learn_beta={getattr(cfg,'bio_prior_learnable',False)} "
+                  f"lap={getattr(cfg,'bio_depth_laplacian',0.0)})", flush=True)
     # Biology-informed router: build the genomap gene-gene-interaction centrality
     # prior on the train split (expression only, label-free -> leakage-safe) and
     # install it on the depth router. coexpr = genomap correlation graph; random =
     # degree-matched control; none = original SMART router.
-    if getattr(cfg, "gene_interaction", None) not in (None, "none"):
-        from .interaction import build_interaction
-        inter = build_interaction(Xs[tr].astype(np.float32, copy=False), F,
-                                  mode=cfg.gene_interaction, knn=cfg.interaction_knn,
-                                  seed=cfg.seed)
-        model.set_gene_interaction(inter.centrality)
-        print(f"  [bio-router] gene_interaction={cfg.gene_interaction} "
-              f"beta0={cfg.router_prior_beta} anneal={cfg.router_prior_anneal} "
-              f"knn={cfg.interaction_knn} prior installed", flush=True)
+    elif getattr(cfg, "gene_interaction", None) not in (None, "none"):
+        # Redesign (BIO_ROUTER_REDESIGN.txt): if any Fix flag is on, build the v2
+        # graph (de-confounded/precision + seeded PPR) and also install the
+        # propagation operator S (Fix A) and Laplacian L (Fix E); else the original.
+        redesign = any(getattr(cfg, k, False) for k in
+                       ("bio_graph_prop", "bio_prior_gate", "bio_prior_learnable")) \
+            or getattr(cfg, "bio_deconfound_pc", 0) or getattr(cfg, "bio_precision", False) \
+            or getattr(cfg, "bio_depth_laplacian", 0.0) or getattr(cfg, "bio_centrality", "eigcent") != "eigcent"
+        if redesign:
+            from .interaction import build_interaction_v2
+            inter = build_interaction_v2(
+                Xs[tr].astype(np.float32, copy=False), F, mode=cfg.gene_interaction,
+                knn=cfg.interaction_knn, seed=cfg.seed,
+                deconfound_pc=int(getattr(cfg, "bio_deconfound_pc", 0)),
+                precision=bool(getattr(cfg, "bio_precision", False)),
+                centrality=getattr(cfg, "bio_centrality", "eigcent"))
+            model.set_gene_interaction(inter.centrality)
+            model.set_bio_graph(inter.operator, inter.laplacian)
+            print(f"  [bio-router REDESIGN] mode={cfg.gene_interaction} "
+                  f"prop={getattr(cfg,'bio_graph_prop',False)} gate={getattr(cfg,'bio_prior_gate',False)} "
+                  f"learn_beta={getattr(cfg,'bio_prior_learnable',False)} "
+                  f"deconf={getattr(cfg,'bio_deconfound_pc',0)} prec={getattr(cfg,'bio_precision',False)} "
+                  f"cent={getattr(cfg,'bio_centrality','eigcent')} lap={getattr(cfg,'bio_depth_laplacian',0.0)} "
+                  f"installed", flush=True)
+        else:
+            from .interaction import build_interaction
+            inter = build_interaction(Xs[tr].astype(np.float32, copy=False), F,
+                                      mode=cfg.gene_interaction, knn=cfg.interaction_knn,
+                                      seed=cfg.seed)
+            model.set_gene_interaction(inter.centrality)
+            print(f"  [bio-router] gene_interaction={cfg.gene_interaction} "
+                  f"beta0={cfg.router_prior_beta} anneal={cfg.router_prior_anneal} "
+                  f"knn={cfg.interaction_knn} prior installed", flush=True)
     cw = _class_weights(torch.from_numpy(y[tr]), K).to(device)
     criterion = RMTLoss(cfg, _DTYPES, {HEAD: cw})
     opt = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)

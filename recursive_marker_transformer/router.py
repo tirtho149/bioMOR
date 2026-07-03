@@ -80,7 +80,8 @@ class ExpertChoiceRouter(nn.Module):
     """Per-step expert-choice routing with a decreasing-capacity funnel."""
 
     def __init__(self, d_model: int, depth: int, capacity: Tuple[float, ...],
-                 alpha: float = 0.1, temp: float = 1.0, router_type: str = "linear"):
+                 alpha: float = 0.1, temp: float = 1.0, router_type: str = "linear",
+                 prior_gate: bool = False):
         super().__init__()
         self.depth = depth
         self.alpha = alpha
@@ -93,6 +94,14 @@ class ExpertChoiceRouter(nn.Module):
         # One scalar router per recursion step (the "expert" at that depth).
         self.routers = nn.ModuleList(
             [_make_router(router_type, d_model, 1) for _ in range(depth)])
+        # Fix B: FiLM gate g_phi(h_m) that makes the biological prior SAMPLE- and
+        # STATE-conditional instead of a fixed additive bias. sigmoid-bounded so the
+        # model can learn to fully trust (1) or ignore (0) the prior per token.
+        self.prior_gate = None
+        if prior_gate:
+            self.prior_gate = nn.Sequential(
+                nn.Linear(d_model, d_model // 2), nn.GELU(),
+                nn.Linear(d_model // 2, 1))
 
     def forward(self, tokens: torch.Tensor, block_fn: BlockFn,
                 refine_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
@@ -103,7 +112,10 @@ class ExpertChoiceRouter(nn.Module):
         # cand_mask[b, j] = token j is still in the funnel at this step.
         cand_mask = torch.ones(B, M, dtype=torch.bool, device=device)
         depth_count = torch.zeros(B, M, device=device)     # survival depth (importance)
+        soft_depth = tokens.new_zeros(B, M)                # differentiable depth proxy (Fix E)
         z_loss = tokens.new_zeros(())
+        prior_on = prior is not None and (
+            prior_weight if isinstance(prior_weight, float) else True)
 
         for t in range(self.depth):
             k = max(1, int(round(self.capacity[t] * M)))
@@ -111,12 +123,21 @@ class ExpertChoiceRouter(nn.Module):
             k = max(1, k)
 
             logits = self.routers[t](tokens / self.temp).squeeze(-1)   # (B, M)
-            # Biology-informed routing: add the annealed gene-gene-interaction
-            # centrality prior (genomap correlation graph) to the data-driven
-            # logit, nudging co-expression hubs to recurse deeper early in
-            # training. prior is (M,) over the selected markers, broadcast over B.
-            if prior is not None and prior_weight != 0.0:
-                logits = logits + prior_weight * prior.unsqueeze(0)
+            # Biology-informed routing. OLD: fixed annealed additive bias
+            # (sample-independent, provably ties the random control). REDESIGN:
+            # the prior enters through a FiLM gate g_phi(h_m) (Fix B, sample- and
+            # state-conditional) scaled by a persistent LEARNABLE beta (Fix D, the
+            # tensor prior_weight), so the router can trust real structure and gate
+            # out shuffled structure. prior is (M,) over the selected markers.
+            if prior_on:
+                bias = prior.unsqueeze(0)                              # (1, M)
+                if self.prior_gate is not None:
+                    g = torch.sigmoid(self.prior_gate(tokens).squeeze(-1))  # (B, M)
+                    bias = g * bias
+                logits = logits + prior_weight * bias
+            # Expected survival at this step (differentiable in the router weights);
+            # summed over steps it is a soft per-token recursion depth for Fix E.
+            soft_depth = soft_depth + torch.sigmoid(logits) * cand_mask.float()
             z_loss = z_loss + (logits ** 2).mean()
             # Restrict selection to current candidates.
             masked = logits.masked_fill(~cand_mask, float("-inf"))
@@ -142,6 +163,7 @@ class ExpertChoiceRouter(nn.Module):
 
         info: RouteInfo = {
             "depth_per_token": depth_count,         # (B, M) in [0, depth]
+            "soft_depth_per_token": soft_depth,     # (B, M) differentiable proxy (Fix E)
             "z_loss": z_loss / self.depth,
             "balance_loss": tokens.new_zeros(()),   # balanced by construction
             "capacity": tuple(self.capacity),

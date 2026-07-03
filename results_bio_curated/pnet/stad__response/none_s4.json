@@ -1,0 +1,21 @@
+{
+ "family": "pnet",
+ "cohort": "stad",
+ "task": "response",
+ "mode": "none",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 50.14153371075656,
+ "test_accuracy": 50.4,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 414,
+ "graph_diag": {
+  "n_genes": 3000,
+  "n_genes_in_reactome": 3000,
+  "reactome_coverage_frac": 1.0,
+  "mean_degree": 25.794,
+  "isolated_frac": 0.0003333333333333333,
+  "corr_pi_pc1": 0.07506553083658218
+ }
+}
