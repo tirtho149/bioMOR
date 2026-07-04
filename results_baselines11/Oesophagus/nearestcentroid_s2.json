@@ -1,0 +1,10 @@
+{
+ "dataset": "Oesophagus",
+ "method": "NearestCentroid",
+ "seed": 2,
+ "test_macro_f1": 65.66589836217004,
+ "test_accuracy": 71.38904680689787,
+ "n_features": 1089,
+ "n_classes": 18,
+ "n_samples": 87947
+}

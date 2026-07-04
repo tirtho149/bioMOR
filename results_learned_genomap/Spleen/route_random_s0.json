@@ -1,0 +1,11 @@
+{
+ "dataset": "Spleen",
+ "mode": "route_random",
+ "K": 4,
+ "seed": 0,
+ "test_macro_f1": 49.43493345999413,
+ "test_accuracy": 57.4560005665923,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_samples": 94129
+}

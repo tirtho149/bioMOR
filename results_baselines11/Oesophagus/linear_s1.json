@@ -1,0 +1,10 @@
+{
+ "dataset": "Oesophagus",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 1,
+ "test_macro_f1": 70.19245210174239,
+ "test_accuracy": 88.68296380519234,
+ "n_features": 1089,
+ "n_classes": 18,
+ "n_samples": 87947
+}

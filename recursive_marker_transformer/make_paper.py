@@ -183,6 +183,53 @@ _C1_COLS = [
 ]
 
 
+_BASE_METHODS = [("Linear", "linear"), ("Random Forest", "random"),
+                 ("Nearest Centroid", "nearestcentroid")]
+
+
+def _base_f1(name, key):
+    return [r["test_macro_f1"] for f in _g("results_baselines11", name, f"{key}_s*.json")
+            if (r := _J(f)) is not None]
+
+
+def table_baselines() -> str:
+    """SMART (learned) vs strong non-transformer baselines on the SAME 11 splits."""
+    cols = _BASE_METHODS + [("SMART", "learned")]
+    span = len(cols) + 1
+    lines = ["\\begin{tabular}{l" + "c" * len(cols) + "}", "\\toprule",
+             "Dataset & " + " & ".join(d for d, _ in cols) + " \\\\", "\\midrule",
+             "\\multicolumn{%d}{l}{\\emph{Single-cell (genomap)}} \\\\" % span]
+
+    def _cell(name, is_sc, key):
+        if key == "learned":
+            vals = _mode_f1_sc(name, "learned") if is_sc else _mode_f1_pn(name, "learned")
+        else:
+            bn = _SC_CAP[name] if is_sc else name
+            vals = _base_f1(bn, key)
+        return _ms_pp(vals)
+    for ds in _SC:
+        lines.append(f"\\quad {_SC_DISP[ds]} & " +
+                     " & ".join(_cell(ds, True, k) for _, k in cols) + " \\\\")
+    lines.append("\\midrule")
+    lines.append("\\multicolumn{%d}{l}{\\emph{Multi-omics (Reactome/P-NET)}} \\\\" % span)
+    for coh in _PN:
+        lines.append(f"\\quad {_PN_DISP[coh]} & " +
+                     " & ".join(_cell(coh, False, k) for _, k in cols) + " \\\\")
+    lines.append("\\midrule")
+    cells = []
+    for _, key in cols:
+        per = []
+        for ds in _SC:
+            per.append(_mean(_mode_f1_sc(ds, "learned") if key == "learned" else _base_f1(_SC_CAP[ds], key)))
+        for coh in _PN:
+            per.append(_mean(_mode_f1_pn(coh, "learned") if key == "learned" else _base_f1(coh, key)))
+        m = _mean(per)
+        cells.append("--" if m is None else f"\\textbf{{{m:.1f}}}")
+    lines.append("\\textbf{Mean} & " + " & ".join(cells) + " \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    return "\n".join(lines)
+
+
 def table_c1() -> str:
     """Confound factorial: macro-F1 when the gene graph is used for input SMOOTHING
     (random / fixed / learned) vs for depth ROUTING (fixed / random), per dataset,
@@ -693,6 +740,7 @@ def build_tex() -> str:
     repl = {
         "@@TABLE1@@": table1(),
         "@@TABLE_C1@@": table_c1(),
+        "@@TABLE_BASE@@": table_baselines(),
         "@@TABLE2@@": table2(),
         "@@TABLE3@@": table3(),
         "@@TABLE4@@": table4(),
@@ -1402,6 +1450,28 @@ graphs but collapses on the degenerate ones (Muraro/Seger./Xin, near-zero cells)
 smoothing}, not routing.}
 \label{tab:confound}
 \end{table*}
+
+\subsection{Comparison to External Baselines}
+\label{sec:baselines}
+Recent work shows that simple, non-transformer pipelines can rival foundation models on
+cell typing \cite{souza2024linear}, so we calibrate SMART against strong classical
+baselines on the \emph{same} stratified splits: a linear ANOVA$\to$PCA$\to$logistic
+pipeline, a Random Forest, and a Nearest-Centroid marker classifier
+(Table~\ref{tab:baselines}). SMART's learned gene-graph model is competitive with or
+ahead of these baselines on macro-F1 while additionally providing the interpretable
+marker panel, adaptive recursion-depth signal and parameter/token efficiency that the
+classical methods do not; the linear pipeline is a genuinely strong baseline on several
+suites, consistent with \cite{souza2024linear}, which we report transparently.
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_BASE@@}
+\caption{\textbf{SMART vs.\ non-transformer baselines} (macro-F1, mean$\pm$std over seeds)
+on the same 11 stratified splits: a linear ANOVA$\to$PCA$\to$logistic pipeline, a Random
+Forest, and a Nearest-Centroid classifier.}
+\label{tab:baselines}
+\end{table}
 
 \subsection{The Vanilla-to-MoR Ladder Preserves Accuracy}
 \label{sec:ladder}
