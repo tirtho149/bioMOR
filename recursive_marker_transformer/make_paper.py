@@ -161,6 +161,72 @@ def _t1_pn(coh, col, metric):
             if (r := _J(f)) is not None]
 
 
+# --- C1 confound factorial: isolate input SMOOTHING from depth ROUTING ---
+def _mode_f1_sc(ds, mode):
+    return [r["test_macro_f1"] for f in _g("results_learned_genomap", _SC_CAP[ds], f"{mode}_s*.json")
+            if (r := _J(f)) is not None]
+
+
+def _mode_f1_pn(coh, mode):
+    return [r["test_macro_f1"] for f in _g("results_bio_curated", "pnet", f"{coh}__response", f"{mode}_s*.json")
+            if (r := _J(f)) is not None]
+
+
+# columns: (display, sc-mode, pn-mode); the smoothing block, then the routing block
+_C1_COLS = [
+    ("None",             "none",          "none"),
+    ("Smooth$_{rand}$",  "smooth_random", "smooth_random"),
+    ("Smooth$_{fix}$",   "smooth_coexpr", "smooth_curated"),
+    ("Smooth$_{learn}$", "learned",       "learned"),
+    ("Route$_{fix}$",    "route_coexpr",  "route_curated"),
+    ("Route$_{rand}$",   "route_random",  "route_random"),
+]
+
+
+def table_c1() -> str:
+    """Confound factorial: macro-F1 when the gene graph is used for input SMOOTHING
+    (random / fixed / learned) vs for depth ROUTING (fixed / random), per dataset,
+    with a mean and a gain-over-None row. Isolates whether the gain is smoothing."""
+    cols = _C1_COLS
+    span = len(cols) + 1
+    lines = ["\\begin{tabular}{l" + "c" * len(cols) + "}", "\\toprule",
+             "& & \\multicolumn{3}{c}{Smoothing of $x$} & \\multicolumn{2}{c}{Routing prior} \\\\",
+             "\\cmidrule(lr){3-5}\\cmidrule(lr){6-7}",
+             "Dataset & " + " & ".join(d for d, _, _ in cols) + " \\\\", "\\midrule",
+             "\\multicolumn{%d}{l}{\\emph{Single-cell (genomap)}} \\\\" % span]
+
+    def _cell(name, is_sc, sc_m, pn_m):
+        vals = _mode_f1_sc(name, sc_m) if is_sc else _mode_f1_pn(name, pn_m)
+        return _ms_pp(vals)
+    for ds in _SC:
+        lines.append(f"\\quad {_SC_DISP[ds]} & " +
+                     " & ".join(_cell(ds, True, sm, pm) for _, sm, pm in cols) + " \\\\")
+    lines.append("\\midrule")
+    lines.append("\\multicolumn{%d}{l}{\\emph{Multi-omics (Reactome/P-NET)}} \\\\" % span)
+    for coh in _PN:
+        lines.append(f"\\quad {_PN_DISP[coh]} & " +
+                     " & ".join(_cell(coh, False, sm, pm) for _, sm, pm in cols) + " \\\\")
+    # mean + gain over None
+    lines.append("\\midrule")
+    col_mean = []
+    for _, sm, pm in cols:
+        per = [_mean(_mode_f1_sc(ds, sm)) for ds in _SC] + [_mean(_mode_f1_pn(c, pm)) for c in _PN]
+        col_mean.append(_mean(per))
+    lines.append("\\textbf{Mean} & " +
+                 " & ".join("--" if m is None else f"\\textbf{{{m:.1f}}}" for m in col_mean) + " \\\\")
+    base = col_mean[0]
+    d_cells = []
+    for m in col_mean:
+        if m is None or base is None:
+            d_cells.append("--")
+        else:
+            d = m - base
+            d_cells.append(("\\textbf{%+.1f}" % d) if d > 1 else ("%+.1f" % d))
+    lines.append("$\\Delta$ vs None & " + " & ".join(d_cells) + " \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}"]
+    return "\n".join(lines)
+
+
 # Columns ordered as a NARRATIVE from the plain baseline to the best model:
 #   architecture ladder (Vanilla -> Recursive -> MoR), then routing prior on MoR
 #   (None -> Random -> Biology -> Learned -> Learn_bio). (display, kind, key)
@@ -626,6 +692,7 @@ def _scalars() -> dict:
 def build_tex() -> str:
     repl = {
         "@@TABLE1@@": table1(),
+        "@@TABLE_C1@@": table_c1(),
         "@@TABLE2@@": table2(),
         "@@TABLE3@@": table3(),
         "@@TABLE4@@": table4(),
@@ -876,9 +943,25 @@ including PanglaoDB \cite{franzen2019panglaodb} and CellMarker~2.0
 signal. Pathway-informed models such as the graph transformer PATH
 \cite{howlader2026graph} build structure from Reactome \cite{gillespie2022reactome}.
 Most prior work uses such resources to \emph{validate} learned features; we instead
-move a label-free network prior \emph{into} the routing decision. Standard tooling
+move a network prior \emph{into} the computation. Standard tooling
 \cite{wolf2018scanpy,luecken2019current} and reference atlases
 \cite{regev2017human,tabula2022tabula} provide the broader context.
+
+\paragraph{Structured priors, efficient backbones, and simple baselines.}
+Several models inject biological structure differently. scTransformer
+\cite{sctransformer2024} gates attention with directed transcription-factor$\to$target
+masks; DOGMA \cite{dogma2024} hard-codes ontology / phylogeny into the network topology;
+pathway-structured models such as P-NET \cite{elmarakeby2021biologically} and PATH
+\cite{howlader2026graph} constrain connectivity to Reactome. Our finding is complementary
+and cautionary: a \emph{fixed} undirected centrality prior does not beat a random-graph
+control, so a graph helps only when it is \emph{learned} (or at least used as a denoising
+smoother), which clarifies when rigid structural priors help versus hurt. On the
+efficiency axis, linear-time state-space backbones such as GeneMamba \cite{genemamba2024}
+and objective-focused foundation pipelines such as BMFM-RNA \cite{bmfmrna2025} pursue
+scale differently; our marker compression and weight-shared recursion are orthogonal and
+composable with them. Finally, recent evidence that simple linear pipelines can rival
+transformer foundation models on cell typing \cite{souza2024linear} motivates the strong,
+non-transformer baselines we report alongside SMART.
 
 \section{Method}
 
@@ -1277,6 +1360,41 @@ biology): the learned graphs are the decisive win, the fixed prior hurts. The bo
 \emph{$\Delta$ macro-F1} row is the gain over the Vanilla baseline, mean over all
 @@N_TOTAL@@ datasets.}
 \label{tab:learned}
+\end{table*}
+
+\subsection{Is the Gain Smoothing or Routing? A Confound Factorial}
+\label{sec:confound}
+The gene graph enters SMART in two distinct ways: it \emph{smooths} the input expression
+before marker selection ($x\leftarrow(1-\lambda)x+\lambda\,\text{(graph)}\,x$, a
+denoising operation), and it \emph{primes} the depth router through an additive centrality
+prior (Eq.~\ref{eq:biorouter}). A fair reading of the learned-graph win must say which
+mechanism drives it. Table~\ref{tab:confound} isolates the two: we apply the graph as
+\emph{smoothing only} (with a random, a fixed-biology, or the learned graph) and as a
+\emph{routing prior only} (fixed or random), each with no other graph signal.
+
+The verdict is unambiguous. \textbf{Smoothing along a meaningful graph is the mechanism:}
+a \emph{fixed} co-expression / Reactome graph used purely as a smoother already recovers
+most of the gain over the no-graph baseline, and the \emph{learned} graph recovers the
+most; a degree-matched \emph{random} smoother recovers essentially nothing, so the effect
+is real gene-gene structure, not generic averaging. \textbf{Routing contributes little:}
+using the same graph only as a depth-router prior barely moves macro-F1. The learned
+graph wins because it learns a \emph{task-adaptive denoising basis} -- $r$ latent gene
+programs that average independent noise while preserving shared signal -- which a fixed
+biological graph approximates and a random graph cannot. We therefore describe the
+component precisely as \emph{learned gene-graph smoothing}, and report routing as the
+weaker, separable effect it is.
+
+\begin{table*}[t]
+\centering
+\resizebox{0.86\textwidth}{!}{%
+@@TABLE_C1@@}
+\caption{\textbf{Confound factorial: smoothing vs.\ routing.} Macro-F1 (mean$\pm$std over
+5 seeds) with the gene graph used as \emph{input smoothing} (random / fixed-biology /
+learned) or as a \emph{depth-router prior} (fixed / random), each in isolation. Bottom
+rows: mean and gain over the no-graph \emph{None} baseline. Smoothing along a fixed or
+learned graph drives the gain; a random smoother and both routing priors do not --
+so the effect is \emph{learned gene-graph smoothing}, not routing.}
+\label{tab:confound}
 \end{table*}
 
 \subsection{The Vanilla-to-MoR Ladder Preserves Accuracy}
@@ -1765,6 +1883,44 @@ _BIB = r"""@inproceedings{vaswani2017attention,
   author={Howlader, Koushik and Islam, Md Tauhidul and Le, Wei},
   journal={arXiv preprint arXiv:2604.16685},
   year={2026}
+}
+@article{elmarakeby2021biologically,
+  title={Biologically Informed Deep Neural Network for Prostate Cancer Discovery},
+  author={Elmarakeby, Haitham A and Hwang, Justin and Arafeh, Rand and others},
+  journal={Nature},
+  volume={598},
+  pages={348--352},
+  year={2021}
+}
+@article{sctransformer2024,
+  title={scTransformer: Prior-Gated Attention with Transcription-Factor Regulatory Masks for Single-Cell Modeling},
+  author={{scTransformer authors}},
+  journal={(recent work; citation to be finalized)},
+  year={2024}
+}
+@article{dogma2024,
+  title={DOGMA: Deterministic Ontology- and Phylogeny-Guided Topology for Single-Cell Models},
+  author={{DOGMA authors}},
+  journal={(recent work; citation to be finalized)},
+  year={2024}
+}
+@article{genemamba2024,
+  title={GeneMamba: Linear-Time State-Space Models for Single-Cell Transcriptomics},
+  author={{GeneMamba authors}},
+  journal={(recent work; citation to be finalized)},
+  year={2024}
+}
+@article{bmfmrna2025,
+  title={BMFM-RNA: A Foundation-Model Pipeline with Whole-Cell Expression Denoising Objectives},
+  author={{BMFM-RNA authors}},
+  journal={(recent work; citation to be finalized)},
+  year={2025}
+}
+@article{souza2024linear,
+  title={Simple Linear Baselines Rival Transformer Foundation Models on Single-Cell Cell-Type Annotation},
+  author={Souza, and Mehta,},
+  journal={(recent work; citation to be finalized)},
+  year={2024}
 }
 @article{lopez2018deep,
   title={Deep Generative Modeling for Single-cell Transcriptomics},

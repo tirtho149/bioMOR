@@ -1,0 +1,11 @@
+{
+ "dataset": "Xin",
+ "mode": "smooth_random",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 80.47096060732278,
+ "test_accuracy": 95.08928571428571,
+ "n_features": 2000,
+ "n_classes": 4,
+ "n_samples": 1492
+}

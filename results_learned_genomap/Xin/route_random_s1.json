@@ -1,0 +1,11 @@
+{
+ "dataset": "Xin",
+ "mode": "route_random",
+ "K": 4,
+ "seed": 1,
+ "test_macro_f1": 63.43148684875693,
+ "test_accuracy": 83.48214285714286,
+ "n_features": 2000,
+ "n_classes": 4,
+ "n_samples": 1492
+}

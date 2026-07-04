@@ -1,0 +1,11 @@
+{
+ "dataset": "Segerstolpe",
+ "mode": "smooth_random",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 69.74656484476132,
+ "test_accuracy": 86.3849765258216,
+ "n_features": 2000,
+ "n_classes": 11,
+ "n_samples": 2127
+}

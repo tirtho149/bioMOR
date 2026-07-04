@@ -1,0 +1,11 @@
+{
+ "dataset": "Muraro",
+ "mode": "route_random",
+ "K": 4,
+ "seed": 1,
+ "test_macro_f1": 75.55429064175176,
+ "test_accuracy": 86.34222919937206,
+ "n_features": 2000,
+ "n_classes": 9,
+ "n_samples": 2122
+}

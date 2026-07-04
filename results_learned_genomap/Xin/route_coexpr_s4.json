@@ -1,0 +1,11 @@
+{
+ "dataset": "Xin",
+ "mode": "route_coexpr",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 18.627450980392158,
+ "test_accuracy": 59.375,
+ "n_features": 2000,
+ "n_classes": 4,
+ "n_samples": 1492
+}

@@ -1,0 +1,11 @@
+{
+ "dataset": "Tcell",
+ "mode": "smooth_coexpr",
+ "K": 4,
+ "seed": 2,
+ "test_macro_f1": 61.5579399336274,
+ "test_accuracy": 76.71803415243649,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_samples": 24007
+}

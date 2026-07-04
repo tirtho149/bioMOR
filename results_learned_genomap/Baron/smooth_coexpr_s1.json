@@ -1,0 +1,11 @@
+{
+ "dataset": "Baron",
+ "mode": "smooth_coexpr",
+ "K": 4,
+ "seed": 1,
+ "test_macro_f1": 69.79703280546823,
+ "test_accuracy": 89.34266822248152,
+ "n_features": 2000,
+ "n_classes": 13,
+ "n_samples": 8569
+}

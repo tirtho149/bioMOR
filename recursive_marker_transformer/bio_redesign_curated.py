@@ -170,6 +170,15 @@ def _cfg(mode: str, K: int, seed: int, epochs: int, n_classes: int) -> RMTConfig
         cfg.bio_prop_hops = 1
         cfg.bio_learned_init = "bio" if mode == "learned_fused" else "random"
         cfg.bio_learned_fuse = True
+    # --- C1 confound factorial: isolate input SMOOTHING from depth ROUTING ---
+    elif mode in ("smooth_curated", "smooth_random"):
+        cfg.bio_graph_prop = True; cfg.bio_prop_lambda_init = 0.3; cfg.bio_prop_hops = 1
+        cfg.bio_prior_gate = False; cfg.router_prior_beta = 0.0
+        cfg.bio_depth_laplacian = 0.0; cfg.bio_centrality = "ppr"; cfg.router_prior_anneal = False
+    elif mode in ("route_curated", "route_random"):
+        cfg.bio_graph_prop = False; cfg.bio_prior_gate = True; cfg.bio_prior_learnable = True
+        cfg.bio_beta_init = 0.5; cfg.bio_depth_laplacian = 0.0
+        cfg.bio_centrality = "ppr"; cfg.router_prior_anneal = False
     return cfg
 
 
@@ -184,6 +193,10 @@ def run_cell(X, y, genes, classes, family, cohort, task, mode, K, seed, epochs,
     # (learned builds its own graph inside the model). learned_bio installs no fixed
     # prior but warm-starts the learned graph from the curated Reactome operator.
     inter = graphs[mode] if mode in ("curated", "random") else None
+    if mode in ("smooth_curated", "route_curated"):
+        inter = graphs["curated"]           # install graph; activation via cfg flags
+    elif mode in ("smooth_random", "route_random"):
+        inter = graphs["random"]
     bio_op = None
     if mode in ("learned_bio", "learned_fused"):
         bio_op = graphs["curated"].operator

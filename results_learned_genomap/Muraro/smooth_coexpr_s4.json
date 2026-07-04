@@ -1,0 +1,11 @@
+{
+ "dataset": "Muraro",
+ "mode": "smooth_coexpr",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 2.0862968231389285,
+ "test_accuracy": 10.361067503924646,
+ "n_features": 2000,
+ "n_classes": 9,
+ "n_samples": 2122
+}
