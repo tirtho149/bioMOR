@@ -1,0 +1,11 @@
+{
+ "dataset": "Lung",
+ "mode": "route_random",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 71.6454475803798,
+ "test_accuracy": 77.76803460773998,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020
+}

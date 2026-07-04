@@ -1,0 +1,11 @@
+{
+ "dataset": "Oesophagus",
+ "mode": "route_coexpr",
+ "K": 4,
+ "seed": 3,
+ "test_macro_f1": 57.77195948045281,
+ "test_accuracy": 82.64923251847641,
+ "n_features": 1089,
+ "n_classes": 18,
+ "n_samples": 87947
+}

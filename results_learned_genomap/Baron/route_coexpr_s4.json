@@ -1,0 +1,11 @@
+{
+ "dataset": "Baron",
+ "mode": "route_coexpr",
+ "K": 4,
+ "seed": 4,
+ "test_macro_f1": 66.24760839405897,
+ "test_accuracy": 91.32633216647218,
+ "n_features": 2000,
+ "n_classes": 13,
+ "n_samples": 8569
+}

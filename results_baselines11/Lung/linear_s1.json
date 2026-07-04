@@ -1,0 +1,10 @@
+{
+ "dataset": "Lung",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 1,
+ "test_macro_f1": 74.53988729008307,
+ "test_accuracy": 85.9932187536537,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020
+}

@@ -1,0 +1,11 @@
+{
+ "dataset": "Tcell",
+ "mode": "route_coexpr",
+ "K": 4,
+ "seed": 1,
+ "test_macro_f1": 45.73537612434642,
+ "test_accuracy": 62.3212550326253,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_samples": 24007
+}

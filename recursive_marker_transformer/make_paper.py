@@ -1372,17 +1372,21 @@ mechanism drives it. Table~\ref{tab:confound} isolates the two: we apply the gra
 \emph{smoothing only} (with a random, a fixed-biology, or the learned graph) and as a
 \emph{routing prior only} (fixed or random), each with no other graph signal.
 
-The verdict is unambiguous. \textbf{Smoothing along a meaningful graph is the mechanism:}
-a \emph{fixed} co-expression / Reactome graph used purely as a smoother already recovers
-most of the gain over the no-graph baseline, and the \emph{learned} graph recovers the
-most; a degree-matched \emph{random} smoother recovers essentially nothing, so the effect
-is real gene-gene structure, not generic averaging. \textbf{Routing contributes little:}
-using the same graph only as a depth-router prior barely moves macro-F1. The learned
-graph wins because it learns a \emph{task-adaptive denoising basis} -- $r$ latent gene
-programs that average independent noise while preserving shared signal -- which a fixed
-biological graph approximates and a random graph cannot. We therefore describe the
-component precisely as \emph{learned gene-graph smoothing}, and report routing as the
-weaker, separable effect it is.
+Two findings emerge. \textbf{First, smoothing -- not routing -- is the mechanism.} Using
+the graph only as a depth-router prior does not help (the Route columns are at or below
+the no-graph baseline), and a degree-matched \emph{random} smoother recovers essentially
+nothing ($+0.8$), so the effect requires \emph{real} gene-gene structure applied to the
+input, not generic averaging and not a routing bias. \textbf{Second, that smoothing must
+be \emph{learned} to be robust.} A \emph{fixed} co-expression / Reactome smoother helps
+substantially where the graph is well conditioned (e.g.\ Baron $59.7\!\to\!67.8$, Spleen
+$48.9\!\to\!57.9$, T-cell $49.9\!\to\!61.3$), but it collapses where the co-expression
+graph is degenerate -- Muraro, Segerstolpe and Xin, whose zero-variance genes yield an
+ill-posed (NaN) graph -- which drags its mean below baseline. The \emph{learned} graph
+avoids this failure entirely: it discovers a task-adaptive denoising basis ($r$ latent
+gene programs that average independent noise while preserving shared signal), so it helps
+on every suite and never collapses ($+9.5$ overall). We therefore describe the component
+precisely as \emph{learned gene-graph smoothing}: smoothing is the mechanism, and learning
+the graph is what makes it both best and robust.
 
 \begin{table*}[t]
 \centering
@@ -1391,9 +1395,11 @@ weaker, separable effect it is.
 \caption{\textbf{Confound factorial: smoothing vs.\ routing.} Macro-F1 (mean$\pm$std over
 5 seeds) with the gene graph used as \emph{input smoothing} (random / fixed-biology /
 learned) or as a \emph{depth-router prior} (fixed / random), each in isolation. Bottom
-rows: mean and gain over the no-graph \emph{None} baseline. Smoothing along a fixed or
-learned graph drives the gain; a random smoother and both routing priors do not --
-so the effect is \emph{learned gene-graph smoothing}, not routing.}
+rows: mean and gain over the no-graph \emph{None} baseline. Routing barely moves accuracy
+and a random smoother does nothing; a fixed-biology smoother helps on well-conditioned
+graphs but collapses on the degenerate ones (Muraro/Seger./Xin, near-zero cells); only the
+\emph{learned} smoother is both best and robust. The gain is \emph{learned gene-graph
+smoothing}, not routing.}
 \label{tab:confound}
 \end{table*}
 

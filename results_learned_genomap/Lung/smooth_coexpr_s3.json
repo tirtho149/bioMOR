@@ -1,0 +1,11 @@
+{
+ "dataset": "Lung",
+ "mode": "smooth_coexpr",
+ "K": 4,
+ "seed": 3,
+ "test_macro_f1": 76.30370415292708,
+ "test_accuracy": 83.30410382321992,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020
+}

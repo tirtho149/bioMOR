@@ -1,0 +1,11 @@
+{
+ "dataset": "Lung",
+ "mode": "route_coexpr",
+ "K": 4,
+ "seed": 1,
+ "test_macro_f1": 68.71238997232753,
+ "test_accuracy": 79.04244124868467,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020
+}

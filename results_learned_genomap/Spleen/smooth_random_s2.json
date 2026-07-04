@@ -1,0 +1,11 @@
+{
+ "dataset": "Spleen",
+ "mode": "smooth_random",
+ "K": 4,
+ "seed": 2,
+ "test_macro_f1": 55.019674239128015,
+ "test_accuracy": 62.243705513651335,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_samples": 94129
+}

@@ -1,0 +1,11 @@
+{
+ "dataset": "Tcell",
+ "mode": "smooth_random",
+ "K": 4,
+ "seed": 0,
+ "test_macro_f1": 46.55710061195656,
+ "test_accuracy": 56.47646813827571,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_samples": 24007
+}

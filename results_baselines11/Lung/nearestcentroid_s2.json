@@ -1,0 +1,10 @@
+{
+ "dataset": "Lung",
+ "method": "NearestCentroid",
+ "seed": 2,
+ "test_macro_f1": 68.13506248566789,
+ "test_accuracy": 77.3354378580615,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020
+}

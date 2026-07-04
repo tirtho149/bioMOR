@@ -1,0 +1,10 @@
+{
+ "dataset": "Lung",
+ "method": "Random Forest",
+ "seed": 1,
+ "test_macro_f1": 76.23005379202813,
+ "test_accuracy": 88.05682216766047,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020
+}
