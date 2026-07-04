@@ -1,0 +1,10 @@
+{
+ "dataset": "Xin",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 2,
+ "test_macro_f1": 97.57335783678262,
+ "test_accuracy": 99.33035714285714,
+ "n_features": 2000,
+ "n_classes": 4,
+ "n_samples": 1492
+}

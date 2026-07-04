@@ -1,0 +1,10 @@
+{
+ "dataset": "blca",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 1,
+ "test_macro_f1": 41.32445431002589,
+ "test_accuracy": 46.72131147540984,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 404
+}

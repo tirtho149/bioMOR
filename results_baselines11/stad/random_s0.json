@@ -1,0 +1,10 @@
+{
+ "dataset": "stad",
+ "method": "Random Forest",
+ "seed": 0,
+ "test_macro_f1": 46.62267080745342,
+ "test_accuracy": 47.199999999999996,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 414
+}

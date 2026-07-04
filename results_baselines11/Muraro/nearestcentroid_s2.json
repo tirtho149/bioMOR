@@ -1,0 +1,10 @@
+{
+ "dataset": "Muraro",
+ "method": "NearestCentroid",
+ "seed": 2,
+ "test_macro_f1": 70.4714460067827,
+ "test_accuracy": 80.69073783359497,
+ "n_features": 2000,
+ "n_classes": 9,
+ "n_samples": 2122
+}

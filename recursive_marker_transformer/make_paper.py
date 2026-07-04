@@ -1457,11 +1457,23 @@ Recent work shows that simple, non-transformer pipelines can rival foundation mo
 cell typing \cite{souza2024linear}, so we calibrate SMART against strong classical
 baselines on the \emph{same} stratified splits: a linear ANOVA$\to$PCA$\to$logistic
 pipeline, a Random Forest, and a Nearest-Centroid marker classifier
-(Table~\ref{tab:baselines}). SMART's learned gene-graph model is competitive with or
-ahead of these baselines on macro-F1 while additionally providing the interpretable
-marker panel, adaptive recursion-depth signal and parameter/token efficiency that the
-classical methods do not; the linear pipeline is a genuinely strong baseline on several
-suites, consistent with \cite{souza2024linear}, which we report transparently.
+(Table~\ref{tab:baselines}). We report the outcome plainly, as \cite{souza2024linear}
+would predict: \emph{on these genomap-featurised single-cell suites the classical
+baselines are very strong and frequently exceed SMART on macro-F1} (linear-pipeline mean
+74.8 vs.\ SMART 66.7), sometimes by a wide margin (Muraro, Xin, Segerstolpe). Two factors
+explain this. The genomap features are already heavily engineered, so a linear model over
+\emph{all} of them retains signal that SMART's aggressive compression to $M{=}128$ marker
+tokens necessarily discards; and these cell-typing tasks are, by the same token, close to
+linearly separable. On the multi-omics cohorts, whose raw mutation/copy-number channels
+are \emph{not} pre-engineered, SMART is competitive (e.g.\ prostate, STAD). We therefore
+do \emph{not} claim state-of-the-art accuracy on these benchmarks. SMART's contribution is
+instead (i) the mechanistic result that \emph{learned gene-graph smoothing} -- not
+routing, not fixed priors -- is what drives the accuracy a compact marker model can reach
+(Table~\ref{tab:confound}); (ii) parameter and token efficiency (Tables~\ref{tab:param},
+\ref{tab:token}); and (iii) an interpretable marker panel and compute-allocated recursion
+depth that the classical baselines do not provide. Closing the accuracy gap to a
+full-feature linear model -- e.g.\ with a larger marker budget or a hybrid linear head --
+is a clear direction the baselines make measurable.
 
 \begin{table}[t]
 \centering
@@ -1682,6 +1694,21 @@ active at each step, $\Phi_{\mathrm{eff}}=\sum_{t=1}^{K}\phi(a_t)$, where $a_t$ 
 mean number of markers the expert-choice funnel keeps at step $t$. Gene embedding and
 marker selection are $\mathcal{O}(Nd)$, identical across routing modes, and excluded
 from this stack-level comparison.
+
+\paragraph{End-to-end accounting.}
+For completeness we account for the whole forward pass, not only the stack. Three parts
+scale with the full gene count $N$: gene embedding $\Theta(Nd)$; the cross-attention
+marker router, whose $M$ queries attend over all $N$ gene keys at
+$\Theta(MNd)$; and the optional gene-graph smoother, which at rank $r$ costs
+$\Theta(Nr)$ (never the $N^2$ dense form). Everything after marker selection -- the
+recursive stack, pooling and head -- scales with the compressed budget $M\ll N$ at
+$\Theta(M^2d)$ per pass. So the router's $\Theta(MNd)$ term dominates the $N$-scaling
+and is \emph{linear} in $N$ (versus the $\Theta(N^2 d)$ self-attention a full-gene
+transformer would pay), while the quadratic cost is paid only on the $M$ markers. The
+architecture ablations of Table~\ref{tab:ladder} vary only the stack, so the stack-level
+ratios there are the correct comparison for the routing/sharing claims; the router and
+embedding terms are shared by every variant. Measured wall-clock and peak-memory
+profiling on matched hardware is a straightforward addition we leave to the camera-ready.
 
 \section{Theoretical Foundation of the Router}
 \label{app:theory}

@@ -1,0 +1,10 @@
+{
+ "dataset": "Xin",
+ "method": "Random Forest",
+ "seed": 2,
+ "test_macro_f1": 99.44289160317035,
+ "test_accuracy": 99.77678571428571,
+ "n_features": 2000,
+ "n_classes": 4,
+ "n_samples": 1492
+}

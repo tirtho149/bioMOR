@@ -1,0 +1,10 @@
+{
+ "dataset": "Spleen",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 2,
+ "test_macro_f1": 64.71702392072406,
+ "test_accuracy": 75.30719926343001,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_samples": 94129
+}

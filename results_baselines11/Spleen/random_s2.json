@@ -1,0 +1,10 @@
+{
+ "dataset": "Spleen",
+ "method": "Random Forest",
+ "seed": 2,
+ "test_macro_f1": 64.94194955529345,
+ "test_accuracy": 77.88873543680725,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_samples": 94129
+}

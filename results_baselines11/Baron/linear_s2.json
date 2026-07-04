@@ -1,0 +1,10 @@
+{
+ "dataset": "Baron",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 2,
+ "test_macro_f1": 89.50832554518188,
+ "test_accuracy": 98.32749902761572,
+ "n_features": 2000,
+ "n_classes": 13,
+ "n_samples": 8569
+}

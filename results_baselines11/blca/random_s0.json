@@ -1,0 +1,10 @@
+{
+ "dataset": "blca",
+ "method": "Random Forest",
+ "seed": 0,
+ "test_macro_f1": 50.7070707070707,
+ "test_accuracy": 54.09836065573771,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 404
+}

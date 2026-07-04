@@ -1,0 +1,10 @@
+{
+ "dataset": "stad",
+ "method": "NearestCentroid",
+ "seed": 0,
+ "test_macro_f1": 51.592082616179,
+ "test_accuracy": 56.8,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 414
+}

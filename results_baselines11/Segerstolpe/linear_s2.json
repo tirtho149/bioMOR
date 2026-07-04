@@ -1,0 +1,10 @@
+{
+ "dataset": "Segerstolpe",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 2,
+ "test_macro_f1": 94.37221041067488,
+ "test_accuracy": 98.90453834115806,
+ "n_features": 2000,
+ "n_classes": 11,
+ "n_samples": 2127
+}

@@ -1,0 +1,10 @@
+{
+ "dataset": "Baron",
+ "method": "Random Forest",
+ "seed": 1,
+ "test_macro_f1": 89.8481860498791,
+ "test_accuracy": 98.59976662777129,
+ "n_features": 2000,
+ "n_classes": 13,
+ "n_samples": 8569
+}

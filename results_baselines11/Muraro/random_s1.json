@@ -1,0 +1,10 @@
+{
+ "dataset": "Muraro",
+ "method": "Random Forest",
+ "seed": 1,
+ "test_macro_f1": 86.88054111781541,
+ "test_accuracy": 97.95918367346938,
+ "n_features": 2000,
+ "n_classes": 9,
+ "n_samples": 2122
+}

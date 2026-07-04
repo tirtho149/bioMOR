@@ -1,0 +1,10 @@
+{
+ "dataset": "blca",
+ "method": "NearestCentroid",
+ "seed": 0,
+ "test_macro_f1": 56.68639053254439,
+ "test_accuracy": 63.114754098360656,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 404
+}

@@ -1,0 +1,10 @@
+{
+ "dataset": "prostate",
+ "method": "Random Forest",
+ "seed": 1,
+ "test_macro_f1": 52.5,
+ "test_accuracy": 68.42105263157895,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 1011
+}

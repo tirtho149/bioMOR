@@ -1,0 +1,10 @@
+{
+ "dataset": "Baron",
+ "method": "NearestCentroid",
+ "seed": 1,
+ "test_macro_f1": 77.53876750147167,
+ "test_accuracy": 85.80318942045896,
+ "n_features": 2000,
+ "n_classes": 13,
+ "n_samples": 8569
+}

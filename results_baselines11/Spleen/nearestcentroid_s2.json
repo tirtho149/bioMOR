@@ -1,0 +1,10 @@
+{
+ "dataset": "Spleen",
+ "method": "NearestCentroid",
+ "seed": 2,
+ "test_macro_f1": 58.93624239438121,
+ "test_accuracy": 65.69991855235668,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_samples": 94129
+}

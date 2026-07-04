@@ -1,0 +1,10 @@
+{
+ "dataset": "stad",
+ "method": "Linear (ANOVA->PCA->LogReg)",
+ "seed": 0,
+ "test_macro_f1": 51.996927803379414,
+ "test_accuracy": 52.0,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 414
+}
