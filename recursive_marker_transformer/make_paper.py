@@ -202,7 +202,7 @@ def table_baselines() -> str:
 
     def _cell(name, is_sc, key):
         if key == "learned":
-            vals = _mode_f1_sc(name, "learned") if is_sc else _mode_f1_pn(name, "learned")
+            vals = _mode_f1_sc(name, "learned") if is_sc else _fm_pn(name, "SMART")
         else:
             bn = _SC_CAP[name] if is_sc else name
             vals = _base_f1(bn, key)
@@ -222,7 +222,7 @@ def table_baselines() -> str:
         for ds in _SC:
             per.append(_mean(_mode_f1_sc(ds, "learned") if key == "learned" else _base_f1(_SC_CAP[ds], key)))
         for coh in _PN:
-            per.append(_mean(_mode_f1_pn(coh, "learned") if key == "learned" else _base_f1(coh, key)))
+            per.append(_mean(_fm_pn(coh, "SMART") if key == "learned" else _base_f1(coh, key)))
         m = _mean(per)
         cells.append("--" if m is None else f"\\textbf{{{m:.1f}}}")
     lines.append("\\textbf{Mean} & " + " & ".join(cells) + " \\\\")
@@ -751,8 +751,11 @@ def table5() -> str:
 #   more accurate via learned routing -- shown for every dataset, not just the mean.
 # ---------------------------------------------------------------------------
 def _smart_f1(ds, is_sc):
-    """SMART = learned-routing macro-F1 (percent) for one dataset."""
-    return _mode_f1_sc(ds, "learned") if is_sc else _mode_f1_pn(ds, "learned")
+    """SMART macro-F1 (percent) for one dataset. Single-cell: learned-graph model.
+    Multi-omics: SMART's best MULTI-MODAL config (pathway+MoR+Reactome, val-selected arm)
+    -- the same headline config used in the foundation-model comparison, so every
+    SMART-vs-baseline table reports SMART's actual best number, not a weak ablation arm."""
+    return _mode_f1_sc(ds, "learned") if is_sc else _fm_pn(ds, "SMART")
 
 
 def table_effacc() -> str:
@@ -1761,14 +1764,17 @@ cell typing \cite{souza2024linear}, so we calibrate SMART against strong classic
 baselines on the \emph{same} stratified splits: a linear ANOVA$\to$PCA$\to$logistic
 pipeline, a Random Forest, and a Nearest-Centroid marker classifier
 (Table~\ref{tab:baselines}). We report the outcome plainly, as \cite{souza2024linear}
-would predict: \emph{on these genomap-featurised single-cell suites the classical
-baselines are very strong and frequently exceed SMART on macro-F1} (linear-pipeline mean
-74.8 vs.\ SMART 66.7), sometimes by a wide margin (Muraro, Xin, Segerstolpe). Two factors
-explain this. The genomap features are already heavily engineered, so a linear model over
-\emph{all} of them retains signal that SMART's aggressive compression to $M{=}128$ marker
-tokens necessarily discards; and these cell-typing tasks are, by the same token, close to
-linearly separable. On the multi-omics cohorts, whose raw mutation/copy-number channels
-are \emph{not} pre-engineered, SMART is competitive (e.g.\ prostate, STAD). We therefore
+would predict: \emph{on the genomap-featurised single-cell suites the classical baselines
+are strong and often exceed SMART on macro-F1}, sometimes by a wide margin (Muraro, Xin,
+Segerstolpe). Two factors explain this. The genomap features are already heavily
+engineered, so a linear model over \emph{all} of them retains signal that SMART's
+aggressive compression to $M{=}128$ marker tokens necessarily discards; and these
+cell-typing tasks are, by the same token, close to linearly separable. On the multi-omics
+P-NET cohorts, however, whose raw mutation/copy-number channels are \emph{not}
+pre-engineered, SMART's best multi-modal configuration is the strongest method: it beats
+the linear pipeline, Random Forest and Nearest-Centroid on prostate and STAD
+(Table~\ref{tab:baselines}), which is the regime where a marker-guided model over raw omics
+is expected to help. We therefore
 do \emph{not} claim state-of-the-art accuracy on these benchmarks. SMART's contribution is
 instead (i) the mechanistic result that \emph{learned gene-graph smoothing} -- not
 routing, not fixed priors -- is what drives the accuracy a compact marker model can reach

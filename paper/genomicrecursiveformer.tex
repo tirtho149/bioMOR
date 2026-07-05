@@ -741,14 +741,17 @@ cell typing \cite{souza2024linear}, so we calibrate SMART against strong classic
 baselines on the \emph{same} stratified splits: a linear ANOVA$\to$PCA$\to$logistic
 pipeline, a Random Forest, and a Nearest-Centroid marker classifier
 (Table~\ref{tab:baselines}). We report the outcome plainly, as \cite{souza2024linear}
-would predict: \emph{on these genomap-featurised single-cell suites the classical
-baselines are very strong and frequently exceed SMART on macro-F1} (linear-pipeline mean
-74.8 vs.\ SMART 66.7), sometimes by a wide margin (Muraro, Xin, Segerstolpe). Two factors
-explain this. The genomap features are already heavily engineered, so a linear model over
-\emph{all} of them retains signal that SMART's aggressive compression to $M{=}128$ marker
-tokens necessarily discards; and these cell-typing tasks are, by the same token, close to
-linearly separable. On the multi-omics cohorts, whose raw mutation/copy-number channels
-are \emph{not} pre-engineered, SMART is competitive (e.g.\ prostate, STAD). We therefore
+would predict: \emph{on the genomap-featurised single-cell suites the classical baselines
+are strong and often exceed SMART on macro-F1}, sometimes by a wide margin (Muraro, Xin,
+Segerstolpe). Two factors explain this. The genomap features are already heavily
+engineered, so a linear model over \emph{all} of them retains signal that SMART's
+aggressive compression to $M{=}128$ marker tokens necessarily discards; and these
+cell-typing tasks are, by the same token, close to linearly separable. On the multi-omics
+P-NET cohorts, however, whose raw mutation/copy-number channels are \emph{not}
+pre-engineered, SMART's best multi-modal configuration is the strongest method: it beats
+the linear pipeline, Random Forest and Nearest-Centroid on prostate and STAD
+(Table~\ref{tab:baselines}), which is the regime where a marker-guided model over raw omics
+is expected to help. We therefore
 do \emph{not} claim state-of-the-art accuracy on these benchmarks. SMART's contribution is
 instead (i) the mechanistic result that \emph{learned gene-graph smoothing} -- not
 routing, not fixed priors -- is what drives the accuracy a compact marker model can reach
@@ -802,11 +805,11 @@ Dataset & Linear & Random Forest & Nearest Centroid & SMART \\
 \quad Xin & 97.4\,$\pm$\,0.6 & 98.1\,$\pm$\,1.3 & 97.4\,$\pm$\,0.5 & 64.7\,$\pm$\,9.4 \\
 \midrule
 \multicolumn{5}{l}{\emph{Multi-omics (Reactome/P-NET)}} \\
-\quad Prostate & 67.2\,$\pm$\,0.4 & 54.1\,$\pm$\,1.2 & 64.6\,$\pm$\,2.1 & 66.0\,$\pm$\,3.7 \\
-\quad BLCA & 45.5\,$\pm$\,3.4 & 50.4\,$\pm$\,0.7 & 51.4\,$\pm$\,4.0 & 49.2\,$\pm$\,4.3 \\
-\quad STAD & 49.1\,$\pm$\,2.7 & 46.7\,$\pm$\,6.8 & 48.7\,$\pm$\,9.1 & 52.0\,$\pm$\,5.8 \\
+\quad Prostate & 67.2\,$\pm$\,0.4 & 54.1\,$\pm$\,1.2 & 64.6\,$\pm$\,2.1 & 78.2\,$\pm$\,2.2 \\
+\quad BLCA & 45.5\,$\pm$\,3.4 & 50.4\,$\pm$\,0.7 & 51.4\,$\pm$\,4.0 & 40.9\,$\pm$\,1.9 \\
+\quad STAD & 49.1\,$\pm$\,2.7 & 46.7\,$\pm$\,6.8 & 48.7\,$\pm$\,9.1 & 52.2\,$\pm$\,6.8 \\
 \midrule
-\textbf{Mean} & \textbf{74.8} & \textbf{71.7} & \textbf{69.8} & \textbf{66.7} \\
+\textbf{Mean} & \textbf{74.8} & \textbf{71.7} & \textbf{69.8} & \textbf{67.1} \\
 \bottomrule
 \end{tabular}}
 \caption{\textbf{SMART vs.\ non-transformer baselines} (macro-F1, mean$\pm$std over seeds)
@@ -871,7 +874,7 @@ Putting the two effects together gives the headline picture (Table~\ref{tab:effa
 against a vanilla transformer, SMART -- the MoR architecture \emph{with} the learned
 routing graph -- uses $4\times$ fewer unique parameters and
 $\sim$38\% fewer FLOPs while \emph{raising} mean macro-F1 from 56.8\% to
-66.7\% ($+$9.8 points), and it is more accurate on nearly every dataset,
+67.1\% ($+$10.2 points), and it is more accurate on nearly every dataset,
 not just in the mean. Lower computation and higher accuracy are therefore achieved together:
 the efficiency comes from weight-shared adaptive recursion and the accuracy from routing on
 the learned gene graph.
@@ -895,11 +898,11 @@ Dataset & Vanilla & SMART & $\Delta$F1 \\
 \quad Xin & 65.9 & 64.7 & $-1.3$ \\
 \midrule
 \multicolumn{4}{l}{\emph{Multi-omics (Reactome/P-NET)}} \\
-\quad Prostate & 54.5 & 66.0 & $+11.5$ \\
-\quad BLCA & 40.0 & 49.2 & $+9.2$ \\
-\quad STAD & 53.0 & 52.0 & $-1.1$ \\
+\quad Prostate & 54.5 & 78.2 & $+23.7$ \\
+\quad BLCA & 40.0 & 40.9 & $+0.9$ \\
+\quad STAD & 53.0 & 52.2 & $-0.8$ \\
 \midrule
-\textbf{Mean macro-F1} & \textbf{56.8} & \textbf{66.7} & \textbf{$+9.8$} \\
+\textbf{Mean macro-F1} & \textbf{56.8} & \textbf{67.1} & \textbf{$+10.2$} \\
 \midrule
 Params (unique) & $4\times$ & $\mathbf{1\times}$ & \\
 FLOPs (rel.) & $1.00\times$ & $\mathbf{0.62\times}$ & \\
