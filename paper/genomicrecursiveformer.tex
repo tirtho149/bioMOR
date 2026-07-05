@@ -625,35 +625,7 @@ relaxes to zero as the data takes over (degenerate NaN graphs disable the anchor
 back to random init). Even so, even with the annealed anchor the biological warm-start (62.5\%) trails random initialisation (72.1\%) by $-9.6$ points, so the data-driven graph is genuinely a better solution than the biological one for this task. This is the same conclusion the fixed
 prior and warm-start reach, now stress-tested: the value is in \emph{learning} the graph,
 and an explicit biological graph -- however forcefully injected -- does not improve on what
-end-to-end training already recovers.
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccc}
-\toprule
-Dataset & Learned (random init) & $+$ bio warm-start & $+$ stronger init & $+$ annealed anchor \\
-\midrule
-Baron & 82.3\,$\pm$\,2.2 & 80.9\,$\pm$\,3.8 & 81.6\,$\pm$\,1.8 & 66.8\,$\pm$\,6.2 \\
-Lung & 79.5\,$\pm$\,1.4 & 79.8\,$\pm$\,0.8 & 78.4\,$\pm$\,0.6 & 70.0\,$\pm$\,2.7 \\
-Muraro & 74.5\,$\pm$\,5.4 & 75.3\,$\pm$\,4.9 & 76.6\,$\pm$\,5.4 & 75.9\,$\pm$\,9.3 \\
-Oeso. & 69.3\,$\pm$\,0.7 & 71.1\,$\pm$\,0.9 & 70.2\,$\pm$\,1.0 & 57.4\,$\pm$\,2.6 \\
-Seger. & 74.0\,$\pm$\,5.3 & 69.9\,$\pm$\,7.4 & 74.5\,$\pm$\,5.7 & 53.0\,$\pm$\,5.0 \\
-Spleen & 59.0\,$\pm$\,0.2 & 59.1\,$\pm$\,0.7 & 58.7\,$\pm$\,1.2 & 52.5\,$\pm$\,1.2 \\
-T-cell & 68.9\,$\pm$\,0.7 & 69.1\,$\pm$\,1.1 & 69.0\,$\pm$\,0.6 & 54.7\,$\pm$\,2.4 \\
-Xin & 69.2\,$\pm$\,5.0 & 67.2\,$\pm$\,8.4 & 68.5\,$\pm$\,6.1 & 69.5\,$\pm$\,7.7 \\
-\midrule
-\textbf{Mean macro-F1} & \textbf{72.1} & \textbf{71.5} & \textbf{72.2} & \textbf{62.5} \\
-\quad $\Delta$ vs.\ random & $+0.0$ & $-0.6$ & $+0.1$ & $-9.6$ \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
-mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
-then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
-that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
-init; forcing biology in more strongly does not beat learning the graph from data.}
-\label{tab:anchor}
-\end{table}
+end-to-end training already recovers (full stress-test in Table~\ref{tab:anchor}, appendix).
 
 \begin{table*}[t]
 \centering
@@ -815,28 +787,6 @@ benchmark for SMART.
 \begin{table}[t]
 \centering
 \resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccc}
-\toprule
-Cohort & SMART (mut+CNV) & Geneformer & scGPT \\
-\midrule
-Prostate & 78.2\,$\pm$\,2.2 & 78.2\,$\pm$\,3.3 & 40.1\,$\pm$\,0.0 \\
-BLCA & 40.9\,$\pm$\,1.9 & 47.7\,$\pm$\,3.7 & 40.4\,$\pm$\,0.0 \\
-STAD & 52.2\,$\pm$\,6.8 & 46.1\,$\pm$\,5.5 & 35.7\,$\pm$\,0.0 \\
-\midrule
-\textbf{Mean} & \textbf{57.1} & \textbf{57.3} & \textbf{38.7} \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
-(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
-$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
-mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
-input is out-of-distribution for these single-cell-RNA models.}
-\label{tab:fm}
-\end{table}
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 Dataset & Linear & Random Forest & Nearest Centroid & SMART \\
@@ -863,35 +813,6 @@ Dataset & Linear & Random Forest & Nearest Centroid & SMART \\
 on the same 11 stratified splits: a linear ANOVA$\to$PCA$\to$logistic pipeline, a Random
 Forest, and a Nearest-Centroid classifier.}
 \label{tab:baselines}
-\end{table}
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccccc}
-\toprule
-Dataset & $M{=}128$ & $M{=}256$ & $M{=}512$ & $M{=}1024$ & $M{=}2048$ & Linear (all feat.) \\
-\midrule
-Baron & 79.1\,$\pm$\,2.8 & 78.1\,$\pm$\,1.4 & 79.6\,$\pm$\,4.4 & 82.6\,$\pm$\,2.0 & 80.4\,$\pm$\,2.1 & 91.1\,$\pm$\,2.0 \\
-Lung & 79.1\,$\pm$\,1.2 & 80.2\,$\pm$\,0.8 & 79.8\,$\pm$\,1.9 & 81.3\,$\pm$\,2.0 & 81.1\,$\pm$\,1.9 & 74.8\,$\pm$\,0.2 \\
-Muraro & 75.3\,$\pm$\,6.4 & 72.4\,$\pm$\,2.7 & 68.3\,$\pm$\,3.3 & 75.7\,$\pm$\,4.5 & 73.8\,$\pm$\,6.0 & 95.7\,$\pm$\,2.2 \\
-Oeso. & 69.6\,$\pm$\,1.4 & 69.8\,$\pm$\,0.6 & 71.5\,$\pm$\,1.6 & 73.6\,$\pm$\,0.5 & 72.2\,$\pm$\,1.6 & 69.5\,$\pm$\,1.1 \\
-Seger. & 71.4\,$\pm$\,5.3 & 70.3\,$\pm$\,4.1 & 73.8\,$\pm$\,5.4 & 69.4\,$\pm$\,14.7 & 68.3\,$\pm$\,3.3 & 89.5\,$\pm$\,5.0 \\
-Spleen & 58.2\,$\pm$\,0.9 & 58.6\,$\pm$\,1.6 & 59.9\,$\pm$\,0.8 & 61.1\,$\pm$\,2.3 & 61.6\,$\pm$\,4.0 & 64.7\,$\pm$\,0.1 \\
-T-cell & 68.9\,$\pm$\,1.0 & 69.9\,$\pm$\,0.3 & 71.5\,$\pm$\,0.4 & 71.8\,$\pm$\,2.3 & 73.0\,$\pm$\,0.3 & 78.1\,$\pm$\,0.3 \\
-Xin & 64.7\,$\pm$\,9.4 & 64.8\,$\pm$\,6.0 & 63.7\,$\pm$\,10.3 & 64.1\,$\pm$\,0.6 & 62.1\,$\pm$\,2.8 & 97.4\,$\pm$\,0.6 \\
-\midrule
-\textbf{Mean macro-F1} & \textbf{70.8} & \textbf{70.5} & \textbf{71.0} & \textbf{72.5} & \textbf{71.6} & \textbf{82.6} \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
-model as the marker budget $M$ grows on the single-cell suites, against the full-feature
-linear baseline. $M{=}128$ is the headline learned model (10 seeds); larger
-budgets are extended runs (3 seeds). Because $M$ is capped at the feature count,
-the largest rung uses \emph{every} feature as a marker, yet the mean still trails the
-linear pipeline by 11.1 points: the gap is architectural, not a token-budget
-limitation.}
-\label{tab:mbudget}
 \end{table}
 
 \subsection{The Vanilla-to-MoR Ladder Preserves Accuracy}
@@ -993,75 +914,16 @@ $\sim$38\% fewer FLOPs). SMART is cheaper on both axes \emph{and} more accurate
 \label{tab:effacc}
 \end{table}
 
-\subsection{Parameter Efficiency Is Architectural}
+\subsection{Parameter and Token Efficiency Are Architectural}
 \label{sec:params}
-Table~\ref{tab:param} contrasts the transformer-stack parameters of our shared recursion
-against an equivalent stack of $K$ independent layers at matched width. The saving is
-present \emph{before any training}: one shared block uses $1/K$ of the parameters of $K$
-independent layers, so at $K{=}$4 the shared model uses 4$\times$
-fewer stack parameters, and the gap widens linearly with depth. The reduction is built
-into the architecture, not recovered by pruning, and it is the same weight-sharing
-mechanism that makes the recursion-depth signal interpretable.
-
-\begin{table}[t]
-\centering
-\resizebox{0.85\columnwidth}{!}{%
-\begin{tabular}{lccc}
-\toprule
-Depth $K$ & Shared (ours) & Independent & Reduction \\
-\midrule
-1 & 74{,}880 & 74{,}880 & 1$\times$ \\
-2 & 74{,}880 & 149{,}760 & 2$\times$ \\
-3 & 74{,}880 & 224{,}640 & 3$\times$ \\
-4 & 74{,}880 & 299{,}520 & 4$\times$ \\
-6 & 74{,}880 & 449{,}280 & 6$\times$ \\
-8 & 74{,}880 & 599{,}040 & 8$\times$ \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Parameter reduction.} One shared block versus $K$ independent layers at
-matched width: an exact $K\times$ reduction, present before any training.}
-\label{tab:param}
-\end{table}
-
-\subsection{A Few Marker Tokens Suffice}
-Does the marker interface throw away signal? Table~\ref{tab:token} sweeps the marker-token
-budget $M$ and tracks macro-F1 as it shrinks. Most of the full-gene signal survives with
-only a few dozen to a few hundred interpretable tokens, so the $\mathcal{O}(N^2)\!\to\!
-\mathcal{O}(M^2)$ compression that motivates the architecture costs little accuracy. The
-learned cross-attention router attends softly over every gene during training and
-collapses to a hard arg-max panel at evaluation, yielding the interpretable
-recursion-depth ranking that fixed panels cannot provide.
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccccc}
-\toprule
-Dataset & $M{=}16$ & $M{=}32$ & $M{=}64$ & $M{=}128$ & $M{=}256$ \\
-\midrule
-\multicolumn{6}{l}{\emph{Single-cell (genomap)}} \\
-\quad Baron & 33.7\,$\pm$\,7.1 & 38.5\,$\pm$\,2.1 & 53.9\,$\pm$\,1.9 & 62.6\,$\pm$\,5.1 & 66.9\,$\pm$\,3.4 \\
-\quad Lung & 30.8\,$\pm$\,5.9 & 38.1\,$\pm$\,1.7 & 61.5\,$\pm$\,1.9 & 71.4\,$\pm$\,1.1 & 78.4\,$\pm$\,0.8 \\
-\quad Muraro & 55.8\,$\pm$\,3.6 & 59.4\,$\pm$\,1.3 & 67.9\,$\pm$\,5.6 & 68.5\,$\pm$\,4.1 & 76.2\,$\pm$\,5.2 \\
-\quad Oeso. & 23.1\,$\pm$\,1.3 & 30.2\,$\pm$\,3.9 & 42.0\,$\pm$\,2.4 & 53.9\,$\pm$\,4.4 & 63.2\,$\pm$\,2.4 \\
-\quad Seger. & 41.2\,$\pm$\,12.1 & 45.3\,$\pm$\,5.6 & 59.3\,$\pm$\,4.0 & 59.1\,$\pm$\,1.6 & 55.4\,$\pm$\,7.0 \\
-\quad Spleen & 18.7\,$\pm$\,2.4 & 26.8\,$\pm$\,3.0 & 38.1\,$\pm$\,2.3 & 48.1\,$\pm$\,5.0 & 59.4\,$\pm$\,0.9 \\
-\quad T-cell & 25.5\,$\pm$\,3.2 & 36.6\,$\pm$\,5.4 & 43.1\,$\pm$\,5.2 & 47.4\,$\pm$\,2.2 & 61.5\,$\pm$\,1.7 \\
-\quad Xin & 50.5\,$\pm$\,5.9 & 46.2\,$\pm$\,1.6 & 60.8\,$\pm$\,5.6 & 64.1\,$\pm$\,3.3 & 72.4\,$\pm$\,11.7 \\
-\midrule
-\multicolumn{6}{l}{\emph{Multi-omics (Reactome/P-NET)}} \\
-\quad Prostate & 74.3\,$\pm$\,3.0 & 74.7\,$\pm$\,2.7 & 78.0\,$\pm$\,3.0 & 76.7\,$\pm$\,2.6 & 77.3\,$\pm$\,0.2 \\
-\quad BLCA & 49.8\,$\pm$\,2.2 & 46.0\,$\pm$\,3.1 & 49.3\,$\pm$\,2.5 & 48.1\,$\pm$\,6.8 & 55.7\,$\pm$\,3.5 \\
-\quad STAD & 54.2\,$\pm$\,3.1 & 51.0\,$\pm$\,2.2 & 44.0\,$\pm$\,5.6 & 51.2\,$\pm$\,2.8 & 49.4\,$\pm$\,4.1 \\
-\midrule
-\textbf{Mean macro-F1} & \textbf{41.6} & \textbf{44.8} & \textbf{54.4} & \textbf{59.2} & \textbf{65.1} \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Marker-token budget.} Macro-F1 (mean$\pm$std over 3 seeds) as
-the marker budget $M$ shrinks from 256 to 16. A few dozen to a few hundred tokens recover
-most of the full-gene accuracy. Bottom row: mean over all 11 datasets.}
-\label{tab:token}
-\end{table}
+Two efficiency properties hold \emph{before any training}. First, weight sharing makes the
+parameter count depth-independent: one shared block uses $1/K$ of the parameters of $K$
+independent layers -- an exact 4$\times$ reduction at $K{=}$4 that
+widens with depth (Table~\ref{tab:param}, appendix). Second, the marker interface compresses
+$\mathcal{O}(N^2)\!\to\!\mathcal{O}(M^2)$: sweeping the budget shows a few dozen to a few
+hundred interpretable tokens recover most of the full-gene accuracy (Table~\ref{tab:token},
+appendix), while the soft-train / hard-eval router yields the recursion-depth ranking that
+fixed panels cannot provide.
 
 \subsection{The Priors Do Not Improve Uncertainty Either}
 Beyond point accuracy, a prior could still earn its place by making the model better
@@ -1170,37 +1032,159 @@ interpretable compute-allocated recursion-depth signal. The complete pipeline, i
 all experiments and this paper, regenerates from a single command.
 
 \section{Broader Impact and Ethics Statement}
-\emph{Positive applications.} SMART targets cell-type annotation and bulk-omics
-subtyping with an order-of-magnitude fewer transformer parameters and an explicit,
-auditable marker-gene and recursion-depth signal; cheaper, more interpretable models
-lower the barrier for biological discovery and make automated annotation easier to
-scrutinise before it informs downstream science.
-\emph{Risks and mitigations.} Cell-type and subtype predictions are research tools, not
-clinical decisions: deployed naively on a population or tissue absent from training they
-can be confidently wrong, as our hard, low-accuracy suites show (e.g.\ the Segerstolpe
-and STAD cases). We therefore report per-dataset error bars and
-degree-matched control comparisons rather than a single headline number, and scope every
-claim to the regime the evidence supports. The learned marker panels are interpretable
-and should be inspected for confounds (batch, donor, ambient RNA) before any biological
-conclusion is drawn.
-\emph{Data and privacy.} All datasets are public, de-identified single-cell and
-bulk-omics resources used under their original licenses; we add no re-identifying
-information and release no individual-level data. Genomic data is inherently sensitive,
-and any extension of this method to non-public cohorts should pass the corresponding IRB
-and data-governance review.
-\emph{Compute footprint.} The efficiency that motivates the method also bounds its
-environmental cost: every run in this paper fits on a single GPU, and weight sharing
-plus marker compression cut both parameters and attention FLOPs, reducing rather than
-inflating training cost.
-\emph{Reproducibility and tooling disclosure.} The full pipeline---data preparation,
-training, ablations, tables and figures---regenerates from a single command, and
-automated tooling was used to assist with code and manuscript preparation; all reported
-numbers trace to committed result files.
+SMART targets cell-type annotation and bulk-omics subtyping with far fewer parameters and
+an auditable marker-gene and recursion-depth signal, lowering the barrier for interpretable
+biological discovery. Its predictions are research tools, not clinical decisions: on a
+tissue or population absent from training they can be confidently wrong (our hard suites,
+e.g.\ Segerstolpe and STAD), so we report per-dataset error bars and degree-matched
+controls rather than a single headline number, and the learned marker panels should be
+inspected for confounds (batch, donor, ambient RNA) before any biological conclusion. All
+datasets are public and de-identified, used under their original licenses; extensions to
+non-public cohorts should pass the corresponding IRB and data-governance review. Every run
+fits on a single GPU, and the full pipeline regenerates from one command with all reported
+numbers tracing to committed result files; automated tooling assisted code and manuscript
+preparation.
 
 \bibliographystyle{aaai}
 \bibliography{refs}
 
 \appendix
+\section{Additional Results and Ablations}
+\label{app:extra}
+This appendix collects supporting tables referenced from the main text: the foundation-model
+comparison on the P-NET cohorts (Table~\ref{tab:fm}), the biological warm-start stress test
+(Table~\ref{tab:anchor}), the marker-budget headroom sweep (Table~\ref{tab:mbudget}) and the
+marker-token budget (Table~\ref{tab:token}).
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Cohort & SMART (mut+CNV) & Geneformer & scGPT \\
+\midrule
+Prostate & 78.2\,$\pm$\,2.2 & 78.2\,$\pm$\,3.3 & 40.1\,$\pm$\,0.0 \\
+BLCA & 40.9\,$\pm$\,1.9 & 47.7\,$\pm$\,3.7 & 40.4\,$\pm$\,0.0 \\
+STAD & 52.2\,$\pm$\,6.8 & 46.1\,$\pm$\,5.5 & 35.7\,$\pm$\,0.0 \\
+\midrule
+\textbf{Mean} & \textbf{57.1} & \textbf{57.3} & \textbf{38.7} \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
+(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
+$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
+mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
+input is out-of-distribution for these single-cell-RNA models; this is an out-of-distribution
+sanity check, not a headline accuracy comparison.}
+\label{tab:fm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Dataset & Learned (random init) & $+$ bio warm-start & $+$ stronger init & $+$ annealed anchor \\
+\midrule
+Baron & 82.3\,$\pm$\,2.2 & 80.9\,$\pm$\,3.8 & 81.6\,$\pm$\,1.8 & 66.8\,$\pm$\,6.2 \\
+Lung & 79.5\,$\pm$\,1.4 & 79.8\,$\pm$\,0.8 & 78.4\,$\pm$\,0.6 & 70.0\,$\pm$\,2.7 \\
+Muraro & 74.5\,$\pm$\,5.4 & 75.3\,$\pm$\,4.9 & 76.6\,$\pm$\,5.4 & 75.9\,$\pm$\,9.3 \\
+Oeso. & 69.3\,$\pm$\,0.7 & 71.1\,$\pm$\,0.9 & 70.2\,$\pm$\,1.0 & 57.4\,$\pm$\,2.6 \\
+Seger. & 74.0\,$\pm$\,5.3 & 69.9\,$\pm$\,7.4 & 74.5\,$\pm$\,5.7 & 53.0\,$\pm$\,5.0 \\
+Spleen & 59.0\,$\pm$\,0.2 & 59.1\,$\pm$\,0.7 & 58.7\,$\pm$\,1.2 & 52.5\,$\pm$\,1.2 \\
+T-cell & 68.9\,$\pm$\,0.7 & 69.1\,$\pm$\,1.1 & 69.0\,$\pm$\,0.6 & 54.7\,$\pm$\,2.4 \\
+Xin & 69.2\,$\pm$\,5.0 & 67.2\,$\pm$\,8.4 & 68.5\,$\pm$\,6.1 & 69.5\,$\pm$\,7.7 \\
+\midrule
+\textbf{Mean macro-F1} & \textbf{72.1} & \textbf{71.5} & \textbf{72.2} & \textbf{62.5} \\
+\quad $\Delta$ vs.\ random & $+0.0$ & $-0.6$ & $+0.1$ & $-9.6$ \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
+mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
+then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
+that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
+init; forcing biology in more strongly does not beat learning the graph from data.}
+\label{tab:anchor}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Dataset & $M{=}128$ & $M{=}256$ & $M{=}512$ & $M{=}1024$ & $M{=}2048$ & Linear (all feat.) \\
+\midrule
+Baron & 79.1\,$\pm$\,2.8 & 78.1\,$\pm$\,1.4 & 79.6\,$\pm$\,4.4 & 82.6\,$\pm$\,2.0 & 80.4\,$\pm$\,2.1 & 91.1\,$\pm$\,2.0 \\
+Lung & 79.1\,$\pm$\,1.2 & 80.2\,$\pm$\,0.8 & 79.8\,$\pm$\,1.9 & 81.3\,$\pm$\,2.0 & 81.1\,$\pm$\,1.9 & 74.8\,$\pm$\,0.2 \\
+Muraro & 75.3\,$\pm$\,6.4 & 72.4\,$\pm$\,2.7 & 68.3\,$\pm$\,3.3 & 75.7\,$\pm$\,4.5 & 73.8\,$\pm$\,6.0 & 95.7\,$\pm$\,2.2 \\
+Oeso. & 69.6\,$\pm$\,1.4 & 69.8\,$\pm$\,0.6 & 71.5\,$\pm$\,1.6 & 73.6\,$\pm$\,0.5 & 72.2\,$\pm$\,1.6 & 69.5\,$\pm$\,1.1 \\
+Seger. & 71.4\,$\pm$\,5.3 & 70.3\,$\pm$\,4.1 & 73.8\,$\pm$\,5.4 & 69.4\,$\pm$\,14.7 & 68.3\,$\pm$\,3.3 & 89.5\,$\pm$\,5.0 \\
+Spleen & 58.2\,$\pm$\,0.9 & 58.6\,$\pm$\,1.6 & 59.9\,$\pm$\,0.8 & 61.1\,$\pm$\,2.3 & 61.6\,$\pm$\,4.0 & 64.7\,$\pm$\,0.1 \\
+T-cell & 68.9\,$\pm$\,1.0 & 69.9\,$\pm$\,0.3 & 71.5\,$\pm$\,0.4 & 71.8\,$\pm$\,2.3 & 73.0\,$\pm$\,0.3 & 78.1\,$\pm$\,0.3 \\
+Xin & 64.7\,$\pm$\,9.4 & 64.8\,$\pm$\,6.0 & 63.7\,$\pm$\,10.3 & 64.1\,$\pm$\,0.6 & 62.1\,$\pm$\,2.8 & 97.4\,$\pm$\,0.6 \\
+\midrule
+\textbf{Mean macro-F1} & \textbf{70.8} & \textbf{70.5} & \textbf{71.0} & \textbf{72.5} & \textbf{71.6} & \textbf{82.6} \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
+model as the marker budget $M$ grows on the single-cell suites, against the full-feature
+linear baseline. Because $M$ is capped at the feature count, the largest rung uses
+\emph{every} feature as a marker, yet the mean still trails the linear pipeline by
+11.1 points: the gap is architectural, not a token-budget limitation.}
+\label{tab:mbudget}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{0.85\columnwidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Depth $K$ & Shared (ours) & Independent & Reduction \\
+\midrule
+1 & 74{,}880 & 74{,}880 & 1$\times$ \\
+2 & 74{,}880 & 149{,}760 & 2$\times$ \\
+3 & 74{,}880 & 224{,}640 & 3$\times$ \\
+4 & 74{,}880 & 299{,}520 & 4$\times$ \\
+6 & 74{,}880 & 449{,}280 & 6$\times$ \\
+8 & 74{,}880 & 599{,}040 & 8$\times$ \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Parameter reduction.} One shared block versus $K$ independent layers at
+matched width: an exact $K\times$ reduction, present before any training.}
+\label{tab:param}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Dataset & $M{=}16$ & $M{=}32$ & $M{=}64$ & $M{=}128$ & $M{=}256$ \\
+\midrule
+\multicolumn{6}{l}{\emph{Single-cell (genomap)}} \\
+\quad Baron & 33.7\,$\pm$\,7.1 & 38.5\,$\pm$\,2.1 & 53.9\,$\pm$\,1.9 & 62.6\,$\pm$\,5.1 & 66.9\,$\pm$\,3.4 \\
+\quad Lung & 30.8\,$\pm$\,5.9 & 38.1\,$\pm$\,1.7 & 61.5\,$\pm$\,1.9 & 71.4\,$\pm$\,1.1 & 78.4\,$\pm$\,0.8 \\
+\quad Muraro & 55.8\,$\pm$\,3.6 & 59.4\,$\pm$\,1.3 & 67.9\,$\pm$\,5.6 & 68.5\,$\pm$\,4.1 & 76.2\,$\pm$\,5.2 \\
+\quad Oeso. & 23.1\,$\pm$\,1.3 & 30.2\,$\pm$\,3.9 & 42.0\,$\pm$\,2.4 & 53.9\,$\pm$\,4.4 & 63.2\,$\pm$\,2.4 \\
+\quad Seger. & 41.2\,$\pm$\,12.1 & 45.3\,$\pm$\,5.6 & 59.3\,$\pm$\,4.0 & 59.1\,$\pm$\,1.6 & 55.4\,$\pm$\,7.0 \\
+\quad Spleen & 18.7\,$\pm$\,2.4 & 26.8\,$\pm$\,3.0 & 38.1\,$\pm$\,2.3 & 48.1\,$\pm$\,5.0 & 59.4\,$\pm$\,0.9 \\
+\quad T-cell & 25.5\,$\pm$\,3.2 & 36.6\,$\pm$\,5.4 & 43.1\,$\pm$\,5.2 & 47.4\,$\pm$\,2.2 & 61.5\,$\pm$\,1.7 \\
+\quad Xin & 50.5\,$\pm$\,5.9 & 46.2\,$\pm$\,1.6 & 60.8\,$\pm$\,5.6 & 64.1\,$\pm$\,3.3 & 72.4\,$\pm$\,11.7 \\
+\midrule
+\multicolumn{6}{l}{\emph{Multi-omics (Reactome/P-NET)}} \\
+\quad Prostate & 74.3\,$\pm$\,3.0 & 74.7\,$\pm$\,2.7 & 78.0\,$\pm$\,3.0 & 76.7\,$\pm$\,2.6 & 77.3\,$\pm$\,0.2 \\
+\quad BLCA & 49.8\,$\pm$\,2.2 & 46.0\,$\pm$\,3.1 & 49.3\,$\pm$\,2.5 & 48.1\,$\pm$\,6.8 & 55.7\,$\pm$\,3.5 \\
+\quad STAD & 54.2\,$\pm$\,3.1 & 51.0\,$\pm$\,2.2 & 44.0\,$\pm$\,5.6 & 51.2\,$\pm$\,2.8 & 49.4\,$\pm$\,4.1 \\
+\midrule
+\textbf{Mean macro-F1} & \textbf{41.6} & \textbf{44.8} & \textbf{54.4} & \textbf{59.2} & \textbf{65.1} \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Marker-token budget.} Macro-F1 (mean$\pm$std over 3 seeds) as
+the marker budget $M$ shrinks from 256 to 16. A few dozen to a few hundred tokens recover
+most of the full-gene accuracy. Bottom row: mean over all 11 datasets.}
+\label{tab:token}
+\end{table}
+
 \section{Dataset Details}
 \label{app:data}
 We use $8$ genomap single-cell datasets \cite{islam2023cartography} converted to

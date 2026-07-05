@@ -1693,19 +1693,7 @@ relaxes to zero as the data takes over (degenerate NaN graphs disable the anchor
 back to random init). Even so, @@ANCHOR_VERDICT@@. This is the same conclusion the fixed
 prior and warm-start reach, now stress-tested: the value is in \emph{learning} the graph,
 and an explicit biological graph -- however forcefully injected -- does not improve on what
-end-to-end training already recovers.
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TABLE_ANCHOR@@}
-\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
-mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
-then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
-that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
-init; forcing biology in more strongly does not beat learning the graph from data.}
-\label{tab:anchor}
-\end{table}
+end-to-end training already recovers (full stress-test in Table~\ref{tab:anchor}, appendix).
 
 \begin{table*}[t]
 \centering
@@ -1819,37 +1807,11 @@ benchmark for SMART.
 \begin{table}[t]
 \centering
 \resizebox{\columnwidth}{!}{%
-@@TABLE_FM@@}
-\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
-(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
-$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
-mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
-input is out-of-distribution for these single-cell-RNA models.}
-\label{tab:fm}
-\end{table}
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
 @@TABLE_BASE@@}
 \caption{\textbf{SMART vs.\ non-transformer baselines} (macro-F1, mean$\pm$std over seeds)
 on the same 11 stratified splits: a linear ANOVA$\to$PCA$\to$logistic pipeline, a Random
 Forest, and a Nearest-Centroid classifier.}
 \label{tab:baselines}
-\end{table}
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TABLE_MBUDGET@@}
-\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
-model as the marker budget $M$ grows on the single-cell suites, against the full-feature
-linear baseline. $M{=}128$ is the headline learned model (@@NSEEDS_LEARNED@@ seeds); larger
-budgets are extended runs (@@NSEEDS@@ seeds). Because $M$ is capped at the feature count,
-the largest rung uses \emph{every} feature as a marker, yet the mean still trails the
-linear pipeline by @@MB_RESID@@ points: the gap is architectural, not a token-budget
-limitation.}
-\label{tab:mbudget}
 \end{table}
 
 \subsection{The Vanilla-to-MoR Ladder Preserves Accuracy}
@@ -1901,43 +1863,16 @@ $\sim$@@EA_SAVED@@\% fewer FLOPs). SMART is cheaper on both axes \emph{and} more
 \label{tab:effacc}
 \end{table}
 
-\subsection{Parameter Efficiency Is Architectural}
+\subsection{Parameter and Token Efficiency Are Architectural}
 \label{sec:params}
-Table~\ref{tab:param} contrasts the transformer-stack parameters of our shared recursion
-against an equivalent stack of $K$ independent layers at matched width. The saving is
-present \emph{before any training}: one shared block uses $1/K$ of the parameters of $K$
-independent layers, so at $K{=}$@@DEPTH@@ the shared model uses @@PARAMRATIO@@$\times$
-fewer stack parameters, and the gap widens linearly with depth. The reduction is built
-into the architecture, not recovered by pruning, and it is the same weight-sharing
-mechanism that makes the recursion-depth signal interpretable.
-
-\begin{table}[t]
-\centering
-\resizebox{0.85\columnwidth}{!}{%
-@@TABLE2@@}
-\caption{\textbf{Parameter reduction.} One shared block versus $K$ independent layers at
-matched width: an exact $K\times$ reduction, present before any training.}
-\label{tab:param}
-\end{table}
-
-\subsection{A Few Marker Tokens Suffice}
-Does the marker interface throw away signal? Table~\ref{tab:token} sweeps the marker-token
-budget $M$ and tracks macro-F1 as it shrinks. Most of the full-gene signal survives with
-only a few dozen to a few hundred interpretable tokens, so the $\mathcal{O}(N^2)\!\to\!
-\mathcal{O}(M^2)$ compression that motivates the architecture costs little accuracy. The
-learned cross-attention router attends softly over every gene during training and
-collapses to a hard arg-max panel at evaluation, yielding the interpretable
-recursion-depth ranking that fixed panels cannot provide.
-
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TABLE3@@}
-\caption{\textbf{Marker-token budget.} Macro-F1 (mean$\pm$std over @@NSEEDS@@ seeds) as
-the marker budget $M$ shrinks from 256 to 16. A few dozen to a few hundred tokens recover
-most of the full-gene accuracy. Bottom row: mean over all @@N_TOTAL@@ datasets.}
-\label{tab:token}
-\end{table}
+Two efficiency properties hold \emph{before any training}. First, weight sharing makes the
+parameter count depth-independent: one shared block uses $1/K$ of the parameters of $K$
+independent layers -- an exact @@PARAMRATIO@@$\times$ reduction at $K{=}$@@DEPTH@@ that
+widens with depth (Table~\ref{tab:param}, appendix). Second, the marker interface compresses
+$\mathcal{O}(N^2)\!\to\!\mathcal{O}(M^2)$: sweeping the budget shows a few dozen to a few
+hundred interpretable tokens recover most of the full-gene accuracy (Table~\ref{tab:token},
+appendix), while the soft-train / hard-eval router yields the recursion-depth ranking that
+fixed panels cannot provide.
 
 \subsection{The Priors Do Not Improve Uncertainty Either}
 Beyond point accuracy, a prior could still earn its place by making the model better
@@ -2022,37 +1957,86 @@ interpretable compute-allocated recursion-depth signal. The complete pipeline, i
 all experiments and this paper, regenerates from a single command.
 
 \section{Broader Impact and Ethics Statement}
-\emph{Positive applications.} SMART targets cell-type annotation and bulk-omics
-subtyping with an order-of-magnitude fewer transformer parameters and an explicit,
-auditable marker-gene and recursion-depth signal; cheaper, more interpretable models
-lower the barrier for biological discovery and make automated annotation easier to
-scrutinise before it informs downstream science.
-\emph{Risks and mitigations.} Cell-type and subtype predictions are research tools, not
-clinical decisions: deployed naively on a population or tissue absent from training they
-can be confidently wrong, as our hard, low-accuracy suites show (e.g.\ the Segerstolpe
-and STAD cases). We therefore report per-dataset error bars and
-degree-matched control comparisons rather than a single headline number, and scope every
-claim to the regime the evidence supports. The learned marker panels are interpretable
-and should be inspected for confounds (batch, donor, ambient RNA) before any biological
-conclusion is drawn.
-\emph{Data and privacy.} All datasets are public, de-identified single-cell and
-bulk-omics resources used under their original licenses; we add no re-identifying
-information and release no individual-level data. Genomic data is inherently sensitive,
-and any extension of this method to non-public cohorts should pass the corresponding IRB
-and data-governance review.
-\emph{Compute footprint.} The efficiency that motivates the method also bounds its
-environmental cost: every run in this paper fits on a single GPU, and weight sharing
-plus marker compression cut both parameters and attention FLOPs, reducing rather than
-inflating training cost.
-\emph{Reproducibility and tooling disclosure.} The full pipeline---data preparation,
-training, ablations, tables and figures---regenerates from a single command, and
-automated tooling was used to assist with code and manuscript preparation; all reported
-numbers trace to committed result files.
+SMART targets cell-type annotation and bulk-omics subtyping with far fewer parameters and
+an auditable marker-gene and recursion-depth signal, lowering the barrier for interpretable
+biological discovery. Its predictions are research tools, not clinical decisions: on a
+tissue or population absent from training they can be confidently wrong (our hard suites,
+e.g.\ Segerstolpe and STAD), so we report per-dataset error bars and degree-matched
+controls rather than a single headline number, and the learned marker panels should be
+inspected for confounds (batch, donor, ambient RNA) before any biological conclusion. All
+datasets are public and de-identified, used under their original licenses; extensions to
+non-public cohorts should pass the corresponding IRB and data-governance review. Every run
+fits on a single GPU, and the full pipeline regenerates from one command with all reported
+numbers tracing to committed result files; automated tooling assisted code and manuscript
+preparation.
 
 \bibliographystyle{aaai}
 \bibliography{refs}
 
 \appendix
+\section{Additional Results and Ablations}
+\label{app:extra}
+This appendix collects supporting tables referenced from the main text: the foundation-model
+comparison on the P-NET cohorts (Table~\ref{tab:fm}), the biological warm-start stress test
+(Table~\ref{tab:anchor}), the marker-budget headroom sweep (Table~\ref{tab:mbudget}) and the
+marker-token budget (Table~\ref{tab:token}).
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_FM@@}
+\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
+(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
+$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
+mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
+input is out-of-distribution for these single-cell-RNA models; this is an out-of-distribution
+sanity check, not a headline accuracy comparison.}
+\label{tab:fm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_ANCHOR@@}
+\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
+mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
+then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
+that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
+init; forcing biology in more strongly does not beat learning the graph from data.}
+\label{tab:anchor}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_MBUDGET@@}
+\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
+model as the marker budget $M$ grows on the single-cell suites, against the full-feature
+linear baseline. Because $M$ is capped at the feature count, the largest rung uses
+\emph{every} feature as a marker, yet the mean still trails the linear pipeline by
+@@MB_RESID@@ points: the gap is architectural, not a token-budget limitation.}
+\label{tab:mbudget}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{0.85\columnwidth}{!}{%
+@@TABLE2@@}
+\caption{\textbf{Parameter reduction.} One shared block versus $K$ independent layers at
+matched width: an exact $K\times$ reduction, present before any training.}
+\label{tab:param}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE3@@}
+\caption{\textbf{Marker-token budget.} Macro-F1 (mean$\pm$std over @@NSEEDS@@ seeds) as
+the marker budget $M$ shrinks from 256 to 16. A few dozen to a few hundred tokens recover
+most of the full-gene accuracy. Bottom row: mean over all @@N_TOTAL@@ datasets.}
+\label{tab:token}
+\end{table}
+
 \section{Dataset Details}
 \label{app:data}
 We use $@@N_SC@@$ genomap single-cell datasets \cite{islam2023cartography} converted to
