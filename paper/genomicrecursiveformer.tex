@@ -64,7 +64,7 @@ regenerate from a single command.
 \section{Introduction}
 \begin{figure*}[t]
 \centering
-\resizebox{\linewidth}{!}{%
+\resizebox{0.78\linewidth}{!}{%
 \begin{tikzpicture}[
   node distance=10mm and 9mm,
   stage/.style={rounded corners=3pt, draw=boxedge, line width=0.6pt, fill=white,
@@ -440,18 +440,7 @@ trained end-to-end. Numbers are the mean$\pm$std over 10 seeds for the
 routing ablation (Table~\ref{tab:learned}) and over 3 seeds for the architecture,
 token and calibration sweeps, all with the hard arg-max marker panel at inference.
 
-\paragraph{Roadmap.}
-Five result tables settle five questions. \emph{Does biology help routing?}
-Table~\ref{tab:learned}: a \emph{learned} routing graph is the decisive positive, while a
-\emph{fixed} hand-built biology prior does not beat a degree-matched random-graph control.
-\emph{Does the architecture cost accuracy?} Table~\ref{tab:ladder}: the vanilla-to-MoR
-ladder preserves accuracy while cutting parameters and compute. \emph{How small can the
-parameters get?} Table~\ref{tab:param}: an exact $K\times$ reduction from weight sharing.
-\emph{How few tokens suffice?} Table~\ref{tab:token}: a few dozen to a few hundred markers
-recover most full-gene accuracy. \emph{Do the priors improve calibration?}
-Table~\ref{tab:uq}: no. Every table is multi-seed over the full 11-dataset suite.
-
-\subsection{Main Results: Learned Routing Is the Decisive Positive}
+\subsection{Main Results: The Learned Gene-Graph Is the Decisive Positive}
 \label{sec:interaction}
 Our central routing experiment holds the architecture fixed and varies only how the
 depth router's gene-gene graph is formed, under otherwise identical training. We compare
@@ -494,33 +483,6 @@ prior and warm-start reach, now stress-tested: the value is in \emph{learning} t
 and an explicit biological graph -- however forcefully injected -- does not improve on what
 end-to-end training already recovers (Table~\ref{tab:anchor}).
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccc}
-\toprule
-Dataset & Learned (random init) & $+$ bio warm-start & $+$ stronger init & $+$ annealed anchor \\
-\midrule
-Baron & 82.3\,$\pm$\,2.2 & 80.9\,$\pm$\,3.8 & 81.6\,$\pm$\,1.8 & 66.8\,$\pm$\,6.2 \\
-Lung & 79.5\,$\pm$\,1.4 & 79.8\,$\pm$\,0.8 & 78.4\,$\pm$\,0.6 & 70.0\,$\pm$\,2.7 \\
-Muraro & 74.5\,$\pm$\,5.4 & 75.3\,$\pm$\,4.9 & 76.6\,$\pm$\,5.4 & 75.9\,$\pm$\,9.3 \\
-Oeso. & 69.3\,$\pm$\,0.7 & 71.1\,$\pm$\,0.9 & 70.2\,$\pm$\,1.0 & 57.4\,$\pm$\,2.6 \\
-Seger. & 74.0\,$\pm$\,5.3 & 69.9\,$\pm$\,7.4 & 74.5\,$\pm$\,5.7 & 53.0\,$\pm$\,5.0 \\
-Spleen & 59.0\,$\pm$\,0.2 & 59.1\,$\pm$\,0.7 & 58.7\,$\pm$\,1.2 & 52.5\,$\pm$\,1.2 \\
-T-cell & 68.9\,$\pm$\,0.7 & 69.1\,$\pm$\,1.1 & 69.0\,$\pm$\,0.6 & 54.7\,$\pm$\,2.4 \\
-Xin & 69.2\,$\pm$\,5.0 & 67.2\,$\pm$\,8.4 & 68.5\,$\pm$\,6.1 & 69.5\,$\pm$\,7.7 \\
-\midrule
-\textbf{Mean macro-F1} & \textbf{72.1} & \textbf{71.5} & \textbf{72.2} & \textbf{62.5} \\
-\quad $\Delta$ vs.\ random & $+0.0$ & $-0.6$ & $+0.1$ & $-9.6$ \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
-mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
-then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
-that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
-init; forcing biology in more strongly does not beat learning the graph from data.}
-\label{tab:anchor}
-\end{table}
 
 \begin{table*}[t]
 \centering
@@ -664,32 +626,6 @@ recurse bottleneck and the softmax marker read-out discard linearly-decodable si
 the linear pipeline keeps. Closing it needs an architectural change -- a hybrid linear
 residual head, or a less lossy marker read-out -- not merely a bigger budget.
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccccc}
-\toprule
-Dataset & $M{=}128$ & $M{=}256$ & $M{=}512$ & $M{=}1024$ & $M{=}2048$ & Linear (all feat.) \\
-\midrule
-Baron & 79.1\,$\pm$\,2.8 & 78.1\,$\pm$\,1.4 & 79.6\,$\pm$\,4.4 & 82.6\,$\pm$\,2.0 & 80.4\,$\pm$\,2.1 & 91.1\,$\pm$\,2.0 \\
-Lung & 79.1\,$\pm$\,1.2 & 80.2\,$\pm$\,0.8 & 79.8\,$\pm$\,1.9 & 81.3\,$\pm$\,2.0 & 81.1\,$\pm$\,1.9 & 74.8\,$\pm$\,0.2 \\
-Muraro & 75.3\,$\pm$\,6.4 & 72.4\,$\pm$\,2.7 & 68.3\,$\pm$\,3.3 & 75.7\,$\pm$\,4.5 & 73.8\,$\pm$\,6.0 & 95.7\,$\pm$\,2.2 \\
-Oeso. & 69.6\,$\pm$\,1.4 & 69.8\,$\pm$\,0.6 & 71.5\,$\pm$\,1.6 & 73.6\,$\pm$\,0.5 & 72.2\,$\pm$\,1.6 & 69.5\,$\pm$\,1.1 \\
-Seger. & 71.4\,$\pm$\,5.3 & 70.3\,$\pm$\,4.1 & 73.8\,$\pm$\,5.4 & 69.4\,$\pm$\,14.7 & 68.3\,$\pm$\,3.3 & 89.5\,$\pm$\,5.0 \\
-Spleen & 58.2\,$\pm$\,0.9 & 58.6\,$\pm$\,1.6 & 59.9\,$\pm$\,0.8 & 61.1\,$\pm$\,2.3 & 61.6\,$\pm$\,4.0 & 64.7\,$\pm$\,0.1 \\
-T-cell & 68.9\,$\pm$\,1.0 & 69.9\,$\pm$\,0.3 & 71.5\,$\pm$\,0.4 & 71.8\,$\pm$\,2.3 & 73.0\,$\pm$\,0.3 & 78.1\,$\pm$\,0.3 \\
-Xin & 64.7\,$\pm$\,9.4 & 64.8\,$\pm$\,6.0 & 63.7\,$\pm$\,10.3 & 64.1\,$\pm$\,0.6 & 62.1\,$\pm$\,2.8 & 97.4\,$\pm$\,0.6 \\
-\midrule
-\textbf{Mean macro-F1} & \textbf{70.8} & \textbf{70.5} & \textbf{71.0} & \textbf{72.5} & \textbf{71.6} & \textbf{82.6} \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
-model as the marker budget $M$ grows on the single-cell suites, against the full-feature
-linear baseline. Because $M$ is capped at the feature count, the largest rung uses
-\emph{every} feature as a marker, yet the mean still trails the linear pipeline by
-11.1 points: the gap is architectural, not a token-budget limitation.}
-\label{tab:mbudget}
-\end{table}
 
 \paragraph{On gene-vocabulary foundation models.}
 A natural question is how SMART compares to pretrained single-cell foundation models such
@@ -709,27 +645,6 @@ SMART matches the far larger, cancer-pretrained Geneformer on mean macro-F1 (57.
 single-cell data -- which the genomap preparation does not expose -- as the natural next
 benchmark for SMART.
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccc}
-\toprule
-Cohort & SMART (mut+CNV) & Geneformer & scGPT \\
-\midrule
-Prostate & 78.2\,$\pm$\,2.2 & 78.2\,$\pm$\,3.3 & 40.1\,$\pm$\,0.0 \\
-BLCA & 40.9\,$\pm$\,1.9 & 47.7\,$\pm$\,3.7 & 40.4\,$\pm$\,0.0 \\
-STAD & 52.2\,$\pm$\,6.8 & 46.1\,$\pm$\,5.5 & 35.7\,$\pm$\,0.0 \\
-\midrule
-\textbf{Mean} & \textbf{57.1} & \textbf{57.3} & \textbf{38.7} \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
-(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
-$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
-mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
-input is out-of-distribution for these single-cell-RNA models.}
-\label{tab:fm}
-\end{table}
 
 \begin{table}[t]
 \centering
@@ -904,43 +819,6 @@ all configurations alike, so it does not change the \emph{comparison} -- the pri
 do not \emph{differentially} improve calibration -- but it makes the deployed model both
 accurate (via the learned graph) and far better scored.
 
-\begin{table}[t]
-\centering
-\resizebox{0.95\columnwidth}{!}{%
-\begin{tabular}{lcccccc}
-\toprule
-& \multicolumn{6}{c}{NLL $\downarrow$ (raw)} \\
-\cmidrule(lr){2-7}
-Dataset & Vanilla & None & Fixed & Adaptive & Bio & Learned \\
-\midrule
-\multicolumn{7}{l}{\emph{Single-cell (genomap)}} \\
-\quad Baron & 0.57 & 0.53 & 0.46 & 0.53 & 0.49 & 0.34 \\
-\quad Lung & 0.68 & 0.61 & 0.64 & 0.61 & 0.63 & 0.55 \\
-\quad Muraro & 0.57 & 0.54 & 0.44 & 0.54 & -- & 0.81 \\
-\quad Oeso. & 0.60 & 0.66 & 0.61 & 0.66 & 0.54 & 0.48 \\
-\quad Seger. & 0.64 & 0.59 & 0.53 & 0.59 & -- & 0.49 \\
-\quad Spleen & 1.29 & 1.29 & 1.27 & 1.29 & 1.27 & 1.06 \\
-\quad T-cell & 1.04 & 1.01 & 0.99 & 1.01 & 1.05 & 1.12 \\
-\quad Xin & 0.48 & 0.43 & 0.47 & 0.43 & -- & 1.41 \\
-\midrule
-\multicolumn{7}{l}{\emph{Multi-omics (Reactome/P-NET)}} \\
-\quad Prostate & 4.54 & 4.30 & 5.74 & 4.27 & 4.33 & 4.26 \\
-\quad BLCA & 3.13 & 3.16 & 3.09 & 3.16 & 3.16 & 3.17 \\
-\quad STAD & 0.73 & 1.10 & 0.73 & 2.90 & 2.87 & 0.69 \\
-\midrule
-\textbf{Mean NLL (raw)} & \textbf{1.30} & \textbf{1.29} & \textbf{1.36} & \textbf{1.45} & \textbf{1.79} & \textbf{1.31} \\
-\textbf{Mean NLL ($+T$)} & \textbf{0.73} & \textbf{0.72} & \textbf{0.67} & \textbf{0.72} & \textbf{0.75} & \textbf{0.67} \\
-\bottomrule
-\end{tabular}}
-\caption{\textbf{Calibration per dataset (raw NLL $\downarrow$).} Negative log-likelihood
-for each configuration on every dataset (mean over 3 seeds); a few Bio cells are
-blank where the degenerate co-expression graph gave non-finite NLL. The bottom rows give
-the mean raw NLL and the mean after \emph{temperature scaling} ($+T$: one scalar fit on
-validation, which leaves accuracy exactly unchanged). No routing prior improves raw
-calibration -- including the accuracy-winning learned graph -- but temperature scaling
-sharply reduces NLL for every configuration at no accuracy cost.}
-\label{tab:uq}
-\end{table}
 
 \section{Discussion and Limitations}
 SMART shows biological inductive bias and parameter-efficient recursion can be co-designed:
@@ -989,6 +867,121 @@ preparation.
 \bibliography{refs}
 
 \appendix
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+Dataset & $M{=}128$ & $M{=}256$ & $M{=}512$ & $M{=}1024$ & $M{=}2048$ & Linear (all feat.) \\
+\midrule
+Baron & 79.1\,$\pm$\,2.8 & 78.1\,$\pm$\,1.4 & 79.6\,$\pm$\,4.4 & 82.6\,$\pm$\,2.0 & 80.4\,$\pm$\,2.1 & 91.1\,$\pm$\,2.0 \\
+Lung & 79.1\,$\pm$\,1.2 & 80.2\,$\pm$\,0.8 & 79.8\,$\pm$\,1.9 & 81.3\,$\pm$\,2.0 & 81.1\,$\pm$\,1.9 & 74.8\,$\pm$\,0.2 \\
+Muraro & 75.3\,$\pm$\,6.4 & 72.4\,$\pm$\,2.7 & 68.3\,$\pm$\,3.3 & 75.7\,$\pm$\,4.5 & 73.8\,$\pm$\,6.0 & 95.7\,$\pm$\,2.2 \\
+Oeso. & 69.6\,$\pm$\,1.4 & 69.8\,$\pm$\,0.6 & 71.5\,$\pm$\,1.6 & 73.6\,$\pm$\,0.5 & 72.2\,$\pm$\,1.6 & 69.5\,$\pm$\,1.1 \\
+Seger. & 71.4\,$\pm$\,5.3 & 70.3\,$\pm$\,4.1 & 73.8\,$\pm$\,5.4 & 69.4\,$\pm$\,14.7 & 68.3\,$\pm$\,3.3 & 89.5\,$\pm$\,5.0 \\
+Spleen & 58.2\,$\pm$\,0.9 & 58.6\,$\pm$\,1.6 & 59.9\,$\pm$\,0.8 & 61.1\,$\pm$\,2.3 & 61.6\,$\pm$\,4.0 & 64.7\,$\pm$\,0.1 \\
+T-cell & 68.9\,$\pm$\,1.0 & 69.9\,$\pm$\,0.3 & 71.5\,$\pm$\,0.4 & 71.8\,$\pm$\,2.3 & 73.0\,$\pm$\,0.3 & 78.1\,$\pm$\,0.3 \\
+Xin & 64.7\,$\pm$\,9.4 & 64.8\,$\pm$\,6.0 & 63.7\,$\pm$\,10.3 & 64.1\,$\pm$\,0.6 & 62.1\,$\pm$\,2.8 & 97.4\,$\pm$\,0.6 \\
+\midrule
+\textbf{Mean macro-F1} & \textbf{70.8} & \textbf{70.5} & \textbf{71.0} & \textbf{72.5} & \textbf{71.6} & \textbf{82.6} \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
+model as the marker budget $M$ grows on the single-cell suites, against the full-feature
+linear baseline. Because $M$ is capped at the feature count, the largest rung uses
+\emph{every} feature as a marker, yet the mean still trails the linear pipeline by
+11.1 points: the gap is architectural, not a token-budget limitation.}
+\label{tab:mbudget}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Dataset & Learned (random init) & $+$ bio warm-start & $+$ stronger init & $+$ annealed anchor \\
+\midrule
+Baron & 82.3\,$\pm$\,2.2 & 80.9\,$\pm$\,3.8 & 81.6\,$\pm$\,1.8 & 66.8\,$\pm$\,6.2 \\
+Lung & 79.5\,$\pm$\,1.4 & 79.8\,$\pm$\,0.8 & 78.4\,$\pm$\,0.6 & 70.0\,$\pm$\,2.7 \\
+Muraro & 74.5\,$\pm$\,5.4 & 75.3\,$\pm$\,4.9 & 76.6\,$\pm$\,5.4 & 75.9\,$\pm$\,9.3 \\
+Oeso. & 69.3\,$\pm$\,0.7 & 71.1\,$\pm$\,0.9 & 70.2\,$\pm$\,1.0 & 57.4\,$\pm$\,2.6 \\
+Seger. & 74.0\,$\pm$\,5.3 & 69.9\,$\pm$\,7.4 & 74.5\,$\pm$\,5.7 & 53.0\,$\pm$\,5.0 \\
+Spleen & 59.0\,$\pm$\,0.2 & 59.1\,$\pm$\,0.7 & 58.7\,$\pm$\,1.2 & 52.5\,$\pm$\,1.2 \\
+T-cell & 68.9\,$\pm$\,0.7 & 69.1\,$\pm$\,1.1 & 69.0\,$\pm$\,0.6 & 54.7\,$\pm$\,2.4 \\
+Xin & 69.2\,$\pm$\,5.0 & 67.2\,$\pm$\,8.4 & 68.5\,$\pm$\,6.1 & 69.5\,$\pm$\,7.7 \\
+\midrule
+\textbf{Mean macro-F1} & \textbf{72.1} & \textbf{71.5} & \textbf{72.2} & \textbf{62.5} \\
+\quad $\Delta$ vs.\ random & $+0.0$ & $-0.6$ & $+0.1$ & $-9.6$ \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
+mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
+then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
+that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
+init; forcing biology in more strongly does not beat learning the graph from data.}
+\label{tab:anchor}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Cohort & SMART (mut+CNV) & Geneformer & scGPT \\
+\midrule
+Prostate & 78.2\,$\pm$\,2.2 & 78.2\,$\pm$\,3.3 & 40.1\,$\pm$\,0.0 \\
+BLCA & 40.9\,$\pm$\,1.9 & 47.7\,$\pm$\,3.7 & 40.4\,$\pm$\,0.0 \\
+STAD & 52.2\,$\pm$\,6.8 & 46.1\,$\pm$\,5.5 & 35.7\,$\pm$\,0.0 \\
+\midrule
+\textbf{Mean} & \textbf{57.1} & \textbf{57.3} & \textbf{38.7} \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
+(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
+$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
+mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
+input is out-of-distribution for these single-cell-RNA models.}
+\label{tab:fm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{0.95\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{6}{c}{NLL $\downarrow$ (raw)} \\
+\cmidrule(lr){2-7}
+Dataset & Vanilla & None & Fixed & Adaptive & Bio & Learned \\
+\midrule
+\multicolumn{7}{l}{\emph{Single-cell (genomap)}} \\
+\quad Baron & 0.57 & 0.53 & 0.46 & 0.53 & 0.49 & 0.34 \\
+\quad Lung & 0.68 & 0.61 & 0.64 & 0.61 & 0.63 & 0.55 \\
+\quad Muraro & 0.57 & 0.54 & 0.44 & 0.54 & -- & 0.81 \\
+\quad Oeso. & 0.60 & 0.66 & 0.61 & 0.66 & 0.54 & 0.48 \\
+\quad Seger. & 0.64 & 0.59 & 0.53 & 0.59 & -- & 0.49 \\
+\quad Spleen & 1.29 & 1.29 & 1.27 & 1.29 & 1.27 & 1.06 \\
+\quad T-cell & 1.04 & 1.01 & 0.99 & 1.01 & 1.05 & 1.12 \\
+\quad Xin & 0.48 & 0.43 & 0.47 & 0.43 & -- & 1.41 \\
+\midrule
+\multicolumn{7}{l}{\emph{Multi-omics (Reactome/P-NET)}} \\
+\quad Prostate & 4.54 & 4.30 & 5.74 & 4.27 & 4.33 & 4.26 \\
+\quad BLCA & 3.13 & 3.16 & 3.09 & 3.16 & 3.16 & 3.17 \\
+\quad STAD & 0.73 & 1.10 & 0.73 & 2.90 & 2.87 & 0.69 \\
+\midrule
+\textbf{Mean NLL (raw)} & \textbf{1.30} & \textbf{1.29} & \textbf{1.36} & \textbf{1.45} & \textbf{1.79} & \textbf{1.31} \\
+\textbf{Mean NLL ($+T$)} & \textbf{0.73} & \textbf{0.72} & \textbf{0.67} & \textbf{0.72} & \textbf{0.75} & \textbf{0.67} \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Calibration per dataset (raw NLL $\downarrow$).} Negative log-likelihood
+for each configuration on every dataset (mean over 3 seeds); a few Bio cells are
+blank where the degenerate co-expression graph gave non-finite NLL. The bottom rows give
+the mean raw NLL and the mean after \emph{temperature scaling} ($+T$: one scalar fit on
+validation, which leaves accuracy exactly unchanged). No routing prior improves raw
+calibration -- including the accuracy-winning learned graph -- but temperature scaling
+sharply reduces NLL for every configuration at no accuracy cost.}
+\label{tab:uq}
+\end{table}
+
 \begin{table}[t]
 \centering
 \resizebox{0.85\columnwidth}{!}{%

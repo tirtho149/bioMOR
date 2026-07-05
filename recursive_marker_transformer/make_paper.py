@@ -1135,7 +1135,7 @@ regenerate from a single command.
 \section{Introduction}
 \begin{figure*}[t]
 \centering
-\resizebox{\linewidth}{!}{%
+\resizebox{0.78\linewidth}{!}{%
 \begin{tikzpicture}[
   node distance=10mm and 9mm,
   stage/.style={rounded corners=3pt, draw=boxedge, line width=0.6pt, fill=white,
@@ -1511,18 +1511,7 @@ trained end-to-end. Numbers are the mean$\pm$std over @@NSEEDS_LEARNED@@ seeds f
 routing ablation (Table~\ref{tab:learned}) and over @@NSEEDS@@ seeds for the architecture,
 token and calibration sweeps, all with the hard arg-max marker panel at inference.
 
-\paragraph{Roadmap.}
-Five result tables settle five questions. \emph{Does biology help routing?}
-Table~\ref{tab:learned}: a \emph{learned} routing graph is the decisive positive, while a
-\emph{fixed} hand-built biology prior does not beat a degree-matched random-graph control.
-\emph{Does the architecture cost accuracy?} Table~\ref{tab:ladder}: the vanilla-to-MoR
-ladder preserves accuracy while cutting parameters and compute. \emph{How small can the
-parameters get?} Table~\ref{tab:param}: an exact $K\times$ reduction from weight sharing.
-\emph{How few tokens suffice?} Table~\ref{tab:token}: a few dozen to a few hundred markers
-recover most full-gene accuracy. \emph{Do the priors improve calibration?}
-Table~\ref{tab:uq}: no. Every table is multi-seed over the full @@N_TOTAL@@-dataset suite.
-
-\subsection{Main Results: Learned Routing Is the Decisive Positive}
+\subsection{Main Results: The Learned Gene-Graph Is the Decisive Positive}
 \label{sec:interaction}
 Our central routing experiment holds the architecture fixed and varies only how the
 depth router's gene-gene graph is formed, under otherwise identical training. We compare
@@ -1565,17 +1554,6 @@ prior and warm-start reach, now stress-tested: the value is in \emph{learning} t
 and an explicit biological graph -- however forcefully injected -- does not improve on what
 end-to-end training already recovers (Table~\ref{tab:anchor}).
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TABLE_ANCHOR@@}
-\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
-mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
-then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
-that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
-init; forcing biology in more strongly does not beat learning the graph from data.}
-\label{tab:anchor}
-\end{table}
 
 \begin{table*}[t]
 \centering
@@ -1671,17 +1649,6 @@ recurse bottleneck and the softmax marker read-out discard linearly-decodable si
 the linear pipeline keeps. Closing it needs an architectural change -- a hybrid linear
 residual head, or a less lossy marker read-out -- not merely a bigger budget.
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TABLE_MBUDGET@@}
-\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
-model as the marker budget $M$ grows on the single-cell suites, against the full-feature
-linear baseline. Because $M$ is capped at the feature count, the largest rung uses
-\emph{every} feature as a marker, yet the mean still trails the linear pipeline by
-@@MB_RESID@@ points: the gap is architectural, not a token-budget limitation.}
-\label{tab:mbudget}
-\end{table}
 
 \paragraph{On gene-vocabulary foundation models.}
 A natural question is how SMART compares to pretrained single-cell foundation models such
@@ -1701,17 +1668,6 @@ foundation model, and the numbers should be read in that light. On these cohorts
 single-cell data -- which the genomap preparation does not expose -- as the natural next
 benchmark for SMART.
 
-\begin{table}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-@@TABLE_FM@@}
-\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
-(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
-$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
-mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
-input is out-of-distribution for these single-cell-RNA models.}
-\label{tab:fm}
-\end{table}
 
 \begin{table}[t]
 \centering
@@ -1815,19 +1771,6 @@ all configurations alike, so it does not change the \emph{comparison} -- the pri
 do not \emph{differentially} improve calibration -- but it makes the deployed model both
 accurate (via the learned graph) and far better scored.
 
-\begin{table}[t]
-\centering
-\resizebox{0.95\columnwidth}{!}{%
-@@TABLE4@@}
-\caption{\textbf{Calibration per dataset (raw NLL $\downarrow$).} Negative log-likelihood
-for each configuration on every dataset (mean over @@NSEEDS@@ seeds); a few Bio cells are
-blank where the degenerate co-expression graph gave non-finite NLL. The bottom rows give
-the mean raw NLL and the mean after \emph{temperature scaling} ($+T$: one scalar fit on
-validation, which leaves accuracy exactly unchanged). No routing prior improves raw
-calibration -- including the accuracy-winning learned graph -- but temperature scaling
-sharply reduces NLL for every configuration at no accuracy cost.}
-\label{tab:uq}
-\end{table}
 
 \section{Discussion and Limitations}
 SMART shows biological inductive bias and parameter-efficient recursion can be co-designed:
@@ -1876,6 +1819,56 @@ preparation.
 \bibliography{refs}
 
 \appendix
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_MBUDGET@@}
+\caption{\textbf{Marker-budget headroom.} Macro-F1 (mean$\pm$std) of the learned-graph
+model as the marker budget $M$ grows on the single-cell suites, against the full-feature
+linear baseline. Because $M$ is capped at the feature count, the largest rung uses
+\emph{every} feature as a marker, yet the mean still trails the linear pipeline by
+@@MB_RESID@@ points: the gap is architectural, not a token-budget limitation.}
+\label{tab:mbudget}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_ANCHOR@@}
+\caption{\textbf{Stress-testing the biological warm-start} (single-cell macro-F1,
+mean$\pm$std). From a randomly-initialised learned graph we add a biological warm-start,
+then a stronger init, then an annealed anchor $\lambda(t)\lVert A_{\text{learned}}-A_{\text{bio}}\rVert_F^2$
+that keeps the graph near biology early. The $\Delta$ row is the mean gain over random
+init; forcing biology in more strongly does not beat learning the graph from data.}
+\label{tab:anchor}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+@@TABLE_FM@@}
+\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
+(macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
+$+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
+mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
+input is out-of-distribution for these single-cell-RNA models.}
+\label{tab:fm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{0.95\columnwidth}{!}{%
+@@TABLE4@@}
+\caption{\textbf{Calibration per dataset (raw NLL $\downarrow$).} Negative log-likelihood
+for each configuration on every dataset (mean over @@NSEEDS@@ seeds); a few Bio cells are
+blank where the degenerate co-expression graph gave non-finite NLL. The bottom rows give
+the mean raw NLL and the mean after \emph{temperature scaling} ($+T$: one scalar fit on
+validation, which leaves accuracy exactly unchanged). No routing prior improves raw
+calibration -- including the accuracy-winning learned graph -- but temperature scaling
+sharply reduces NLL for every configuration at no accuracy cost.}
+\label{tab:uq}
+\end{table}
+
 \begin{table}[t]
 \centering
 \resizebox{0.85\columnwidth}{!}{%
