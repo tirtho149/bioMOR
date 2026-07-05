@@ -155,12 +155,10 @@ routes tokens through variable numbers of layers, both echoing sparsely-gated mi
 of experts \cite{shazeer2017outrageously} and adaptive computation time
 \cite{graves2016adaptive}. Efficient-attention methods, Linformer
 \cite{wang2020linformer}, Performer \cite{choromanski2021rethinking} and
-Nystr\"omformer \cite{xiong2021nystromformer}, reduce the quadratic cost generically.
-Recursive weight sharing has also been pushed in vision and restoration transformers:
-the Sliced Recursive Transformer \cite{shen2021sliced}, RISTRA \cite{zhou2024ristra},
-Mixture-of-LoRAs recursion \cite{nouriborji2025mol}, and Ouroboros
-\cite{jaber2026ouroboros}. We borrow the weight-sharing mechanism but make the token
-set biologically structured and the routing biologically primed, so our
+Nystr\"omformer \cite{xiong2021nystromformer}, reduce the quadratic cost generically,
+and recursive weight sharing has been pushed further in vision and restoration transformers
+\cite{shen2021sliced,jaber2026ouroboros}. We borrow the weight-sharing mechanism but make
+the token set biologically structured and the routing biologically primed, so our
 $\mathcal{O}(M^2)$ saving and our prior are complementary to these methods.
 
 \paragraph{Markers, networks, and biological priors.}
@@ -337,85 +335,6 @@ bae2025mixture}, so the stack's parameter count is independent of $K$. After eac
 pass we recompute a per-token gate from the \emph{updated} embeddings,
 $g^{(t)}_m = \sigma(\mathrm{MLP}_r(\mathbf{H}^{(t)}_m))$, and apply it before the next
 pass (\emph{recursive marker refinement}).
-
-\begin{figure*}[t]
-\centering
-\resizebox{0.92\linewidth}{!}{%
-\begin{tikzpicture}[
-  font=\footnotesize,
-  blk/.style={rounded corners=2pt, draw=boxedge, line width=0.6pt, fill=white,
-              text width=24mm, align=center, minimum height=6.5mm, inner sep=2pt, font=\scriptsize},
-  add/.style={circle, draw=boxedge, inner sep=0.3pt, minimum size=3.4mm, font=\tiny},
-  fl/.style={-{Stealth[length=2mm]}, line width=0.7pt, draw=boxedge},
-  rec/.style={-{Stealth[length=2.4mm]}, line width=1.0pt, draw=accentB},
-  on/.style={rounded corners=1pt, fill=accentB, draw=accentB, minimum size=5.5mm, inner sep=0pt},
-  off/.style={rounded corners=1pt, fill=black!4, draw=boxedge!55, minimum size=5.5mm, inner sep=0pt},
-  hd/.style={font=\scriptsize\bfseries},
-]
-\node[hd, text=accentB] (btitle) {Shared block $f_\theta$};
-\node[font=\scriptsize, below=1.4mm of btitle] (bin) {tokens $\mathbf{H}^{(t)}$};
-\node[blk, below=2mm of bin] (ln1) {LayerNorm};
-\node[blk, below=3mm of ln1] (att) {Multi-Head Self-Attn};
-\node[add, below=3mm of att] (a1) {$+$};
-\node[blk, below=3mm of a1] (ln2) {LayerNorm};
-\node[blk, below=3mm of ln2] (ffn) {Feed-Forward};
-\node[add, below=3mm of ffn] (a2) {$+$};
-\node[font=\scriptsize, below=2.4mm of a2] (bout) {$\mathbf{H}^{(t{+}1)}$};
-\draw[fl] (bin)--(ln1); \draw[fl] (ln1)--(att); \draw[fl] (att)--(a1);
-\draw[fl] (a1)--(ln2); \draw[fl] (ln2)--(ffn); \draw[fl] (ffn)--(a2); \draw[fl] (a2)--(bout);
-\draw[fl] (bin.west) -- ++(-6mm,0) |- (a1.west);
-\draw[fl] (a1.west) -- ++(-6mm,0) |- (a2.west);
-\draw[rec] (bout.east) -- ++(7mm,0) |- (bin.east)
-   node[pos=0.25, right, align=center, text=accentB, font=\scriptsize\bfseries] {apply\\$\times K$\\(shared $\theta$)};
-
-\begin{scope}[shift={(56mm,-8mm)}]
-  \node[hd, anchor=south west] at (-2mm,12.5mm) {Mixture-of-Recursions with biology-primed depth $d_m$};
-  \node[font=\tiny, text=subcap, anchor=south west] at (-2mm,10.4mm)
-     {keep top $\lceil c_t M\rceil$ by $\tilde r_m{=}r_m{+}\beta_t\pi_m$ (data $+$ prior)};
-  \draw[rec] (1*13mm,8.2mm) -- (4*13mm,8.2mm)
-     node[midway, above, font=\scriptsize, text=accentB] {$f_\theta$ reused each step};
-  \foreach \t/\c in {1/1.0, 2/0.75, 3/0.5, 4/0.5}{
-     \node[hd] at (\t*13mm,6mm) {$t{=}\t$};
-     \node[font=\tiny, text=subcap] at (\t*13mm,3.6mm) {keep $\c\,M$};
-  }
-  % genomap centrality prior pi (label-free): a bar per gene, longer = more central
-  % hub -> primed to recurse deeper. Visually correlates high pi with deep d_m.
-  \node[hd, anchor=west, text=accentA] at (78mm,6mm) {prior $\pi$};
-  \draw[boxedge!55, line width=0.4pt, dashed] (84mm,2.5mm) -- (84mm,-6*7mm+2mm);
-  \foreach \g/\d/\r/\pp in {Cd3e/4/0/1.6, Epcam/4/1/1.4, Pecam1/3/2/0.7, Krt19/2/3/0.2, Gapdh/1/4/-0.6, Actb/1/5/-0.8}{
-     \node[anchor=east, font=\scriptsize\ttfamily] at (8mm,-\r*7mm) {\g};
-     \foreach \t in {1,...,4}{
-        \ifnum\t>\d \node[off] at (\t*13mm,-\r*7mm) {}; \else \node[on] at (\t*13mm,-\r*7mm) {}; \fi
-     }
-     \node[anchor=west, font=\scriptsize] at (4*13mm+7mm,-\r*7mm) {$d_m{=}\d$};
-     \draw[accentA, line width=2.6pt] (84mm,-\r*7mm) -- ++(\pp*5mm,0);
-  }
-  \node[hd, anchor=west] at (4*13mm+7mm,6mm) {depth};
-  \node[on] (lg1) at (1*13mm,-6*7mm-1mm) {};
-  \node[anchor=west, font=\tiny] at ([xshift=1mm]lg1.east) {recurses};
-  \node[off] (lg2) at (3*13mm,-6*7mm-1mm) {};
-  \node[anchor=west, font=\tiny] at ([xshift=1mm]lg2.east) {frozen / exited};
-  \draw[accentA, line width=2.6pt] (80mm,-6*7mm-1mm) -- ++(5mm,0);
-  \node[anchor=west, font=\tiny] at (86mm,-6*7mm-1mm) {centrality prior $\pi$};
-\end{scope}
-\end{tikzpicture}%
-}
-\caption{\textbf{Biology-informed Mixture-of-Recursions.} \emph{Left:} one
-weight-shared pre-norm block $f_\theta$ (the model's only transformer parameters) is
-re-applied up to $K{=}4$ times, so depth costs no extra parameters. \emph{Right:} an
-expert-choice router keeps a shrinking top fraction of markers per step (capacity
-funnel $1,\tfrac34,\tfrac12,\tfrac12$); a marker not kept is frozen, so its
-\emph{recursion depth} $d_m$ is the deepest step it survived. The keep decision adds a
-label-free genomap co-expression-centrality prior $\beta_t\pi_m$ to each logit
-(Eq.~\ref{eq:biorouter}); the \textcolor{accentA}{green bars} show that prior $\pi$
-(longer $=$ more central a hub), so lineage and hub genes
-(\texttt{Cd3e}, \texttt{Epcam}) are primed to recur deepest while settled
-house-keeping genes (\texttt{Gapdh}, \texttt{Actb}) exit at $d_m{=}1$. The bar
-heights are illustrative of the centrality ordering, not fitted values. The prior graph
-may be \emph{fixed} (shown) or \emph{learned} end-to-end; empirically the learned graph is
-the decisive win, while a fixed centrality prior does not beat a random-graph control.}
-\label{fig:mor}
-\end{figure*}
 
 \paragraph{Mixture-of-Recursions over genes.}
 Spending the full depth $K$ on every marker is wasteful: most genes are settled after
@@ -1127,6 +1046,85 @@ preparation.
 \bibliography{refs}
 
 \appendix
+\begin{figure*}[t]
+\centering
+\resizebox{0.92\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  blk/.style={rounded corners=2pt, draw=boxedge, line width=0.6pt, fill=white,
+              text width=24mm, align=center, minimum height=6.5mm, inner sep=2pt, font=\scriptsize},
+  add/.style={circle, draw=boxedge, inner sep=0.3pt, minimum size=3.4mm, font=\tiny},
+  fl/.style={-{Stealth[length=2mm]}, line width=0.7pt, draw=boxedge},
+  rec/.style={-{Stealth[length=2.4mm]}, line width=1.0pt, draw=accentB},
+  on/.style={rounded corners=1pt, fill=accentB, draw=accentB, minimum size=5.5mm, inner sep=0pt},
+  off/.style={rounded corners=1pt, fill=black!4, draw=boxedge!55, minimum size=5.5mm, inner sep=0pt},
+  hd/.style={font=\scriptsize\bfseries},
+]
+\node[hd, text=accentB] (btitle) {Shared block $f_\theta$};
+\node[font=\scriptsize, below=1.4mm of btitle] (bin) {tokens $\mathbf{H}^{(t)}$};
+\node[blk, below=2mm of bin] (ln1) {LayerNorm};
+\node[blk, below=3mm of ln1] (att) {Multi-Head Self-Attn};
+\node[add, below=3mm of att] (a1) {$+$};
+\node[blk, below=3mm of a1] (ln2) {LayerNorm};
+\node[blk, below=3mm of ln2] (ffn) {Feed-Forward};
+\node[add, below=3mm of ffn] (a2) {$+$};
+\node[font=\scriptsize, below=2.4mm of a2] (bout) {$\mathbf{H}^{(t{+}1)}$};
+\draw[fl] (bin)--(ln1); \draw[fl] (ln1)--(att); \draw[fl] (att)--(a1);
+\draw[fl] (a1)--(ln2); \draw[fl] (ln2)--(ffn); \draw[fl] (ffn)--(a2); \draw[fl] (a2)--(bout);
+\draw[fl] (bin.west) -- ++(-6mm,0) |- (a1.west);
+\draw[fl] (a1.west) -- ++(-6mm,0) |- (a2.west);
+\draw[rec] (bout.east) -- ++(7mm,0) |- (bin.east)
+   node[pos=0.25, right, align=center, text=accentB, font=\scriptsize\bfseries] {apply\\$\times K$\\(shared $\theta$)};
+
+\begin{scope}[shift={(56mm,-8mm)}]
+  \node[hd, anchor=south west] at (-2mm,12.5mm) {Mixture-of-Recursions with biology-primed depth $d_m$};
+  \node[font=\tiny, text=subcap, anchor=south west] at (-2mm,10.4mm)
+     {keep top $\lceil c_t M\rceil$ by $\tilde r_m{=}r_m{+}\beta_t\pi_m$ (data $+$ prior)};
+  \draw[rec] (1*13mm,8.2mm) -- (4*13mm,8.2mm)
+     node[midway, above, font=\scriptsize, text=accentB] {$f_\theta$ reused each step};
+  \foreach \t/\c in {1/1.0, 2/0.75, 3/0.5, 4/0.5}{
+     \node[hd] at (\t*13mm,6mm) {$t{=}\t$};
+     \node[font=\tiny, text=subcap] at (\t*13mm,3.6mm) {keep $\c\,M$};
+  }
+  % genomap centrality prior pi (label-free): a bar per gene, longer = more central
+  % hub -> primed to recurse deeper. Visually correlates high pi with deep d_m.
+  \node[hd, anchor=west, text=accentA] at (78mm,6mm) {prior $\pi$};
+  \draw[boxedge!55, line width=0.4pt, dashed] (84mm,2.5mm) -- (84mm,-6*7mm+2mm);
+  \foreach \g/\d/\r/\pp in {Cd3e/4/0/1.6, Epcam/4/1/1.4, Pecam1/3/2/0.7, Krt19/2/3/0.2, Gapdh/1/4/-0.6, Actb/1/5/-0.8}{
+     \node[anchor=east, font=\scriptsize\ttfamily] at (8mm,-\r*7mm) {\g};
+     \foreach \t in {1,...,4}{
+        \ifnum\t>\d \node[off] at (\t*13mm,-\r*7mm) {}; \else \node[on] at (\t*13mm,-\r*7mm) {}; \fi
+     }
+     \node[anchor=west, font=\scriptsize] at (4*13mm+7mm,-\r*7mm) {$d_m{=}\d$};
+     \draw[accentA, line width=2.6pt] (84mm,-\r*7mm) -- ++(\pp*5mm,0);
+  }
+  \node[hd, anchor=west] at (4*13mm+7mm,6mm) {depth};
+  \node[on] (lg1) at (1*13mm,-6*7mm-1mm) {};
+  \node[anchor=west, font=\tiny] at ([xshift=1mm]lg1.east) {recurses};
+  \node[off] (lg2) at (3*13mm,-6*7mm-1mm) {};
+  \node[anchor=west, font=\tiny] at ([xshift=1mm]lg2.east) {frozen / exited};
+  \draw[accentA, line width=2.6pt] (80mm,-6*7mm-1mm) -- ++(5mm,0);
+  \node[anchor=west, font=\tiny] at (86mm,-6*7mm-1mm) {centrality prior $\pi$};
+\end{scope}
+\end{tikzpicture}%
+}
+\caption{\textbf{Biology-informed Mixture-of-Recursions.} \emph{Left:} one
+weight-shared pre-norm block $f_\theta$ (the model's only transformer parameters) is
+re-applied up to $K{=}4$ times, so depth costs no extra parameters. \emph{Right:} an
+expert-choice router keeps a shrinking top fraction of markers per step (capacity
+funnel $1,\tfrac34,\tfrac12,\tfrac12$); a marker not kept is frozen, so its
+\emph{recursion depth} $d_m$ is the deepest step it survived. The keep decision adds a
+label-free genomap co-expression-centrality prior $\beta_t\pi_m$ to each logit
+(Eq.~\ref{eq:biorouter}); the \textcolor{accentA}{green bars} show that prior $\pi$
+(longer $=$ more central a hub), so lineage and hub genes
+(\texttt{Cd3e}, \texttt{Epcam}) are primed to recur deepest while settled
+house-keeping genes (\texttt{Gapdh}, \texttt{Actb}) exit at $d_m{=}1$. The bar
+heights are illustrative of the centrality ordering, not fitted values. The prior graph
+may be \emph{fixed} (shown) or \emph{learned} end-to-end; empirically the learned graph is
+the decisive win, while a fixed centrality prior does not beat a random-graph control.}
+\label{fig:mor}
+\end{figure*}
+
 \section{Dataset Details}
 \label{app:data}
 We use $8$ genomap single-cell datasets \cite{islam2023cartography} converted to
