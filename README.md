@@ -31,14 +31,20 @@ depth*. Most genes exit after one pass while a few disease drivers are iterated
 deeper, so a gene's recursion depth becomes an intrinsic, compute-allocation-based
 importance score instead of a post-hoc attention map.
 
-On pan-cancer cohort classification SMART reaches **98.5% accuracy / 98.7% macro-F1**
-while using **3.99× fewer** transformer-stack parameters than an equivalent stack of
-independent layers and only **0.60×** of the fixed-depth recursion FLOPs. On five
-harder clinical phenotype tasks defined on the same tumours (stage, T, N, overall
-survival, tumour status), under an identical split and the full gene set, SMART
-attains the best mean macro-F1 against ten strong nonlinear baselines (XGBoost,
-LightGBM, CatBoost, HistGBM, MLPs, …), and it generalizes to four single-cell
-datasets.
+The same interface extends to bulk multi-omics via fixed **Reactome pathway tokens** that
+pool a pathway's mutation, copy-number and expression channels. Across **11 datasets** (8
+genomap single-cell suites and 3 Reactome/P-NET multi-omics cohorts), a controlled
+*none / random-graph / fixed-biology / learned* study finds the **learned** gene-graph is
+the decisive positive (**+11.7** single-cell macro-F1 over a no-prior router, above a
+degree-matched random control), and a confound factorial isolates the gain as input
+**smoothing**, not depth routing. We report honest negatives: a *fixed* hand-built prior
+helps neither accuracy nor calibration, and injecting biology (co-expression *or* a curated
+STRING+KEGG+Reactome network) never beats the data-driven learned graph. Efficiency is
+**architectural**: a **4×** parameter reduction at K=4 and **~38%** fewer recursion FLOPs at
+matched accuracy. Classical linear baselines remain strong on the engineered single-cell
+features, while on the raw multi-omics cohorts SMART's best multi-modal model is the
+strongest method (it wins prostate and STAD) and matches a far larger pretrained foundation
+model (Geneformer) within noise.
 
 <div align="center">
 
@@ -61,11 +67,13 @@ single-cell datasets.
 
 | Setting | Metric | SMART |
 |---|---|---|
-| Pan-cancer cohort (4-way, BRCA/HNSC/LUNG/THCA) | Accuracy / macro-F1 | **98.5% / 98.7%** |
-| Parameter efficiency (shared vs. independent, K=4) | Transformer-stack param ratio | **3.99×** fewer |
-| Compute (adaptive vs. fixed-depth recursion) | FLOPs ratio | **0.60×** |
-| 5 clinical phenotypes (full 20,530 genes) | Mean macro-F1 vs. 10 baselines | **best mean** |
-| Single-cell generalization | Datasets | 4 (Tabula Muris, common_class, prototype, pancreas) |
+| Learned vs. no-prior gene-graph (8 single-cell suites) | Δ macro-F1 | **+11.7** (learned is the decisive positive) |
+| Fixed hand-built biology prior | vs. random-graph control | **does not separate** (honest negative) |
+| Parameter efficiency (shared vs. independent, K=4) | Transformer-stack param ratio | **4×** fewer |
+| Compute (adaptive vs. fixed-depth recursion) | FLOPs ratio | **~0.62×** (~38% saved) |
+| Multi-omics P-NET (prostate, STAD) | vs. linear / RF / NearestCentroid | **SMART is strongest** |
+| Foundation models (Geneformer, scGPT) on P-NET | mean macro-F1 | **SMART matches Geneformer within noise; beats scGPT** |
+| External biology network (STRING+KEGG+Reactome) | vs. data-driven learned graph | **does not help** (learned graph wins) |
 
 All numbers in the paper are **injected from the JSON result files** via `@@TOKEN@@`
 placeholders — none are hand-typed (`make_paper` prints *"unresolved tokens: 0"*).
