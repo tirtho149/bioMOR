@@ -41,14 +41,14 @@ embedding, and dropping the per-sample scalar renormalization for the moment
 
 $$x' = T_\lambda\, x,\qquad T_\lambda = (1-\lambda)\,I + \lambda A,\qquad A=\tilde E\tilde E^\top \qquad(1)$$
 
-and after $t=\texttt{bio\_prop\_hops}$ iterations of the loop (line 361),
+and after $t$ (= `bio_prop_hops`) iterations of the loop (line 361),
 
 $$x' = T_\lambda^{\,t}\,x . \qquad(1')$$
 
 The **fixed** bio-graph router (model.py:339) is the same equation with $A$
 frozen at $S = D^{-1/2}(W+I)D^{-1/2}$ (the symmetric-normalized co-expression /
 Reactome operator); the **fused** router (model.py:365–370) uses
-$A_{\text{fuse}}=(1-g)A + g\,S$ with $g=\sigma(\texttt{bio\_fuse\_gate})$. Both
+$A_{\text{fuse}}=(1-g)A + g\,S$ with $g=\sigma(\cdot)$ from `bio_fuse_gate`. Both
 are special cases of (1) and are covered by **Corollary C2**.
 
 ### Properties of $A$
