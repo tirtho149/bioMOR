@@ -139,9 +139,7 @@ $\Sigma$*, i.e. $T=\sum_k f_k\,u_k u_k^\top$ in the signal eigenbasis. Then
 
 $$R(T)=\sum_{k=1}^{G}\Bigl[(1-f_k)^2\,s_k+f_k^{2}\,\sigma^{2}\Bigr]. \qquad(5)$$
 
-**Proof.** Expand (2):
-$R(T)=\mathbb E\lVert T(z+\varepsilon)-z\rVert^2
-=\mathbb E\lVert (T-I)z\rVert^2 + \mathbb E\lVert T\varepsilon\rVert^2$
+**Proof.** Expand (2): $R(T)=\mathbb E\lVert T(z+\varepsilon)-z\rVert^2=\mathbb E\lVert (T-I)z\rVert^2 + \mathbb E\lVert T\varepsilon\rVert^2$
 (the cross term vanishes since $\varepsilon\perp z$, $\mathbb E\varepsilon=0$).
 Using cyclicity of trace,
 $\mathbb E\lVert(T-I)z\rVert^2=\operatorname{tr}\!\big((T-I)\Sigma(T-I)^\top\big)$
@@ -291,10 +289,7 @@ $$\mathbb{E}\bigl\lVert \Phi(WTx)-\Phi(Wz)\bigr\rVert \;\le\; L_\Phi\,\lVert W\r
 Consequently minimizing $R(T)$ over $B_2$ tightens this bound below its value
 at $B_0$ by a factor governed by (3).
 
-**Proof.** By Lipschitzness and the operator-norm inequality,
-$\lVert\Phi(WTx)-\Phi(Wz)\rVert\le L_\Phi\lVert W(Tx-z)\rVert\le
-L_\Phi\lVert W\rVert_2\lVert Tx-z\rVert$. Take expectations and apply Jensen
-($\mathbb E\lVert\cdot\rVert\le\sqrt{\mathbb E\lVert\cdot\rVert^2}=\sqrt{R(T)}$).
+**Proof.** By Lipschitzness and the operator-norm inequality, $\lVert\Phi(WTx)-\Phi(Wz)\rVert\le L_\Phi\lVert W(Tx-z)\rVert\le L_\Phi\lVert W\rVert_2\lVert Tx-z\rVert$. Take expectations and apply Jensen ($\mathbb E\lVert\cdot\rVert\le\sqrt{\mathbb E\lVert\cdot\rVert^2}=\sqrt{R(T)}$).
 Since $R^\star(B_2)\le R^\star(B_0)-\sum_{i\le r}\frac{s_i^2}{s_i+\sigma^2}$ by
 Theorem 1, the bound (8) is strictly smaller under the learned graph. ∎
 
