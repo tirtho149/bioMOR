@@ -37,6 +37,7 @@ push_to_overleaf(){   # paper/ -> Overleaf clone  (do NOT --delete: keep Overlea
   rsync -rlt --checksum \
     --include='*/' \
     --include='*.tex' --include='*.bib' --include='*.cls' --include='*.sty' \
+    --include='*.bbl' \
     --include='figs/***' \
     --exclude='main.pdf' \
     --exclude='*' \
