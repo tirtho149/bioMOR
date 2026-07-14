@@ -1,0 +1,15 @@
+{
+ "dataset": "Lung",
+ "mode": "learned",
+ "K": 2,
+ "seed": 2,
+ "n_markers": 128,
+ "test_macro_f1": 77.6527057441883,
+ "test_accuracy": 85.64246463229276,
+ "val_macro_f1": 79.2405559028743,
+ "n_features": 1089,
+ "n_classes": 25,
+ "n_samples": 57020,
+ "learned_lambda": 0.5501936674118042,
+ "bio_anchor_have": false
+}

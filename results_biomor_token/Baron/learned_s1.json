@@ -1,0 +1,15 @@
+{
+ "dataset": "Baron",
+ "mode": "learned",
+ "K": 4,
+ "seed": 1,
+ "n_markers": 128,
+ "test_macro_f1": 82.99072442316682,
+ "test_accuracy": 95.6437183975107,
+ "val_macro_f1": 82.96864409267086,
+ "n_features": 2000,
+ "n_classes": 13,
+ "n_samples": 8569,
+ "learned_lambda": 0.26518210768699646,
+ "bio_anchor_have": false
+}

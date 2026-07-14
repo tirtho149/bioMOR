@@ -1,0 +1,8 @@
+STYLE REFERENCE — SMART teaser
+
+1. **Color identity:** Two-accent scheme. Green = marker selection (accentA `#2E7D5B`, panel fill pale green `#EAF2EA`); Blue = biology-informed recursive routing & classification (accentB `#2F5BAA`, panel fill pale blue `#EAF0FA`).
+2. **Panel scheme:** Two labeled panels side by side — Panel A "Marker Selection" (green), Panel B "Biology-Informed Recursive Routing & Classification" (blue).
+3. **Box style:** Rounded rectangular stage boxes with thin grey edges (`#6B7280`).
+4. **Arrow style:** Stealth arrowheads for flow between stages; one curved *dashed* feedback arrow labeled "smooth x (denoise)".
+5. **Visual hero:** The **learned gene-gene graph** — drawn in green, feeding its dashed "smooth x (denoise)" arrow back into the marker router. This single element is the focal point and carries the paper's central finding.
+6. **Tone:** Clean, minimal, interpretable; a few dozen marker tokens and the graph feedback loop should read as the story at a glance.

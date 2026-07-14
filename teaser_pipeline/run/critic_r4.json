@@ -1,0 +1,12 @@
+{
+  "score": 8.3,
+  "accept": false,
+  "issues": [
+    "Results band (bottom-right of Panel B) is cramped: chart title, 'honest negative' tag, four bars+value labels, the +11.7 bracket, and two badges are all packed into a small area, making the single most important punchline harder to parse than it should be.",
+    "The 'honest negative' tag floats near the chart title and reads like a subtitle rather than being visibly attached to the flat FIXED bar, weakening the 'imposed biology gives no gain' message.",
+    "Panel B top strip is tight: 'weight-shared \u00d7K', the 'Shared transformer block f_\u03b8' box, and 'MoR depth router' sit close together; the \u00d7K loop arrow and label need clear breathing room to be unmistakable.",
+    "Bar value labels (57.5 / 57.5 / \u224857 / 70.8) and the y-axis are small; at this scale the flat-then-jump reading is present but not as punchy as the emphasis hierarchy demands.",
+    "Cannot fully rule out sub-pixel crowding in the router region ('temp-annealed softmax' note vs. router box vs. 'M\u226aN') \u2014 verify no glyph overlap at full res."
+  ],
+  "revision_instructions": "1) Give the results band more room: widen/enlarge the bar chart within Panel B's bottom band and increase bar-value label font. Ensure clear vertical gap between the chart's top axis/title and the architecture row above it. 2) Re-anchor the 'honest negative (no gain over random)' tag directly onto/under the FIXED bar (bar 3) with a small leader line or by placing it immediately above that specific bar, so it clearly modifies the flat fixed bar and not the whole chart. 3) Make the +11.7 the second-strongest element: bolder green bracket spanning random(57.5)\u2192LEARNED(70.8), and ensure the LEARNED green bar is visibly taller and the only colored bar. 4) In Panel B top, add spacing so 'weight-shared \u00d7K' + the \u00d7K loop arrow, the shared-block box, and 'MoR depth router' don't crowd; the \u00d7K loop must be the clear 3rd-emphasis element. 5) Verify at full resolution that in Panel A the 'temp-annealed softmax (soft\u2192peaked)' caption, the Q-Former router box, and the 'M\u226aN (interpretable)' marker label have no glyph overlap; nudge apart if needed. 6) Confirm the two right-edge badges and '~38% fewer FLOPs' are not touching the panel border."
+}

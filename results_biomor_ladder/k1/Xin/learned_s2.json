@@ -1,0 +1,15 @@
+{
+ "dataset": "Xin",
+ "mode": "learned",
+ "K": 1,
+ "seed": 2,
+ "n_markers": 128,
+ "test_macro_f1": 76.03663785430344,
+ "test_accuracy": 92.1875,
+ "val_macro_f1": 85.50402085195287,
+ "n_features": 2000,
+ "n_classes": 4,
+ "n_samples": 1492,
+ "learned_lambda": 0.21244238317012787,
+ "bio_anchor_have": false
+}

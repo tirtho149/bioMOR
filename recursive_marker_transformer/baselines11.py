@@ -92,15 +92,47 @@ def run_dataset(name, seeds, out):
                 print(f"  [{mname} s{seed}] FAILED: {e}", flush=True)
 
 
+def run_dataset_cv(name, out, n_folds=5):
+    """5-fold CV baselines on the SAME shared folds as SMART/bioMoR (cv.cv_folds,
+    seed 42). Baselines need no validation slice, so train on train+val. Writes
+    <method>_cv.json with cv_macro_f1 (mean+/-SD over folds, percent)."""
+    from .cv import cv_folds, summarize, SEED, VAL_FRAC
+    X, y = _load(name)
+    F, K = X.shape[1], int(y.max() + 1)
+    out_dir = out / name; out_dir.mkdir(parents=True, exist_ok=True)
+    print(f"[base11-cv] {name} N={len(y)} F={F} K={K} folds={n_folds}", flush=True)
+    per = {m: [] for m in _methods(F, K)}
+    for fi, (tr, va, te) in enumerate(cv_folds(y, n_folds=n_folds, seed=SEED, val_frac=VAL_FRAC)):
+        trv = np.concatenate([tr, va])
+        for mname, clf in _methods(F, K).items():
+            try:
+                clf.fit(X[trv], y[trv]); yp = clf.predict(X[te])
+                per[mname].append(100 * f1_score(y[te], yp, average="macro"))
+            except Exception as e:
+                print(f"  [{mname} fold{fi}] FAILED: {e}", flush=True)
+    for mname, vals in per.items():
+        if not vals: continue
+        r = {"dataset": name, "method": mname, "n_folds": n_folds, "seed": SEED,
+             "n_features": F, "n_classes": K, "n_samples": int(len(y)),
+             "cv_macro_f1": summarize(vals)}
+        (out_dir / f"{mname.split()[0].lower()}_cv.json").write_text(json.dumps(r, indent=1))
+        print(f"  [{mname} CV] F1={r['cv_macro_f1']['mean']:.2f}+/-{r['cv_macro_f1']['std']:.2f}", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--datasets", nargs="*", default=list(SC_DATASETS) + PN_COHORTS)
     ap.add_argument("--seeds", nargs="*", type=int, default=[0, 1, 2])
+    ap.add_argument("--cv_folds", type=int, default=0,
+                    help="if >0, run unified k-fold CV (mean+/-SD) instead of per-seed single split")
     ap.add_argument("--out", type=Path, default=ROOT / "results_baselines11")
     args = ap.parse_args()
     for name in args.datasets:
         try:
-            run_dataset(name, args.seeds, args.out)
+            if args.cv_folds > 0:
+                run_dataset_cv(name, args.out, n_folds=args.cv_folds)
+            else:
+                run_dataset(name, args.seeds, args.out)
         except Exception as e:
             print(f"[base11] {name} SKIP: {e}", flush=True)
 

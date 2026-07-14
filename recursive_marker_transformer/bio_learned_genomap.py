@@ -210,10 +210,49 @@ def run_cell(X, y, dataset, mode, K, seed, epochs, device, n_markers=128, overri
     return out
 
 
+def run_cell_cv(X, y, dataset, mode, K, epochs, device, n_markers=128,
+                overrides=None, n_folds=5):
+    """5-fold CV variant of run_cell: identical shared folds (cv.cv_folds, seed 42,
+    20% test / 10%-of-train val), fresh training per fold, macro-F1 mean +/- SD."""
+    from .cv import cv_folds, summarize, SEED, VAL_FRAC
+    F, C = X.shape[1], int(y.max() + 1)
+    torch.manual_seed(SEED); np.random.seed(SEED)
+    cfg = _cfg(mode, K, SEED, epochs, n_markers=n_markers); cfg.n_markers = min(cfg.n_markers, F)
+    for k, v in (overrides or {}).items():
+        setattr(cfg, k, v)
+    need_symbols = getattr(cfg, "gene_interaction", None) == "aggnet" or mode == "learned_aggnet"
+    gene_symbols = load_gene_symbols(dataset) if need_symbols else None
+    bio_op = None
+    if mode == "learned_aggnet":
+        if gene_symbols is not None and len(gene_symbols) == F:
+            from .bio_network import load_aggregated_adjacency
+            bio_op = load_aggregated_adjacency(
+                list(gene_symbols), species=getattr(cfg, "aggnet_species", "mouse")).astype(np.float32)
+        else:
+            print(f"  [learned_aggnet] no gene symbols for {dataset} -> random init", flush=True)
+
+    Xf = X.astype(np.float32)
+    fold_f1, fold_acc, model = [], [], None
+    for fi, (tr, va, te) in enumerate(cv_folds(y, n_folds=n_folds, seed=SEED, val_frac=VAL_FRAC)):
+        yt, yp, model = _fit_eval(Xf, y, tr, va, te, cfg, F, C, device,
+                                  bio_op=bio_op, gene_symbols=gene_symbols)
+        f1 = 100.0 * f1_score(yt, yp, average="macro")
+        fold_f1.append(f1); fold_acc.append(100.0 * accuracy_score(yt, yp))
+        print(f"  fold {fi+1}/{n_folds}: macroF1={f1:.2f} (test {len(te)})", flush=True)
+    out = {"dataset": dataset, "mode": mode, "K": K, "n_markers": cfg.n_markers,
+           "n_features": F, "n_classes": C, "n_samples": int(len(y)),
+           "n_folds": n_folds, "seed": SEED, "val_frac": VAL_FRAC,
+           "cv_macro_f1": summarize(fold_f1), "cv_accuracy": summarize(fold_acc),
+           "config": cfg.as_dict() if hasattr(cfg, "as_dict") else None}
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", required=True, choices=list(DATASETS))
     ap.add_argument("--modes", nargs="*", default=["none", "coexpr", "random", "learned"])
+    ap.add_argument("--cv_folds", type=int, default=0,
+                    help="if >0, run unified k-fold CV (mean+/-SD) instead of per-seed single split")
     ap.add_argument("--seeds", nargs="*", type=int, default=[0, 1, 2])
     ap.add_argument("--K", type=int, default=4)
     ap.add_argument("--epochs", type=int, default=60)
@@ -226,8 +265,19 @@ def main():
     ap.add_argument("--anchor_floor", type=float, default=None)
     ap.add_argument("--anchor_rank", type=int, default=None)
     ap.add_argument("--init_scale", type=float, default=None)
+    ap.add_argument("--recursion_mode", default=None,
+                    help="override router type (e.g. 'token' for token-choice bioMoR)")
+    ap.add_argument("--step_cache", action="store_true", help="enable KV-cache (needs fixed/token mode)")
+    ap.add_argument("--share_strategy", default=None, help="e.g. 'middle_cycle' for M-Cyc share")
+    ap.add_argument("--patience", type=int, default=None, help="early-stop patience override")
+    ap.add_argument("--d_model", type=int, default=None, help="width override (d_ff set to 2*d_model)")
     args = ap.parse_args()
     overrides = {}
+    if args.recursion_mode: overrides["recursion_mode"] = args.recursion_mode
+    if args.step_cache: overrides["step_cache"] = True
+    if args.share_strategy: overrides["share_strategy"] = args.share_strategy
+    if args.patience is not None: overrides["patience"] = args.patience
+    if args.d_model is not None: overrides["d_model"] = args.d_model; overrides["d_ff"] = 2 * args.d_model
     if args.anchor_lambda is not None: overrides["bio_anchor_lambda"] = args.anchor_lambda
     if args.anchor_floor is not None: overrides["bio_anchor_floor"] = args.anchor_floor
     if args.anchor_rank is not None: overrides["bio_anchor_rank"] = args.anchor_rank
@@ -238,6 +288,19 @@ def main():
     print(f"[genomap] {args.dataset} N={len(y)} G={X.shape[1]} C={int(y.max()+1)}", flush=True)
 
     summary = []
+    if args.cv_folds > 0:
+        for mode in args.modes:
+            p = out_dir / f"{mode}_cv.json"
+            if p.exists() and not args.force:
+                summary.append(json.loads(p.read_text())); continue
+            print(f"\n##### genomap CV {args.dataset} mode={mode} folds={args.cv_folds} #####", flush=True)
+            r = run_cell_cv(X, y, args.dataset, mode, args.K, args.epochs, device,
+                            n_markers=args.n_markers, overrides=overrides, n_folds=args.cv_folds)
+            p.write_text(json.dumps(r, indent=1))
+            print(f"  [{mode} CV] macroF1={r['cv_macro_f1']['mean']:.2f}+/-{r['cv_macro_f1']['std']:.2f}",
+                  flush=True)
+            summary.append(r)
+        return
     for mode in args.modes:
         for seed in args.seeds:
             p = out_dir / f"{mode}_s{seed}.json"

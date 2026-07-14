@@ -1,0 +1,143 @@
+{
+ "dataset": "xin",
+ "n_samples": 1492,
+ "n_features": 2000,
+ "n_classes": 4,
+ "cv_folds": 5,
+ "transformer_params": 75072,
+ "total_params": 299243,
+ "config": {
+  "heads": [
+   "cell_type"
+  ],
+  "cohorts": null,
+  "n_hvg": null,
+  "n_channels": 1,
+  "batch_size": 128,
+  "val_frac": 0.15,
+  "test_frac": 0.15,
+  "d_model": 96,
+  "n_heads": 4,
+  "d_ff": 192,
+  "dropout": 0.1,
+  "n_markers": 128,
+  "marker_mode": "router",
+  "pathway_pool": "mean",
+  "compress_mode": "aggregate",
+  "recursive_marker_refine": true,
+  "peak_init": true,
+  "anneal_markers": true,
+  "recursion_depth": 3,
+  "share_weights": true,
+  "share_strategy": "cycle",
+  "n_unique_blocks": null,
+  "step_cache": false,
+  "adaptive_depth": false,
+  "marker_ffn": false,
+  "recursion_mode": "expert",
+  "router_capacity": null,
+  "router_alpha": 1.0,
+  "router_temp": 1.0,
+  "router_type": "linear",
+  "router_z_coeff": 0.001,
+  "router_balance_coeff": 0.1,
+  "gene_interaction": "none",
+  "interaction_knn": 16,
+  "router_prior_beta": 1.0,
+  "router_prior_anneal": true,
+  "bio_graph_prop": false,
+  "bio_prop_lambda_init": 0.3,
+  "bio_prop_hops": 1,
+  "bio_prior_gate": false,
+  "bio_deconfound_pc": 0,
+  "bio_precision": false,
+  "bio_centrality": "eigcent",
+  "bio_prior_learnable": false,
+  "bio_beta_init": 0.5,
+  "bio_depth_laplacian": 0.0,
+  "bio_learned_graph": false,
+  "bio_learned_rank": 16,
+  "bio_learned_init": "random",
+  "bio_learned_fuse": false,
+  "bio_fuse_source": "coexpr",
+  "aggnet_species": "human",
+  "bio_learned_anchor": false,
+  "bio_anchor_lambda": 0.5,
+  "bio_anchor_floor": 0.0,
+  "bio_anchor_rank": 16,
+  "bio_anchor_source": "coexpr",
+  "bio_init_scale": 0.05,
+  "bio_init_rand": 0.005,
+  "pathway_attn_bias": false,
+  "pathway_attn_lambda": 2.0,
+  "lambda_marker": 0.1,
+  "gamma_diversity": 0.05,
+  "beta_compression": 0.01,
+  "lr": 0.001,
+  "weight_decay": 1e-05,
+  "epochs": 100,
+  "patience": 15,
+  "seed": 42,
+  "device": "cuda"
+ },
+ "fold_metrics": [
+  {
+   "fold": 0,
+   "n_test": 299,
+   "accuracy": 0.8327759197324415,
+   "macro_f1": 0.6288998877914718,
+   "weighted_f1": 0.8473458535316529
+  },
+  {
+   "fold": 1,
+   "n_test": 299,
+   "accuracy": 0.8294314381270903,
+   "macro_f1": 0.697064768251209,
+   "weighted_f1": 0.8375326403782841
+  },
+  {
+   "fold": 2,
+   "n_test": 298,
+   "accuracy": 0.802013422818792,
+   "macro_f1": 0.5490848302100718,
+   "weighted_f1": 0.806571721272392
+  },
+  {
+   "fold": 3,
+   "n_test": 298,
+   "accuracy": 0.9228187919463087,
+   "macro_f1": 0.7733169670546585,
+   "weighted_f1": 0.9254282507307756
+  },
+  {
+   "fold": 4,
+   "n_test": 298,
+   "accuracy": 0.8590604026845637,
+   "macro_f1": 0.635876878223817,
+   "weighted_f1": 0.8671992345872638
+  }
+ ],
+ "accuracy": {
+  "mean": 0.8492199950618392,
+  "std": 0.04099773551541478
+ },
+ "macro_f1": {
+  "mean": 0.6568486663062456,
+  "std": 0.07485478531246433
+ },
+ "weighted_f1": {
+  "mean": 0.8568155401000738,
+  "std": 0.03950056122909994
+ },
+ "cv_macro_f1": {
+  "mean": 65.68486663062455,
+  "std": 7.485478531246432,
+  "folds": [
+   62.889988779147174,
+   69.7064768251209,
+   54.90848302100718,
+   77.33169670546584,
+   63.5876878223817
+  ]
+ }
+}

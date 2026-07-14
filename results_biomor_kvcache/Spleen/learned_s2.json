@@ -1,0 +1,15 @@
+{
+ "dataset": "Spleen",
+ "mode": "learned",
+ "K": 4,
+ "seed": 2,
+ "n_markers": 128,
+ "test_macro_f1": 58.847158437001,
+ "test_accuracy": 69.30486207018663,
+ "val_macro_f1": 61.02504139329675,
+ "n_features": 1089,
+ "n_classes": 28,
+ "n_samples": 94129,
+ "learned_lambda": 0.5563331246376038,
+ "bio_anchor_have": false
+}

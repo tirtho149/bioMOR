@@ -1,5 +1,5 @@
 # ============================================================================
-# SMART: Selective Marker-guided Adaptive Recursive Transformer
+# bioMoR: Selective Marker-guided Adaptive Recursive Transformer
 #        for Transcriptomic Classification
 #
 # Authors:
@@ -8,7 +8,7 @@
 #   Md Tauhidul Islam  - Stanford University
 #   Wei Le             - Iowa State University
 #
-# Copyright (c) 2026 The SMART Authors. All Rights Reserved.
+# Copyright (c) 2026 The bioMoR Authors. All Rights Reserved.
 #
 # PROPRIETARY AND CONFIDENTIAL. Unauthorized use, copying, modification, or
 # distribution of this file, in whole or in part, without the express written
@@ -16,7 +16,7 @@
 # the fullest extent permitted by law. See the LICENSE file for full terms.
 # ============================================================================
 
-"""Generate the SMART paper (.tex + refs.bib) from the 13-dataset experiment results.
+"""Generate the bioMoR paper (.tex + refs.bib) from the 13-dataset experiment results.
 
 The paper is built around exactly **11 datasets** -- eight genomap single-cell
 suites (Baron, Lung, Muraro, Oesophagus, Segerstolpe, Spleen, T-cell, Xin)
@@ -193,8 +193,8 @@ def _base_f1(name, key):
 
 
 def table_baselines() -> str:
-    """SMART (learned) vs strong non-transformer baselines on the SAME 11 splits."""
-    cols = _BASE_METHODS + [("SMART", "learned")]
+    """bioMoR (learned) vs strong non-transformer baselines on the SAME 11 splits."""
+    cols = _BASE_METHODS + [("bioMoR", "learned")]
     span = len(cols) + 1
     lines = ["\\begin{tabular}{l" + "c" * len(cols) + "}", "\\toprule",
              "Dataset & " + " & ".join(d for d, _ in cols) + " \\\\", "\\midrule",
@@ -202,7 +202,7 @@ def table_baselines() -> str:
 
     def _cell(name, is_sc, key):
         if key == "learned":
-            vals = _mode_f1_sc(name, "learned") if is_sc else _fm_pn(name, "SMART")
+            vals = _mode_f1_sc(name, "learned") if is_sc else _fm_pn(name, "bioMoR")
         else:
             bn = _SC_CAP[name] if is_sc else name
             vals = _base_f1(bn, key)
@@ -222,7 +222,7 @@ def table_baselines() -> str:
         for ds in _SC:
             per.append(_mean(_mode_f1_sc(ds, "learned") if key == "learned" else _base_f1(_SC_CAP[ds], key)))
         for coh in _PN:
-            per.append(_mean(_fm_pn(coh, "SMART") if key == "learned" else _base_f1(coh, key)))
+            per.append(_mean(_fm_pn(coh, "bioMoR") if key == "learned" else _base_f1(coh, key)))
         m = _mean(per)
         cells.append("--" if m is None else f"\\textbf{{{m:.1f}}}")
     lines.append("\\textbf{Mean} & " + " & ".join(cells) + " \\\\")
@@ -439,7 +439,7 @@ def table3() -> str:
 
 # ---------------------------------------------------------------------------
 # T3b -- marker-budget headroom (does a LARGER budget close the linear gap?)
-#   learned-graph SMART at M in {128, 256, 512, 1024, 2048}, single-cell only.
+#   learned-graph bioMoR at M in {128, 256, 512, 1024, 2048}, single-cell only.
 #   M=128 is the headline learned model (results_learned_genomap, 10 seeds);
 #   M>=256 are the extended-budget runs (results_learnedM, 3 seeds). n_markers is
 #   internally capped at #features, so the top rungs are the full-feature budget.
@@ -448,7 +448,7 @@ _MBUDGET = [128, 256, 512, 1024, 2048]
 
 
 def _learnedM_sc(ds, M):
-    """Learned-graph SMART macro-F1 values (already in percent) at budget M, one SC set."""
+    """Learned-graph bioMoR macro-F1 values (already in percent) at budget M, one SC set."""
     cap = _SC_CAP[ds]
     if M == 128:
         return [r["test_macro_f1"] for f in _g("results_learned_genomap", cap, "learned_s*.json")
@@ -545,12 +545,12 @@ def table_anchor() -> str:
 # ---------------------------------------------------------------------------
 # T-FM -- gene-vocabulary foundation models on the P-NET cohorts, where the
 #   gene-symbol interface exists (bulk mut/CNV fed to an scRNA FM is OOD, by design).
-#   SMART = the learned-graph model; FM numbers from results_fm_pnet.
+#   bioMoR = the learned-graph model; FM numbers from results_fm_pnet.
 # ---------------------------------------------------------------------------
-_FM_COLS = [("SMART (mut+CNV)", "SMART"), ("Geneformer", "Geneformer"), ("scGPT", "scGPT")]
+_FM_COLS = [("bioMoR (mut+CNV)", "bioMoR"), ("Geneformer", "Geneformer"), ("scGPT", "scGPT")]
 
 
-# SMART's config for the FM head-to-head: its best MULTI-MODAL (mut+CNV) setting --
+# bioMoR's config for the FM head-to-head: its best MULTI-MODAL (mut+CNV) setting --
 # pathway markers + MoR + Reactome routing. The MoR arm (token vs expert) is chosen by
 # VALIDATION macro-F1, not test: token wins validation (63.8 vs 55.1), so token is used.
 _FM_SMART_ARM = "token"
@@ -558,7 +558,7 @@ _FM_SMART_ARM = "token"
 
 def _fm_pn(coh, method):
     """FM macro-F1 values (percent) for one method on one P-NET cohort."""
-    if method == "SMART":
+    if method == "bioMoR":
         return [r["macro_f1"] * 100 for f in _g("results_smart_pnet_best", _FM_SMART_ARM, "s*", f"{coh}__*.json")
                 if (r := _J(f)) is not None]
     return [r["test_macro_f1"] for f in _g("results_fm_pnet", coh, f"{method}_s*.json")
@@ -570,7 +570,7 @@ def _fm_ready():
 
 
 def table_fm() -> str:
-    """SMART vs.\ gene-vocabulary foundation models on the P-NET multi-omics cohorts."""
+    """bioMoR vs.\ gene-vocabulary foundation models on the P-NET multi-omics cohorts."""
     cols = _FM_COLS
     lines = ["\\begin{tabular}{l" + "c" * len(cols) + "}", "\\toprule",
              "Cohort & " + " & ".join(d for d, _ in cols) + " \\\\", "\\midrule"]
@@ -746,16 +746,16 @@ def table5() -> str:
 
 # ---------------------------------------------------------------------------
 # T-EFF -- the headline "lower compute, higher accuracy" table, PER DATASET:
-#   Vanilla (K independent layers) vs SMART (MoR recursion + learned routing).
-#   SMART is cheaper on both axes (4x fewer unique params, ~38% fewer FLOPs) AND
+#   Vanilla (K independent layers) vs bioMoR (MoR recursion + learned routing).
+#   bioMoR is cheaper on both axes (4x fewer unique params, ~38% fewer FLOPs) AND
 #   more accurate via learned routing -- shown for every dataset, not just the mean.
 # ---------------------------------------------------------------------------
 def _smart_f1(ds, is_sc):
-    """SMART macro-F1 (percent) for one dataset. Single-cell: learned-graph model.
-    Multi-omics: SMART's best MULTI-MODAL config (pathway+MoR+Reactome, val-selected arm)
+    """bioMoR macro-F1 (percent) for one dataset. Single-cell: learned-graph model.
+    Multi-omics: bioMoR's best MULTI-MODAL config (pathway+MoR+Reactome, val-selected arm)
     -- the same headline config used in the foundation-model comparison, so every
-    SMART-vs-baseline table reports SMART's actual best number, not a weak ablation arm."""
-    return _mode_f1_sc(ds, "learned") if is_sc else _fm_pn(ds, "SMART")
+    bioMoR-vs-baseline table reports bioMoR's actual best number, not a weak ablation arm."""
+    return _mode_f1_sc(ds, "learned") if is_sc else _fm_pn(ds, "bioMoR")
 
 
 def table_effacc() -> str:
@@ -772,7 +772,7 @@ def table_effacc() -> str:
         return f"\\quad {disp} & {v:.1f} & {s:.1f} & {dtx} \\\\"
 
     lines = ["\\begin{tabular}{lccc}", "\\toprule",
-             "Dataset & Vanilla & SMART & $\\Delta$F1 \\\\",
+             "Dataset & Vanilla & bioMoR & $\\Delta$F1 \\\\",
              "& \\footnotesize{$4\\times$ params, $1.00\\times$} & "
              "\\footnotesize{$1\\times$, $" + f"{smart_flops:.2f}" + "\\times$} & \\\\",
              "\\midrule",
@@ -904,14 +904,14 @@ def _scalars() -> dict:
     fl = _flops_ratios()
     compute_save = round((1.0 - fl["expert"]) * 100)
 
-    # efficiency+accuracy headline: SMART (MoR + learned routing) vs Vanilla, suite mean.
+    # efficiency+accuracy headline: bioMoR (MoR + learned routing) vs Vanilla, suite mean.
     ea_van = _mean([_mean(_arch_vals(ds, True, "independent", "macro_f1")) for ds in _SC] +
                    [_mean(_arch_vals(c, False, "independent", "macro_f1")) for c in _PN])
     ea_smart = _mean([_mean(_smart_f1(ds, True)) for ds in _SC] +
                      [_mean(_smart_f1(c, False)) for c in _PN])
     ea_delta = (ea_smart - ea_van) if (ea_van is not None and ea_smart is not None) else None
 
-    # marker-budget headroom: learned-graph SMART at the smallest vs the largest budget
+    # marker-budget headroom: learned-graph bioMoR at the smallest vs the largest budget
     # actually on disk, against the full-feature linear baseline (single-cell mean).
     mb_Ms = _mb_Ms()
     mb_lo = _mean([_mean(_learnedM_sc(ds, mb_Ms[0])) for ds in _SC]) if mb_Ms else None
@@ -947,19 +947,19 @@ def _scalars() -> dict:
                           "co-expression graph neither adds nor destroys signal")
 
     # foundation models on the P-NET cohorts (mean macro-F1 over the 3 cohorts).
-    fm_smart = _mean([_mean(_fm_pn(c, "SMART")) for c in _PN])
+    fm_smart = _mean([_mean(_fm_pn(c, "bioMoR")) for c in _PN])
     fm_gene = _mean([_mean(_fm_pn(c, "Geneformer")) for c in _PN])
     fm_scgpt = _mean([_mean(_fm_pn(c, "scGPT")) for c in _PN])
     if fm_gene is None and fm_scgpt is None:
         fm_verdict = "(foundation-model runs on the P-NET cohorts pending)"
     else:
-        # Efficiency-parity framing: SMART matches the strong FM within seed noise while
+        # Efficiency-parity framing: bioMoR matches the strong FM within seed noise while
         # being orders of magnitude smaller, natively multi-modal, and decisively ahead of
         # the weaker FM. Honest -- no strict-accuracy-win claim over Geneformer.
         gap = (fm_smart - fm_gene) if (fm_smart is not None and fm_gene is not None) else None
         parity = "matches" if (gap is not None and abs(gap) <= 2.0) else \
                  ("edges ahead of" if (gap is not None and gap > 0) else "trails")
-        fm_verdict = (f"SMART {parity} the far larger, cancer-pretrained Geneformer on mean "
+        fm_verdict = (f"bioMoR {parity} the far larger, cancer-pretrained Geneformer on mean "
                       f"macro-F1 ({p1(fm_smart)}\\% vs.\\ {p1(fm_gene)}\\%, within seed-to-seed "
                       "noise) at a tiny fraction of the parameters and while natively consuming "
                       "\\emph{both} the mutation and copy-number modalities, and it is far ahead "
@@ -1093,13 +1093,13 @@ _TEX = r"""\documentclass[letterpaper]{article}
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
 \pdfinfo{
-/Title (SMART: A Marker-Guided Recursive Transformer with Learned Gene-Graph Routing for Single-Cell and Multi-Omics Classification)
+/Title (bioMoR: Biology-Prior-Guided Token Routing with Adaptive Recursive Computation for Genomic Learning)
 /Author (Anonymous Submission)
 /Keywords (single-cell genomics, multi-omics, transformers, parameter efficiency, marker genes, recursive computation, learned gene graph, calibration)
 }
 \setcounter{secnumdepth}{1}
 
-\title{SMART: A Selective Marker-guided Adaptive Recursive Transformer\\ with Learned Gene-Graph Routing for Single-Cell and Multi-Omics Classification}
+\title{bioMoR: Biology-Prior-Guided Token Routing with Adaptive Recursive Computation for Genomic Learning}
 \author{Anonymous Submission}
 
 \begin{document}
@@ -1107,244 +1107,190 @@ _TEX = r"""\documentclass[letterpaper]{article}
 
 \begin{abstract}
 \begin{quote}
-Transformer models for single-cell and multi-omics classification treat thousands of
-genes as equally important tokens and stack many independent layers, making them
-parameter-heavy and leaving \emph{which} genes deserve computation entirely to data. We
-present \textbf{SMART} (Selective Marker-guided Adaptive Recursive Transformer), which
-(i) learns which genes are \emph{markers} via a cross-attention router and represents each
-sample by only its $M\ll N$ markers, cutting attention from $\mathcal{O}(N^2)$ to
-$\mathcal{O}(M^2)$; (ii) processes them with a \emph{single} weight-shared block applied
-recursively, a Mixture-of-Recursions router giving each token its own adaptive depth; and
-(iii) extends to bulk multi-omics via fixed \emph{Reactome pathway} tokens pooling
-mutation, copy-number and expression. Across @@N_TOTAL@@ datasets ($@@N_SC@@$ single-cell,
-$@@N_PN@@$ multi-omics) our controlled \emph{none / random / fixed-biology / learned} study
-finds the \emph{learned} gene-graph is the decisive positive ($+@@LEARNED_GAIN_SC@@$ points
-to @@LEARNED_SC_F1@@\% single-cell macro-F1, above a degree-matched random graph
-@@RANDOM_SC_F1@@\%), and a confound factorial isolates the gain as input \emph{smoothing},
-not depth routing. We surface honest negatives: a \emph{fixed} hand-built prior helps
-neither accuracy nor calibration. Efficiency is architectural: a $@@PARAMRATIO@@\times$
-parameter reduction at $K{=}@@DEPTH@@$, $\sim$@@COMPUTE_SAVE@@\% fewer recursion FLOPs at
-matched accuracy, and a few dozen tokens recovering most full-gene accuracy. Classical
-linear baselines remain strong on the engineered single-cell features, while on the raw
-multi-omics cohorts SMART's best multi-modal model is the strongest method; it also matches
-a far larger pretrained foundation model within noise. The whole pipeline and this paper
-regenerate from a single command.
+Genomic datasets often contain thousands of genes or pathways, making standard
+transformers expensive because every token is processed through many independent layers.
+Mixture-of-Recursions (MoR) reduces this cost through parameter sharing and adaptive token
+depth, but allocates computation without using known biological relationships. We
+introduce \textbf{bioMoR}, a biology-guided MoR framework for gene- and pathway-level
+learning: it compresses the input into a small set of informative tokens, applies one
+shared block recursively, and routes each token to an adaptive depth, while folding
+gene--gene or pathway--pathway interaction structure into that routing to preserve
+biologically relevant signals under a tight token and parameter budget. To our knowledge,
+bioMoR is the first framework to integrate explicit biological interaction priors with
+Mixture-of-Recursions for genomic modeling. Across eight single-cell datasets and three
+multi-omics cancer cohorts (11 total), bioMoR reaches a mean macro-F1 of 67.1\%, versus
+56.8\% (vanilla), 58.2\% (recursive), and 56.1\% (biology-free MoR) -- an 11.0-point gain
+over MoR -- and outperforms the vanilla transformer on 9 of 11 datasets. Biological
+guidance thus improves the accuracy--efficiency trade-off of recursive transformers for
+high-dimensional genomic data.
 \end{quote}
 \end{abstract}
 
 \section{Introduction}
+\label{sec:introduction}
 \begin{figure*}[t]
 \centering
-\resizebox{0.78\linewidth}{!}{%
-\begin{tikzpicture}[
-  node distance=10mm and 9mm,
-  stage/.style={rounded corners=3pt, draw=boxedge, line width=0.6pt, fill=white,
-                text width=21mm, minimum height=15mm, align=center, inner sep=3pt},
-  flow/.style={-{Stealth[length=2.6mm]}, line width=0.9pt, draw=boxedge},
-  loop/.style={-{Stealth[length=2.6mm]}, line width=1.1pt, draw=accentB},
-  panel/.style={rounded corners=6pt, inner xsep=4.5mm, inner ysep=6.5mm},
-  ptab/.style={font=\footnotesize\bfseries, text=white, fill=#1,
-               rounded corners=2pt, inner sep=2.5pt},
-]
-\node[stage] (inp) {{\large\textcolor{accentA}{\faDna}}\\[2pt]\textbf{Expression}\\[1pt]{\scriptsize\textcolor{subcap}{$x\!\in\!\mathbb{R}^{B\times N}$}}};
-\node[stage, right=of inp] (emb) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[2pt]\textbf{Gene Embedding}\\[1pt]{\scriptsize\textcolor{subcap}{identity $+$ value proj.}}};
-\node[stage, right=of emb] (router) {{\large\textcolor{accentA}{\faSearch}}\\[2pt]\textbf{Marker / Pathway Router}\\[1pt]{\scriptsize\textcolor{subcap}{$M$ slots or Reactome sets}}};
-\node[stage, right=of router] (mtok) {{\large\textcolor{accentA}{\faTags}}\\[2pt]\textbf{Marker / Pathway Tokens}\\[1pt]{\scriptsize\textcolor{subcap}{$\mathbf{C}\!\in\!\mathbb{R}^{B\times M\times d}$}}};
-\draw[flow] (inp) -- (emb);
-\draw[flow] (emb) -- (router);
-\draw[flow] (router) -- (mtok);
-
-\node[stage, below=38mm of inp] (shared) {{\large\textcolor{accentB}{\faRedo}}\\[2pt]\textbf{Shared Block}\\[1pt]{\scriptsize\textcolor{subcap}{$f_\theta$ applied $\times K$}}};
-\node[stage, right=of shared] (mor) {{\large\textcolor{accentB}{\faFilter}}\\[2pt]\textbf{MoR Depth Router}\\[1pt]{\scriptsize\textcolor{subcap}{funnel; logit $+\,\beta_t\pi_m$}}};
-\node[stage, right=of mor] (pool) {{\large\textcolor{accentB}{\faCompress}}\\[2pt]\textbf{Mean-pool}\\[1pt]{\scriptsize\textcolor{subcap}{over $M$ markers}}};
-\node[stage, right=of pool] (clf) {{\large\textcolor{accentB}{\faChartBar}}\\[2pt]\textbf{Classifier}\\[1pt]{\scriptsize\textcolor{subcap}{linear head}}};
-\node[stage, right=of clf] (coh) {{\large\textcolor{accentB}{\faSitemap}}\\[2pt]\textbf{Phenotype}\\[1pt]{\tiny\textcolor{subcap}{8 genomap sets\\ + 3 P-NET cohorts}}};
-% biology-informed router: genomap gene-gene interaction graph -> centrality prior.
-% Label-free prior built from expression alone, so it has NO incoming arrow; its
-% centrality prior pi is consumed by the MoR Depth Router (annealed into the logit).
-\node[stage, right=of mtok, text width=22mm, draw=accentA, line width=1.4pt, fill=panelA] (gint) {{\large\textcolor{accentA}{\faProjectDiagram}}\\[1pt]\textbf{Gene--Gene Graph}\\[1pt]{\tiny\textcolor{subcap}{\textbf{learned} or fixed\\ (co-expr.\,/\,Reactome)}}};
-\node[ptab=accentA, anchor=south east, font=\tiny\bfseries] at ([yshift=0.5mm]gint.north east) {gene graph};
-\draw[flow] (shared) -- (mor);
-\draw[flow] (mor) -- (pool);
-\draw[flow] (pool) -- (clf);
-\draw[flow] (clf) -- (coh);
-% PRIMARY mechanism (our best result): the LEARNED gene graph smooths the input
-% expression before marker selection (denoising); curved dashed path back to the router.
-\draw[-{Stealth[length=3mm]}, draw=accentA, dashed, line width=1.3pt]
-  (gint.north) .. controls ++(0,9mm) and ++(0,9mm) .. (router.north);
-\node[font=\scriptsize\bfseries, text=accentA, fill=white, inner sep=1.2pt]
-  at ($(gint.north)!0.5!(router.north) + (0,8mm)$) {smooth $x$ (denoise)};
-% SECONDARY: the graph's centrality also primes the depth router (additive prior).
-\draw[-{Stealth[length=3mm]}, draw=accentA, dashed, line width=1.0pt, opacity=0.7]
-  (gint.south) -- ++(0,-7mm) -| (mor.north);
-\node[font=\scriptsize, text=accentA, fill=white, inner sep=1.2pt]
-  at ([yshift=-7mm]gint.south -| mor.north) {$+\,\beta_t\,\pi_m$ prime routing};
-
-\draw[loop] (shared.south east) .. controls ++(0,-9mm) and ++(0,-9mm) .. (shared.south west)
-  node[midway, below=0.5mm, font=\scriptsize\bfseries, text=accentB, align=center]
-  {$\times K$, weight-shared\\[-1pt]{\scriptsize\textcolor{subcap}{$+$ refinement gate}}};
-
-\draw[flow] (mtok.south) -- ++(0,-9mm) coordinate (cdrop) -| ([xshift=-8mm]shared.west) -- (shared.west);
-\node[font=\scriptsize, text=subcap, below, fill=white, inner sep=1pt] at ([xshift=-24mm]cdrop) {marker tokens};
-
-\begin{scope}[on background layer]
-\node[panel, fill=panelA, fit=(inp)(mtok)(gint)] (pA){};
-\node[panel, fill=panelB, fit=(shared)(coh)] (pB){};
-\end{scope}
-\node[ptab=accentA, anchor=west] at ([xshift=2mm]pA.north west)
-  {A\; $\cdot$\; Marker Selection (Q-Former router)};
-\node[ptab=accentB, anchor=west] at ([xshift=2mm]pB.north west)
-  {B\; $\cdot$\; Biology-Informed Recursive Routing \& Classification};
-
-\end{tikzpicture}%
-}
-\caption{\textbf{System overview.} \textbf{Panel A:} the expression vector is embedded
-gene-by-gene, then $M$ learnable query slots cross-attend over \emph{all} $N$ genes
-(temperature annealed soft$\to$peaked) to select interpretable marker tokens.
-\textbf{Panel B:} a \emph{single} weight-shared block $f_\theta$ is applied up to $K$
-times (loop-back arrow) with a per-marker refinement gate between passes; a
-Mixture-of-Recursions router funnels capacity so each marker gets an \emph{adaptive}
-depth $d_m$. \textbf{Learned gene-graph smoothing (our best result):} a gene-gene graph --
-either a \emph{fixed} co-expression / Reactome graph or, decisively, a \emph{learned}
-low-rank graph -- \emph{smooths} the input expression before marker selection (denoising,
-curved dashed arrow); a confound factorial shows this input smoothing, not the depth-router
-prior, is what helps. The learned graph is the win; the fixed prior does not beat a
-random-graph control. Tokens are mean-pooled and classified; the \emph{same}
-pipeline serves both single-cell and multi-omics data.}
+\includegraphics[width=0.85\linewidth]{figs/overview.pdf}
+\caption{\footnotesize\textbf{Overview of bioMoR.} Gene/pathway inputs are embedded and refined
+by a shared \emph{biology prior} (gene--gene and pathway--pathway graphs); a selector
+keeps the top-$M$ marker/pathway tokens; and a \emph{bio-router} combines a
+data-driven and a biology-prior term to send only selected tokens through further
+Mixture-of-Recursions steps (\emph{adaptive depth}). Pooled tokens feed a task head.
+One pipeline serves single-cell and multi-omics data.}
 \label{fig:overview}
 \end{figure*}
 
-Single-cell RNA sequencing now profiles the expression of thousands of genes across
-millions of cells, and a wave of transformer \emph{foundation models}, scGPT
-\cite{cui2024scgpt}, Geneformer \cite{theodoris2023transfer}, scBERT
-\cite{yang2022scbert} and scFoundation \cite{hao2024large}, has adapted the
-architecture of \cite{vaswani2017attention} to this modality. These models are
-powerful but inherit two costly habits from language transformers. First, they treat
-\emph{every} gene as an equally important token, so a housekeeping gene and a
-lineage-defining marker get identical computational budgets. Second, they stack many
-\emph{independent} layers, so parameters grow linearly with depth. The result is
-models with tens to hundreds of millions of parameters \cite{hao2024large} whose
-self-attention scales quadratically in the number of genes, and whose efficiency is
-usually recovered only afterward through pruning or distillation.
+\begin{table}[t]
+\centering
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccccccc}
+\toprule
+& Pre- & Efficient & Multi- & Biology & Adaptive & Shared & Learned \\
+Method & trained & tokens & omics & prior & depth & recursion & graph \\
+\midrule
+\multicolumn{8}{l}{\emph{Genomic / single-cell transformers}}\\
+scGPT \cite{cui2024scgpt}                 & \checkmark & -- & -- & -- & -- & -- & -- \\
+Geneformer \cite{theodoris2023transfer}   & \checkmark & -- & -- & -- & -- & -- & -- \\
+scBERT \cite{scbert2022}                  & \checkmark & \checkmark & -- & -- & -- & -- & -- \\
+scFoundation \cite{hao2024large}          & \checkmark & \checkmark & -- & -- & -- & -- & -- \\
+UCE \cite{uce2026}                        & \checkmark & -- & -- & -- & -- & -- & -- \\
+xTrimoGene \cite{xtrimogene2023}          & \checkmark & \checkmark & -- & -- & -- & -- & -- \\
+tGPT \cite{tgpt2023}                      & \checkmark & -- & -- & -- & -- & -- & -- \\
+scMulan \cite{scmulan2024}                & \checkmark & -- & -- & -- & -- & -- & -- \\
+CellFM \cite{cellfm2025}                  & \checkmark & \checkmark & -- & -- & -- & -- & -- \\
+LangCell \cite{langcell2024}              & \checkmark & -- & -- & -- & -- & -- & -- \\
+Nicheformer \cite{nicheformer2024}        & \checkmark & -- & \checkmark & -- & -- & -- & -- \\
+scRCL \cite{peng2026scrcl}                & \checkmark & -- & -- & -- & -- & -- & -- \\
+GeneIncr.\ \cite{qi2026geneincremental}   & \checkmark & -- & -- & -- & -- & -- & -- \\
+GeneMamba \cite{genemamba2024}            & \checkmark & \checkmark & -- & -- & -- & -- & -- \\
+BMFM-RNA \cite{bmfmrna2025}               & \checkmark & -- & -- & -- & -- & -- & -- \\
+CellPLM \cite{cellplm2024}                & \checkmark & -- & -- & \checkmark & -- & -- & -- \\
+GeneCompass \cite{genecompass2024}        & \checkmark & -- & -- & \checkmark & -- & -- & -- \\
+scMoFormer \cite{scmoformer2023}          & -- & -- & \checkmark & \checkmark & -- & -- & -- \\
+GenoHoption \cite{cheng2024genohoption}   & \checkmark & -- & -- & \checkmark & -- & -- & -- \\
+\addlinespace
+\multicolumn{8}{l}{\emph{Adaptive-compute transformers}}\\
+MoD \cite{raposo2024mixture}              & -- & -- & -- & -- & \checkmark & -- & -- \\
+MoR \cite{bae2025mixture}                 & -- & -- & -- & -- & \checkmark & \checkmark & -- \\
+\addlinespace
+\multicolumn{8}{l}{\emph{Biology-structured models}}\\
+genomap \cite{islam2023cartography}       & -- & -- & -- & \checkmark & -- & -- & -- \\
+scTransformer \cite{sctransformer2024}    & -- & -- & -- & \checkmark & -- & -- & -- \\
+DOGMA \cite{dogma2024}                    & -- & -- & \checkmark & \checkmark & -- & -- & -- \\
+GATTACA \cite{mizera2026gattaca}          & -- & -- & -- & \checkmark & -- & -- & -- \\
+P-NET/PATH \cite{elmarakeby2021biologically,howlader2026graph} & -- & \checkmark & \checkmark & \checkmark & -- & -- & -- \\
+\midrule
+\textbf{bioMoR (ours)}                    & -- & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}}
+\caption{\footnotesize\textbf{Positioning of bioMoR against recent SOTA.} Columns are
+the main contributions in this space -- large-scale \emph{pretraining}, \emph{efficient}
+(sparse/compressed or sub-quadratic) token processing, \emph{multi-omics} inputs, a
+structural \emph{biology prior}, per-token \emph{adaptive depth}, weight-\emph{shared
+recursion}, and a \emph{learned} interaction graph. \checkmark{} = a built-in design
+choice. Each method contributes along some axes; bioMoR is the only one that unifies a
+biology prior and a learned graph with adaptive, weight-shared recursion (last four
+columns), while also compressing tokens and handling multi-omics.}
+\label{tab:positioning}
+\end{table}
 
-We take a different stance: \emph{for gene expression, the data and the known biology
-together tell us where to spend computation}. Decades of single-cell biology rest on
-two facts. A small set of \emph{marker genes} is sufficient to discriminate cell
-types \cite{ianevski2022fully,franzen2019panglaodb,hu2023cellmarker}; and gene
-co-expression and regulatory networks are approximately scale-free, so a few
-high-degree \emph{hub} genes exert outsized influence. If a model could decide,
-during training, which genes are markers, and could be told, before training, which
-genes are network hubs, it could grant those genes dedicated capacity and let
-everything else share parameters. This makes parameter efficiency an
-\emph{architectural} property and lets biology shape the \emph{routing decision}
-rather than merely validate it afterward.
+High-throughput sequencing produces increasingly large, high-dimensional molecular
+datasets \cite{luecken2019current,hasin2017multiomics}: single-cell RNA sequencing
+profiles each cell over more than 20,000 genes
+\cite{luecken2019current,stuart2019integrative}, and multi-omics studies integrate
+complementary layers such as genomic variation, transcriptomics, and epigenomics to
+characterize disease \cite{hasin2017multiomics,stuart2019integrative}. Transformers
+suit these data because self-attention learns dependencies among tokens
+\cite{vaswani2017attention}, and models such as Geneformer, scBERT, scGPT, and
+scFoundation show its promise for single-cell analysis and network biology
+\cite{theodoris2023transfer,scbert2022,cui2024scgpt,hao2024large}. Yet transferring
+the standard transformer to genomics creates a mismatch: all genes are treated as
+tokens of equal computational status, although only a subset is informative for a
+given cell type, cancer subtype, or task.
 
-We realise this in \textbf{SMART}, a recursive marker-guided transformer with three
-coupled components and one biological prior. (1) A cross-attention \emph{marker
-router}: $M$ learnable queries attend over all $N$ genes with a temperature-annealed
-softmax (Set-Transformer / Perceiver-style \cite{jang2017categorical,balin2019concrete}),
-so the model learns \emph{which} genes are markers end-to-end while gradients reach
-every gene. (2) \emph{Marker-driven compression}: each cell is represented by only its
-$M\ll N$ markers, cutting attention from $\mathcal{O}(N^2)$ to $\mathcal{O}(M^2)$.
-(3) A \emph{recursive shared block}: one transformer block applied $K$ times in the
-spirit of Universal Transformers \cite{dehghani2019universal}, ALBERT
-\cite{lan2020albert} and Mixture-of-Recursions \cite{bae2025mixture}, with an
-expert-choice depth router that gives each gene an adaptive recursion depth. On top
-of this, a \emph{biology-informed router} folds a gene-gene interaction graph into that
-depth decision. Our central finding concerns \emph{how} that graph should be formed: a
-\emph{fixed} hand-built graph (genomap co-expression \cite{islam2023cartography} or
-Reactome centrality) does not beat a degree-matched random-graph control, whereas a
-\emph{learned}, data-driven graph trained end-to-end does -- so biology helps routing
-only when the graph is learned rather than imposed a priori.
+This mismatch is costly. Self-attention over $N$ tokens scales as $\mathcal{O}(N^2)$
+\cite{vaswani2017attention}, so processing thousands of genes is expensive, and
+stacking $K$ independent blocks makes the parameter count grow linearly with depth.
+Efficient-attention methods such as Linformer, Performer, and Nystr\"omformer lower
+the attention cost \cite{wang2020linformer,choromanski2021performer,xiong2021nystromformer}
+but still spend equal computation on every gene, ignoring that genes and pathways
+differ in predictive and biological importance.
 
-We make the following contributions:
-\begin{itemize}
-\item \textbf{SMART}, a transformer for genomic classification that co-designs token
-selection, token compression, and parameter-shared recursion end-to-end, with each token's
-recursion depth as an intrinsic compute-allocation score. The token interface is
-modality-general: \emph{learned marker genes} for single-cell expression and fixed
-\emph{Reactome pathway tokens} (pooling mutation, copy-number and expression) for bulk
-multi-omics.
-\item A \textbf{controlled \emph{none / random-graph / fixed-biology / learned} study} of
-the gene-graph prior showing the \textbf{learned} graph is the decisive positive
-($+@@LEARNED_GAIN_SC@@$ points over a no-prior router, to @@LEARNED_SC_F1@@\% single-cell
-macro-F1), while a fixed hand-built prior does not separate from a degree-matched
-random-graph control; a confound factorial further isolates the gain as input
-\emph{smoothing}, not depth routing (Tables~\ref{tab:learned},~\ref{tab:confound}).
-\item \textbf{Efficiency that is architectural}: weight sharing gives a
-$@@PARAMRATIO@@\times$ parameter reduction at $K{=}@@DEPTH@@$, adaptive expert-choice
-recursion cuts $\sim$@@COMPUTE_SAVE@@\% of recursion FLOPs at matched accuracy, and a few
-dozen marker tokens recover most full-gene accuracy (Tables~\ref{tab:param},~\ref{tab:token},~\ref{tab:ladder}).
-\item An \textbf{honest evaluation} on all @@N_TOTAL@@ datasets ($@@N_SC@@$ single-cell,
-$@@N_PN@@$ multi-omics), multi-seed, surfacing negatives (fixed priors help neither
-accuracy nor calibration) and comparing to strong classical and foundation-model baselines;
-the full pipeline and paper regenerate from a single command.
-\end{itemize}
+Recursive and conditional-computation transformers target these costs. Universal
+Transformers and ALBERT reuse one block across depth
+\cite{dehghani2019universal,lan2020albert}; adaptive computation time,
+mixture-of-experts, and Mixture-of-Depths allocate computation per input
+\cite{graves2016act,shazeer2017moe,raposo2024mixture}; and, most related to us,
+Mixture-of-Recursions (MoR) shares parameters across recursive steps while a
+lightweight router gives each token its own recursion depth \cite{bae2025mixture}.
+MoR's routing, however, is biology-agnostic: token depth is set from learned token
+representations alone. For genomic data this is a real weakness -- a data-driven
+router may stop a biologically important but weakly expressed gene too early, or
+repeatedly process a prominent but redundant one, because it cannot see which genes
+are functionally related.
 
-\section{Related Work}
-\paragraph{Transformer foundation models for single-cell omics.}
-Geneformer \cite{theodoris2023transfer} and scBERT \cite{yang2022scbert} adapt
-masked-language-model pretraining to single-cell transcriptomes; scGPT
-\cite{cui2024scgpt} scales generative pretraining to 33M cells; scFoundation
-\cite{hao2024large} trains a 100M-parameter model over $\sim$20{,}000 genes; CellPLM
-\cite{wen2024cellplm} and Cell2Sentence \cite{levine2024cell2sentence} push cell- and
-language-level pretraining further. Earlier deep generative approaches such as scVI
-\cite{lopez2018deep} established probabilistic latent representations. genomap
-\cite{islam2023cartography} instead reshapes the gene vector into an image via an
-optimal-transport layout built from a gene-gene \emph{interaction} matrix, and uses a
-small CNN (genoNet) for cell recognition; we reuse precisely that interaction
-identification, but as a routing prior rather than an image layout. All of these
-treat genes uniformly or select them in a separate stage; none make marker-driven
-sparsity an architectural prior or let a gene-interaction graph shape adaptive
-computation.
+Biology offers a natural remedy. Cell identities are defined by small marker-gene
+sets \cite{aran2019singler,cortal2021cellid,ianevski2022sctype,franzen2019panglaodb,hu2023cellmarker},
+and genes act through regulatory and signaling networks organized in resources like
+Reactome \cite{gillespie2022reactome}. Existing biology-informed models -- P-NET,
+genomap, and GenoHoption -- use such structure to constrain connectivity or
+interpret representations
+\cite{elmarakeby2021biologically,islam2023cartography,cheng2024genohoption}, but
+not to decide how much computation each token receives. We therefore introduce a
+\emph{bio-router} that folds a gene--gene or pathway--pathway graph directly into
+the recursion-depth decision. Because curated graphs are incomplete and
+context-dependent, we do not fix the graph but let it adapt, and our controlled
+design finds a task-adaptive learned graph far more reliable than a rigid one. This
+motivates our question:
 
-\paragraph{Parameter-efficient and recursive transformers.}
-Tying weights across depth was shown to retain representational power by Universal
-Transformers \cite{dehghani2019universal} and to shrink models in ALBERT
-\cite{lan2020albert}. Mixture-of-Recursions \cite{bae2025mixture} unifies weight
-sharing with token-level adaptive depth, and Mixture-of-Depths \cite{raposo2024mixture}
-routes tokens through variable numbers of layers, both echoing sparsely-gated mixtures
-of experts \cite{shazeer2017outrageously} and adaptive computation time
-\cite{graves2016adaptive}. Efficient-attention methods, Linformer
-\cite{wang2020linformer}, Performer \cite{choromanski2021rethinking} and
-Nystr\"omformer \cite{xiong2021nystromformer}, reduce the quadratic cost generically,
-and recursive weight sharing has been pushed further in vision and restoration transformers
-\cite{shen2021sliced,jaber2026ouroboros}. We borrow the weight-sharing mechanism but make
-the token set biologically structured and the routing biologically primed, so our
-$\mathcal{O}(M^2)$ saving and our prior are complementary to these methods.
+\begin{quote}
+\emph{Can biological interaction structure guide recursive computation so that a
+genomic transformer uses fewer tokens, parameters, and operations while preserving
+predictive biological signals?}
+\end{quote}
 
-\paragraph{Markers, networks, and biological priors.}
-Marker-based annotation tools such as scType \cite{ianevski2022fully}, Cell-ID
-\cite{cortal2021cellid} and SingleR \cite{aran2019reference}, and curated databases
-including PanglaoDB \cite{franzen2019panglaodb} and CellMarker~2.0
-\cite{hu2023cellmarker}, encode the principle that few genes carry most discriminative
-signal. Pathway-informed models such as the graph transformer PATH
-\cite{howlader2026graph} build structure from Reactome \cite{gillespie2022reactome}.
-Most prior work uses such resources to \emph{validate} learned features; we instead
-move a network prior \emph{into} the computation. Standard tooling
-\cite{wolf2018scanpy,luecken2019current} and reference atlases
-\cite{regev2017human,tabula2022tabula} provide the broader context.
+We answer it with \textbf{bioMoR}, a biology-guided Mixture-of-Recursions framework
+for high-dimensional genomic learning (Figure~\ref{fig:overview}). bioMoR
+compresses $N$ genes/pathways into $M \ll N$ informative tokens -- learnable marker
+queries for single-cell data, pooled Reactome pathway tokens for multi-omics --
+reducing attention from $\mathcal{O}(N^2)$ to $\mathcal{O}(M^2)$; it applies one
+shared block recursively instead of $K$ independent ones, an exact $K$-fold
+parameter reduction; and its bio-router routes each token to an adaptive depth, so
+informative genes go deeper while others stop early and a token's survival depth
+records the computation it received. Comparing no-graph, random, fixed-biological,
+learned, and biology-initialized learned variants under matched settings shows a
+fixed graph can be brittle whereas a learned graph reliably helps. To our knowledge,
+bioMoR is the first framework to integrate explicit gene- or pathway-level
+interaction structure with Mixture-of-Recursions. As Table~\ref{tab:positioning}
+summarizes, prior models each contribute along some axes -- pretraining, efficient
+tokens, multi-omics, a biology prior, or adaptive recursion -- but bioMoR is the only
+one that unifies a biology prior and a learned interaction graph with adaptive,
+weight-shared recursion.
 
-\paragraph{Structured priors, efficient backbones, and simple baselines.}
-Several models inject biological structure differently. scTransformer
-\cite{sctransformer2024} gates attention with directed transcription-factor$\to$target
-masks; DOGMA \cite{dogma2024} hard-codes ontology / phylogeny into the network topology;
-pathway-structured models such as P-NET \cite{elmarakeby2021biologically} and PATH
-\cite{howlader2026graph} constrain connectivity to Reactome. Our finding is complementary
-and cautionary: a \emph{fixed} undirected centrality prior does not beat a random-graph
-control, so a graph helps only when it is \emph{learned} (or at least used as a denoising
-smoother), which clarifies when rigid structural priors help versus hurt. On the
-efficiency axis, linear-time state-space backbones such as GeneMamba \cite{genemamba2024}
-and objective-focused foundation pipelines such as BMFM-RNA \cite{bmfmrna2025} pursue
-scale differently; our marker compression and weight-shared recursion are orthogonal and
-composable with them. Finally, recent evidence that simple linear pipelines can rival
-transformer foundation models on cell typing \cite{souza2024linear} motivates the strong,
-non-transformer baselines we report alongside SMART.
+Across eight single-cell datasets and three multi-omics cancer cohorts (11 total),
+bioMoR obtains a mean macro-F1 of $67.1\%$, versus $56.8\%$ (vanilla), $58.2\%$
+(recursive), and $56.1\%$ (biology-free MoR) -- an $11.0$-point gain over MoR and
+$10.2$ over vanilla -- and it outperforms the vanilla transformer on 9 of the 11
+datasets. At recursion depth $K=4$, weight sharing uses $4\times$ fewer
+transformer-stack parameters and adaptive routing removes about $38\%$ of recursion
+FLOPs, so efficiency and accuracy improve together.
+
+Our contributions are: (i) \textbf{bioMoR}, a biology-guided Mixture-of-Recursions
+framework whose \emph{bio-router} brings gene--gene and pathway--pathway structure
+into adaptive token-level computation; (ii) a joint reduction of three
+genomic-transformer costs -- tokens (marker/pathway compression), parameters
+(recursive weight sharing), and operations (adaptive depth) -- under one interface
+for single-cell and multi-omics data with interpretable tokens and recursion
+depths; and (iii) a controlled study of \emph{when} biological structure helps,
+showing a fixed hand-built graph can be brittle whereas a task-adaptive learned
+graph reliably improves accuracy under tight token, parameter, and computation
+budgets.
 
 \section{Method}
 
 \paragraph{Token interface (markers and pathways).}
-SMART turns the input into $M\ll N$ interpretable tokens before any quadratic
+bioMoR turns the input into $M\ll N$ interpretable tokens before any quadratic
 attention. For single-cell expression these are \emph{learned marker} tokens from the
 cross-attention router. For bulk multi-omics they are fixed \emph{Reactome pathway}
 tokens: a sparse gene$\to$pathway membership pools each pathway's per-gene channels
@@ -1358,7 +1304,7 @@ shared block from a fixed-depth model.
 
 
 \subsection{Overview}
-Let $x \in \mathbb{R}^{N}$ be the expression vector of a cell over $N$ genes. SMART
+Let $x \in \mathbb{R}^{N}$ be the expression vector of a cell over $N$ genes. bioMoR
 maps $x$ to cell-type logits through five stages: gene embedding, learnable marker
 selection, marker-anchored compression, biology-informed recursive shared
 transformation with marker refinement, and a pooled classifier
@@ -1575,7 +1521,7 @@ biology): the learned graphs are the decisive win, the fixed prior hurts. The bo
 
 \subsection{Is the Gain Smoothing or Routing? A Confound Factorial}
 \label{sec:confound}
-The gene graph enters SMART in two distinct ways: it \emph{smooths} the input expression
+The gene graph enters bioMoR in two distinct ways: it \emph{smooths} the input expression
 before marker selection ($x\leftarrow(1-\lambda)x+\lambda\,\text{(graph)}\,x$, a
 denoising operation), and it \emph{primes} the depth router through an additive centrality
 prior (Eq.~\ref{eq:biorouter}). A fair reading of the learned-graph win must say which
@@ -1617,28 +1563,28 @@ smoothing}, not routing.}
 \subsection{Comparison to External Baselines}
 \label{sec:baselines}
 Recent work shows that simple, non-transformer pipelines can rival foundation models on
-cell typing \cite{souza2024linear}, so we calibrate SMART against strong classical
+cell typing \cite{souza2024linear}, so we calibrate bioMoR against strong classical
 baselines on the \emph{same} stratified splits: a linear ANOVA$\to$PCA$\to$logistic
 pipeline, a Random Forest, and a Nearest-Centroid marker classifier
 (Table~\ref{tab:baselines}). We report the outcome plainly, as \cite{souza2024linear}
 would predict: \emph{on the genomap-featurised single-cell suites the classical baselines
-are strong and often exceed SMART on macro-F1}, sometimes by a wide margin (Muraro, Xin,
+are strong and often exceed bioMoR on macro-F1}, sometimes by a wide margin (Muraro, Xin,
 Segerstolpe). Two factors explain this. The genomap features are already heavily
-engineered, so a linear model over \emph{all} of them retains signal that SMART's
+engineered, so a linear model over \emph{all} of them retains signal that bioMoR's
 aggressive compression to $M{=}128$ marker tokens necessarily discards; and these
 cell-typing tasks are, by the same token, close to linearly separable. On the multi-omics
 P-NET cohorts, however, whose raw mutation/copy-number channels are \emph{not}
-pre-engineered, SMART's best multi-modal configuration is the strongest method: it beats
+pre-engineered, bioMoR's best multi-modal configuration is the strongest method: it beats
 the linear pipeline, Random Forest and Nearest-Centroid on prostate and STAD
 (Table~\ref{tab:baselines}), which is the regime where a marker-guided model over raw omics
 is expected to help. We therefore
-do \emph{not} claim state-of-the-art accuracy on these benchmarks. SMART's contribution is
+do \emph{not} claim state-of-the-art accuracy on these benchmarks. bioMoR's contribution is
 instead (i) the mechanistic result that \emph{learned gene-graph smoothing} -- not
 routing, not fixed priors -- is what drives the accuracy a compact marker model can reach
 (Table~\ref{tab:confound}); (ii) parameter and token efficiency (Tables~\ref{tab:param},
 \ref{tab:token}); and (iii) an interpretable marker panel and compute-allocated recursion
 depth that the classical baselines do not provide. We also \emph{measure} the obvious
-lever for closing the gap -- simply giving SMART more marker tokens
+lever for closing the gap -- simply giving bioMoR more marker tokens
 (Table~\ref{tab:mbudget}). Growing the learned-graph budget from $M{=}$@@MB_LO_M@@ to
 $M{=}$@@MB_HI_M@@ (at which point the marker set is the full feature vector on every
 single-cell suite) lifts mean macro-F1 only from @@MB_LO@@\% to @@MB_HI@@\%
@@ -1651,7 +1597,7 @@ residual head, or a less lossy marker read-out -- not merely a bigger budget.
 
 
 \paragraph{On gene-vocabulary foundation models.}
-A natural question is how SMART compares to pretrained single-cell foundation models such
+A natural question is how bioMoR compares to pretrained single-cell foundation models such
 as scGPT \cite{cui2024scgpt} and Geneformer \cite{theodoris2023transfer}. These models
 \emph{tokenise genes by name} against a fixed gene-symbol vocabulary. The genomap
 single-cell suites used here are distributed as anonymised, image-featurised matrices
@@ -1661,19 +1607,19 @@ which operate on the feature matrix directly, are the applicable strong comparis
 gene-symbol interface \emph{is} available on the multi-omics P-NET cohorts, so we run both
 foundation models there (Table~\ref{tab:fm}), mapping each cohort's HUGO symbols to the
 model vocabulary and feeding a per-gene mutation/copy-number alteration burden on the
-\emph{same} stratified splits as SMART. This is the honest, if imperfect, comparison the
+\emph{same} stratified splits as bioMoR. This is the honest, if imperfect, comparison the
 benchmark allows: bulk DNA-alteration input is out-of-distribution for a single-cell-RNA
 foundation model, and the numbers should be read in that light. On these cohorts,
 @@FM_VERDICT@@. We therefore treat a foundation-model comparison on raw, named-gene
 single-cell data -- which the genomap preparation does not expose -- as the natural next
-benchmark for SMART.
+benchmark for bioMoR.
 
 
 \begin{table}[t]
 \centering
 \resizebox{\columnwidth}{!}{%
 @@TABLE_BASE@@}
-\caption{\textbf{SMART vs.\ non-transformer baselines} (macro-F1, mean$\pm$std over seeds)
+\caption{\textbf{bioMoR vs.\ non-transformer baselines} (macro-F1, mean$\pm$std over seeds)
 on the same 11 stratified splits: a linear ANOVA$\to$PCA$\to$logistic pipeline, a Random
 Forest, and a Nearest-Centroid classifier.}
 \label{tab:baselines}
@@ -1708,7 +1654,7 @@ $\sim$@@COMPUTE_SAVE@@\% of the FLOPs.}
 \end{table}
 
 Putting the two effects together gives the headline picture (Table~\ref{tab:effacc}):
-against a vanilla transformer, SMART -- the MoR architecture \emph{with} the learned
+against a vanilla transformer, bioMoR -- the MoR architecture \emph{with} the learned
 routing graph -- uses $@@PARAMRATIO@@\times$ fewer unique parameters and
 $\sim$@@EA_SAVED@@\% fewer FLOPs while \emph{raising} mean macro-F1 from @@EA_VAN@@\% to
 @@EA_SMART@@\% ($+$@@EA_DELTA@@ points), and it is more accurate on nearly every dataset,
@@ -1762,7 +1708,7 @@ accurate (via the learned graph) and far better scored.
 
 
 \section{Discussion and Limitations}
-SMART shows biological inductive bias and parameter-efficient recursion can be co-designed:
+bioMoR shows biological inductive bias and parameter-efficient recursion can be co-designed:
 the mechanisms that make the model small (weight sharing, marker compression) also make it
 interpretable, and a label-free gene-gene prior folds into routing without leaking labels or
 adding parameters. We scope claims to the evidence. A benefit is credited only where a graph
@@ -1777,21 +1723,24 @@ regulatory-network priors and larger atlases are natural next steps to test wher
 graph bites hardest.
 
 \section{Conclusion}
-We presented SMART, a recursive marker-guided transformer whose central novelty is a
+We presented bioMoR, a recursive marker-guided transformer whose central novelty is a
 \emph{biology-informed router} that folds a gene-gene network-centrality prior into a
 Mixture-of-Recursions depth decision, so biology shapes where the model spends
-computation rather than only how its results are read. Across @@N_TOTAL@@ single-cell
-and multi-omics datasets we find that a \emph{learned} routing graph is the decisive
-positive (single-cell macro-F1 @@LEARNED_SC_F1@@\%, $+@@LEARNED_GAIN_SC@@$ over a
-no-prior router), while a \emph{fixed} hand-built biology prior does not separate from a
-random-graph control. By learning marker genes, compressing around them, and sharing one
-block across recursive refinement, SMART classifies with several times fewer transformer
-parameters than independent layers, a $\sim$@@COMPUTE_SAVE@@\% compute saving, and an
-interpretable compute-allocated recursion-depth signal. The complete pipeline, including
+computation rather than only how its results are read. Across eight single-cell datasets
+and three multi-omics cancer cohorts, bioMoR reaches a mean macro-F1 of 67.1\%, $+11.0$
+points over an otherwise identical biology-free MoR (56.1\%) and ahead of vanilla (56.8\%)
+and recursive (58.2\%) transformers, beating the vanilla transformer on 9 of 11 datasets. Digging into
+\emph{how} the routing graph should be formed, a \emph{learned} graph is the decisive
+positive (single-cell macro-F1 70.8\%, $+11.7$ over a no-prior router), while a
+\emph{fixed} hand-built biology prior does not separate from a random-graph control. By
+learning marker genes, compressing around them, and sharing one block across recursive
+refinement, bioMoR classifies with several times fewer transformer parameters than
+independent layers, a $\sim$38\% compute saving, and an interpretable
+compute-allocated recursion-depth signal. The complete pipeline, including
 all experiments and this paper, regenerates from a single command.
 
 \section{Broader Impact and Ethics Statement}
-SMART targets cell-type annotation and bulk-omics subtyping with far fewer parameters and
+bioMoR targets cell-type annotation and bulk-omics subtyping with far fewer parameters and
 an auditable marker-gene and recursion-depth signal, lowering the barrier for interpretable
 biological discovery. Its predictions are research tools, not clinical decisions: on a
 tissue or population absent from training they can be confidently wrong (our hard suites,
@@ -1814,8 +1763,8 @@ preparation.
 @@TABLE_EFFACC@@}
 \caption{\textbf{Lower compute, higher accuracy -- per dataset.} Macro-F1 of a vanilla
 transformer ($K$ independent layers, $@@PARAMRATIO@@\times$ params, $1.00\times$ FLOPs)
-versus SMART (weight-shared MoR recursion $+$ learned routing graph, $1\times$ params,
-$\sim$@@EA_SAVED@@\% fewer FLOPs). SMART is cheaper on both axes \emph{and} more accurate
+versus bioMoR (weight-shared MoR recursion $+$ learned routing graph, $1\times$ params,
+$\sim$@@EA_SAVED@@\% fewer FLOPs). bioMoR is cheaper on both axes \emph{and} more accurate
 ($\Delta$F1 column) on nearly every single-cell and multi-omics dataset.}
 \label{tab:effacc}
 \end{table}
@@ -1848,10 +1797,10 @@ init; forcing biology in more strongly does not beat learning the graph from dat
 \centering
 \resizebox{\columnwidth}{!}{%
 @@TABLE_FM@@}
-\caption{\textbf{SMART vs.\ gene-vocabulary foundation models} on the P-NET cohorts
+\caption{\textbf{bioMoR vs.\ gene-vocabulary foundation models} on the P-NET cohorts
 (macro-F1, mean$\pm$std over seeds). Geneformer (fine-tuned) and scGPT (frozen embedding
 $+$ logistic probe) are mapped onto each cohort's HUGO gene symbols with a per-gene
-mutation/copy-number alteration burden, on the same splits as SMART. Bulk DNA-alteration
+mutation/copy-number alteration burden, on the same splits as bioMoR. Bulk DNA-alteration
 input is out-of-distribution for these single-cell-RNA models.}
 \label{tab:fm}
 \end{table}
@@ -2016,7 +1965,7 @@ profiling on matched hardware is a straightforward addition we leave to the came
 
 \section{Theoretical Foundation of the Router}
 \label{app:theory}
-This appendix gives the mathematical and biological grounding for SMART's
+This appendix gives the mathematical and biological grounding for bioMoR's
 biology-informed router.
 
 \paragraph{Routing as conditional computation.}
@@ -2028,7 +1977,7 @@ of experts \cite{shazeer2017outrageously}, reused by Mixture-of-Depths
 computation \cite{graves2016adaptive} to weight sharing.
 
 \paragraph{The differentiable handle.}
-The discrete top-$k$ has zero gradient almost everywhere, so SMART keeps the soft
+The discrete top-$k$ has zero gradient almost everywhere, so bioMoR keeps the soft
 probability of the chosen route as a multiplicative \emph{gate} on the block output,
 $\mathbf{o}_m=g_m\,f_\theta(\mathbf{h}_m)$ with $g_m=\sigma(\tilde r_m)$. Because $g_m$
 is smooth in $\mathbf{w}_r$, the chain
@@ -2363,6 +2312,187 @@ _BIB = r"""@inproceedings{vaswani2017attention,
   author={Jaber, Jaber and Jaber, Obeida},
   journal={arXiv preprint},
   year={2026}
+}
+
+@inproceedings{peng2026scrcl,
+  title={Refinement Contrastive Learning of Cell--Gene Associations for Unsupervised Cell Type Identification},
+  author={Peng, Liang and Liu, Hao and Ye, Yu and Liu, Chun and Shen, Wei and Wu, Sen and Wong, Hau-San},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={40},
+  number={2},
+  pages={908--916},
+  year={2026}
+}
+
+@inproceedings{qi2026geneincremental,
+  title={Gene Incremental Learning for Single-Cell Transcriptomics},
+  author={Qi, Jie and Cui, Yuhang and Huang, Jian and Xie, Guotong},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={40},
+  year={2026}
+}
+
+@inproceedings{mizera2026gattaca,
+  title={The {GATTACA} Framework: Graph Neural Network-Based Reinforcement Learning for Controlling Biological Networks},
+  author={Mizera, Andrzej and Zarzycki, Jakub},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={40},
+  year={2026}
+}
+
+@article{scbert2022,
+  title={scBERT as a large-scale pretrained deep language model for cell type annotation of single-cell RNA-seq data},
+  author={Yang, Fan and Wang, Wenchuan and Wang, Fang and Fang, Yuejing and Tang, Duyu and Huang, Junzhou and Lu, Hui and Yao, Jianhua},
+  journal={Nature Machine Intelligence},
+  volume={4},
+  number={10},
+  pages={852--866},
+  year={2022}
+}
+
+@article{uce2026,
+  title={Universal cell embedding provides a foundation model for cell biology},
+  author={Rosen, Yanay and Roohani, Yusuf and Agrawal, Ayush and Samotorcan, Leon and Quake, Stephen R. and Leskovec, Jure},
+  journal={Nature},
+  year={2026}
+}
+
+@inproceedings{cellplm2024,
+  title={{CellPLM}: Pre-training of Cell Language Model Beyond Single Cells},
+  author={Wen, Hongzhi and Tang, Wenzhuo and Dai, Xinnan and Ding, Jiayuan and Jin, Wei and Xie, Yuying and Tang, Jiliang},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2024}
+}
+
+@inproceedings{xtrimogene2023,
+  title={{xTrimoGene}: An Efficient and Scalable Representation Learner for Single-Cell RNA-Seq Data},
+  author={Gong, Jing and Hao, Minsheng and Cheng, Xingyi and Zeng, Xin and Liu, Chiming and Ma, Jianzhu and Zhang, Xuegong and Wang, Taifeng and Song, Le},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
+  year={2023}
+}
+
+@article{tgpt2023,
+  title={Generative pretraining from large-scale transcriptomes for single-cell deciphering},
+  author={Shen, Hongru and Liu, Jilei and Hu, Jiani and Shen, Xilin and Zhang, Chao and Wu, Dan and Feng, Mengyao and Yang, Meng and Li, Yang and Yang, Yichen and Wang, Wei and Zhang, Qiang and Yang, Jilong and Chen, Kexin and Li, Xiangchun},
+  journal={iScience},
+  volume={26},
+  number={5},
+  pages={106536},
+  year={2023}
+}
+
+@inproceedings{scmulan2024,
+  title={{scMulan}: A Multitask Generative Pre-trained Language Model for Single-Cell Analysis},
+  author={Bian, Haiyang and Chen, Yixin and Dong, Xiaomin and Li, Chen and Hao, Minsheng and Chen, Sijie and Hu, Jinyi and Sun, Maosong and Wei, Lei and Zhang, Xuegong},
+  booktitle={Research in Computational Molecular Biology (RECOMB)},
+  year={2024}
+}
+
+@article{genecompass2024,
+  title={{GeneCompass}: deciphering universal gene regulatory mechanisms with a knowledge-informed cross-species foundation model},
+  author={Yang, Xiaodong and Liu, Guangyu and Feng, Guibo and Bu, Dechao and Wang, Pengfei and Jiang, Jie and Chen, Shubai and Yang, Qinmeng and Miao, Hefan and Zhang, Yisheng and Man, Zhenpeng and others},
+  journal={Cell Research},
+  volume={34},
+  number={12},
+  pages={830--845},
+  year={2024}
+}
+
+@article{nicheformer2024,
+  title={Nicheformer: a foundation model for single-cell and spatial omics},
+  author={Schaar, Anna C. and Tejada-Lapuerta, Alejandro and Palla, Giovanni and Gutgesell, Robert and Halle, Lennard and Minaeva, Mariia and Vornholz, Larsen and Dony, Leander and Drummer, Francesca and Bahrami, Mojtaba and Theis, Fabian J.},
+  journal={bioRxiv},
+  year={2024}
+}
+
+@inproceedings{langcell2024,
+  title={{LangCell}: Language-Cell Pre-training for Cell Identity Understanding},
+  author={Zhao, Suyuan and Zhang, Jiahuan and Wu, Yushuai and Luo, Yizhen and Nie, Zaiqing},
+  booktitle={International Conference on Machine Learning (ICML)},
+  year={2024}
+}
+
+@inproceedings{scmoformer2023,
+  title={Single-Cell Multimodal Prediction via Transformers},
+  author={Tang, Wenzhuo and Wen, Hongzhi and Liu, Renming and Ding, Jiayuan and Jin, Wei and Xie, Yuying and Liu, Hui and Tang, Jiliang},
+  booktitle={Proceedings of the 32nd ACM International Conference on Information and Knowledge Management (CIKM)},
+  year={2023}
+}
+
+@article{cellfm2025,
+  title={{CellFM}: a large-scale foundation model pre-trained on transcriptomics of 100 million human cells},
+  author={Zeng, Yuansong and Xie, Jiancong and Wei, Zhuoyi and Su, Yun and Shangguan, Ningyuan and Yang, Shuangyu and Zhang, Chengyang and Li, Wenbing and Zhang, Jinbo and Fang, Nan and Zhang, Hongyu and Zhao, Huiying and Lu, Yutong and Fan, Jue and Yu, Weijiang and Yang, Yuedong},
+  journal={Nature Communications},
+  volume={16},
+  pages={4679},
+  year={2025}
+}
+
+@inproceedings{choromanski2021performer,
+  title={Rethinking Attention with Performers},
+  author={Choromanski, Krzysztof and Likhosherstov, Valerii and Dohan, David and Song, Xingyou and Gane, Andreea and Sarlos, Tamas and Hawkins, Peter and Davis, Jared and Mohiuddin, Afroz and Kaiser, Lukasz and Belanger, David and Colwell, Lucy and Weller, Adrian},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2021}
+}
+
+@article{ianevski2022sctype,
+  title={Fully-automated and ultra-fast cell-type identification using specific marker combinations from single-cell transcriptomic data},
+  author={Ianevski, Aleksandr and Giri, Anil K. and Aittokallio, Tero},
+  journal={Nature Communications},
+  volume={13},
+  pages={1246},
+  year={2022}
+}
+
+@article{aran2019singler,
+  title={Reference-based analysis of lung single-cell sequencing reveals a transitional profibrotic macrophage},
+  author={Aran, Dvir and Looney, Agnieszka P. and Liu, Leqian and Wu, Esther and Fong, Valerie and Hsu, Austin and Chak, Suzanna and Naikawadi, Ram P. and Wolters, Paul J. and Abate, Adam R. and Butte, Atul J. and Bhattacharya, Mallar},
+  journal={Nature Immunology},
+  volume={20},
+  number={2},
+  pages={163--172},
+  year={2019}
+}
+
+@article{graves2016act,
+  title={Adaptive Computation Time for Recurrent Neural Networks},
+  author={Graves, Alex},
+  journal={arXiv preprint arXiv:1603.08983},
+  year={2016}
+}
+
+@inproceedings{shazeer2017moe,
+  title={Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer},
+  author={Shazeer, Noam and Mirhoseini, Azalia and Maziarz, Krzysztof and Davis, Andy and Le, Quoc and Hinton, Geoffrey and Dean, Jeff},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year={2017}
+}
+
+@inproceedings{cheng2024genohoption,
+  title={{GenoHoption}: Bridging Gene Network Graphs and Single-Cell Foundation Models},
+  author={Cheng, Jiabei and Li, Jiachen and Yang, Kaiyuan and Shen, Hongbin and Yuan, Ye},
+  booktitle={IEEE International Conference on Bioinformatics and Biomedicine (BIBM)},
+  year={2024}
+}
+
+@article{hasin2017multiomics,
+  title={Multi-omics approaches to disease},
+  author={Hasin, Yehudit and Seldin, Marcus and Lusis, Aldons},
+  journal={Genome Biology},
+  volume={18},
+  number={1},
+  pages={83},
+  year={2017}
+}
+
+@article{stuart2019integrative,
+  title={Comprehensive Integration of Single-Cell Data},
+  author={Stuart, Tim and Butler, Andrew and Hoffman, Paul and Hafemeister, Christoph and Papalexi, Efthymia and Mauck III, William M. and Hao, Yuhan and Stoeckius, Marlon and Smibert, Peter and Satija, Rahul},
+  journal={Cell},
+  volume={177},
+  number={7},
+  pages={1888--1902},
+  year={2019}
 }
 """
 

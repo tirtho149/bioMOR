@@ -1,0 +1,15 @@
+{
+ "dataset": "Wang",
+ "mode": "learned",
+ "K": 4,
+ "seed": 2,
+ "n_markers": 128,
+ "test_macro_f1": 29.45906432748538,
+ "test_accuracy": 50.0,
+ "val_macro_f1": 46.39016897081413,
+ "n_features": 2000,
+ "n_classes": 7,
+ "n_samples": 457,
+ "learned_lambda": 0.20784343779087067,
+ "bio_anchor_have": false
+}

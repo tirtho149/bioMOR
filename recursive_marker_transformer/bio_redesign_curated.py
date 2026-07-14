@@ -182,12 +182,23 @@ def _cfg(mode: str, K: int, seed: int, epochs: int, n_classes: int) -> RMTConfig
     return cfg
 
 
+ROUTING_OVERRIDE = None   # set from --recursion_mode (e.g. 'token' for token-choice bioMoR)
+STEP_CACHE_OVERRIDE = False   # set from --step_cache (KV-cache)
+SHARE_OVERRIDE = None         # set from --share_strategy (e.g. 'middle_cycle' for M-Cyc)
+PATIENCE_OVERRIDE = None      # set from --patience (early-stop patience)
+DMODEL_OVERRIDE = None        # set from --d_model (width; d_ff set to 2*d_model)
+
 def run_cell(X, y, genes, classes, family, cohort, task, mode, K, seed, epochs,
              device, graphs):
     F, C = X.shape[1], len(classes)
     torch.manual_seed(seed); np.random.seed(seed)
     tr, va, te = _make_splits(y, None, seed)
     cfg = _cfg(mode, K, seed, epochs, C)
+    if ROUTING_OVERRIDE: cfg.recursion_mode = ROUTING_OVERRIDE
+    if STEP_CACHE_OVERRIDE: cfg.step_cache = True
+    if SHARE_OVERRIDE: cfg.share_strategy = SHARE_OVERRIDE
+    if PATIENCE_OVERRIDE is not None: cfg.patience = PATIENCE_OVERRIDE
+    if DMODEL_OVERRIDE is not None: cfg.d_model = DMODEL_OVERRIDE; cfg.d_ff = 2 * DMODEL_OVERRIDE
     cfg.n_markers = min(cfg.n_markers, F)
     # curated/random install a fixed external graph; none/learned install nothing
     # (learned builds its own graph inside the model). learned_bio installs no fixed
@@ -220,6 +231,58 @@ def run_cell(X, y, genes, classes, family, cohort, task, mode, K, seed, epochs,
     return out
 
 
+_NEEDS_GRAPH = {"curated", "random", "smooth_curated", "route_curated",
+                "smooth_random", "route_random", "learned_bio",
+                "learned_fused", "learned_fused_rand"}
+
+
+def run_cell_cv(X, y, genes, classes, family, cohort, task, mode, K, epochs,
+                device, n_folds=5):
+    """5-fold CV variant of run_cell: unified shared folds (cv.cv_folds, seed 42,
+    20% test / 10%-of-train val). Any external graph is rebuilt per fold on that
+    fold's TRAIN split (leakage-safe). macro-F1 mean +/- SD -> <mode>_cv.json."""
+    from .cv import cv_folds, summarize, SEED, VAL_FRAC
+    F, C = X.shape[1], len(classes)
+    torch.manual_seed(SEED); np.random.seed(SEED)
+    cfg = _cfg(mode, K, SEED, epochs, C)
+    if ROUTING_OVERRIDE: cfg.recursion_mode = ROUTING_OVERRIDE
+    if STEP_CACHE_OVERRIDE: cfg.step_cache = True
+    if SHARE_OVERRIDE: cfg.share_strategy = SHARE_OVERRIDE
+    if PATIENCE_OVERRIDE is not None: cfg.patience = PATIENCE_OVERRIDE
+    if DMODEL_OVERRIDE is not None: cfg.d_model = DMODEL_OVERRIDE; cfg.d_ff = 2 * DMODEL_OVERRIDE
+    cfg.n_markers = min(cfg.n_markers, F)
+    Xf = X.astype(np.float32)
+
+    fold_f1, fold_acc = [], []
+    for fi, (tr, va, te) in enumerate(cv_folds(y, n_folds=n_folds, seed=SEED, val_frac=VAL_FRAC)):
+        inter, bio_op = None, None
+        if mode in _NEEDS_GRAPH:
+            graphs, _diag = build_reactome_falsification(
+                X[tr], genes, REACTOME_CSV, y_train=y[tr], knn=16, seed=SEED,
+                centrality="ppr", deconfound_pc=0)
+            if mode in ("curated", "random"):
+                inter = graphs[mode]
+            elif mode in ("smooth_curated", "route_curated"):
+                inter = graphs["curated"]
+            elif mode in ("smooth_random", "route_random"):
+                inter = graphs["random"]
+            if mode in ("learned_bio", "learned_fused"):
+                bio_op = graphs["curated"].operator
+            elif mode == "learned_fused_rand":
+                bio_op = graphs["random"].operator
+        yt, yp, model = _fit_eval(Xf, y, tr, va, te, cfg, F, C, device,
+                                  inter=inter, bio_op=bio_op)
+        f1 = 100.0 * f1_score(yt, yp, average="macro")
+        fold_f1.append(f1); fold_acc.append(100.0 * accuracy_score(yt, yp))
+        print(f"  fold {fi+1}/{n_folds}: macroF1={f1:.2f} (test {len(te)})", flush=True)
+    return {
+        "family": family, "cohort": cohort, "task": task, "mode": mode, "K": K,
+        "n_features": F, "n_classes": C, "n_samples": int(len(y)),
+        "n_folds": n_folds, "seed": SEED, "val_frac": VAL_FRAC,
+        "cv_macro_f1": summarize(fold_f1), "cv_accuracy": summarize(fold_acc),
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--family", choices=["tcga", "pnet"], required=True)
@@ -227,6 +290,8 @@ def main():
     ap.add_argument("--task", default="response",
                     help="TCGA label column; ignored for pnet (uses built-in response)")
     ap.add_argument("--modes", nargs="*", default=["none", "curated", "random"])
+    ap.add_argument("--cv_folds", type=int, default=0,
+                    help="if >0, run unified k-fold CV (mean+/-SD) instead of per-seed single split")
     ap.add_argument("--seeds", nargs="*", type=int, default=[0, 1, 2])
     ap.add_argument("--K", type=int, default=4)
     ap.add_argument("--epochs", type=int, default=60)
@@ -234,7 +299,19 @@ def main():
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--out", type=Path, default=ROOT / "results_bio_curated")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--recursion_mode", default=None,
+                    help="override router type (e.g. 'token' for token-choice bioMoR)")
+    ap.add_argument("--step_cache", action="store_true", help="enable KV-cache (needs fixed/token mode)")
+    ap.add_argument("--share_strategy", default=None, help="e.g. 'middle_cycle' for M-Cyc share")
+    ap.add_argument("--patience", type=int, default=None, help="early-stop patience override")
+    ap.add_argument("--d_model", type=int, default=None, help="width override (d_ff set to 2*d_model)")
     args = ap.parse_args()
+    global ROUTING_OVERRIDE, STEP_CACHE_OVERRIDE, SHARE_OVERRIDE, PATIENCE_OVERRIDE, DMODEL_OVERRIDE
+    ROUTING_OVERRIDE = args.recursion_mode
+    STEP_CACHE_OVERRIDE = args.step_cache
+    SHARE_OVERRIDE = args.share_strategy
+    PATIENCE_OVERRIDE = args.patience
+    DMODEL_OVERRIDE = args.d_model
     device = resolve_device(args.device)
 
     loaded = (load_tcga(args.cohort, args.task) if args.family == "tcga"
@@ -252,6 +329,20 @@ def main():
           flush=True)
 
     summary = []
+    if args.cv_folds > 0:
+        for mode in args.modes:
+            p = out_dir / f"{mode}_cv.json"
+            if p.exists() and not args.force:
+                summary.append(json.loads(p.read_text())); continue
+            print(f"\n##### curated CV {tag} mode={mode} folds={args.cv_folds} #####", flush=True)
+            r = run_cell_cv(X, y, genes, classes, args.family, args.cohort, task, mode,
+                            args.K, args.epochs, device, n_folds=args.cv_folds)
+            p.write_text(json.dumps(r, indent=1))
+            print(f"  [{mode} CV] macroF1={r['cv_macro_f1']['mean']:.2f}+/-{r['cv_macro_f1']['std']:.2f}",
+                  flush=True)
+            summary.append(r)
+        return
+
     for seed in args.seeds:
         # Build the curated + matched-random graphs ONCE per seed on the TRAIN split
         # (leakage-safe: labels only via train-fold PPR seeds), shared by all modes.

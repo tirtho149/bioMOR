@@ -265,9 +265,10 @@ def _fit_eval(Xs_full, y, tr, va, te, cfg, F, K, device, inter="auto", bio_op=No
 
 def run_dataset_cv(name: str, data_root: Path, base: RMTConfig, out_dir: Path,
                    folds: int = 5) -> dict:
-    """Stratified k-fold CV on a single-cell dataset; macro-F1 / accuracy reported
-    as mean +/- std over folds (identical protocol to the TCGA cohort CV)."""
-    from sklearn.model_selection import StratifiedKFold
+    """Unified 5-fold CV on a single-cell dataset; macro-F1 / accuracy reported
+    as mean +/- SD over folds. Split protocol is shared (cv.cv_folds): seed 42,
+    20% test, 10%-of-train val -> identical folds across every variant."""
+    from .cv import cv_folds, VAL_FRAC
     torch.manual_seed(base.seed)
     np.random.seed(base.seed)
     device = resolve_device(base.device)
@@ -277,16 +278,12 @@ def run_dataset_cv(name: str, data_root: Path, base: RMTConfig, out_dir: Path,
     cfg = replace(base, heads=(HEAD,), n_markers=min(base.n_markers, F))
     Xf = X.astype(np.float32, copy=False)
 
-    skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=base.seed)
-    print(f"\n########## CV {name}: N={len(y)} F={F} K={K} folds={folds} device={device} "
-          f"##########", flush=True)
+    splits = cv_folds(y, n_folds=folds, seed=base.seed, val_frac=VAL_FRAC)
+    print(f"\n########## CV {name}: N={len(y)} F={F} K={K} folds={folds} "
+          f"val_frac={VAL_FRAC} seed={base.seed} device={device} ##########", flush=True)
 
     fold_metrics, model = [], None
-    for fi, (tr_all, te) in enumerate(skf.split(np.zeros(len(y)), y)):
-        _, cnt = np.unique(y[tr_all], return_counts=True)
-        strat = y[tr_all] if cnt.min() >= 2 else None
-        tr, va = train_test_split(tr_all, test_size=0.15,
-                                  random_state=base.seed + fi, stratify=strat)
+    for fi, (tr, va, te) in enumerate(splits):
         yt, yp, model = _fit_eval(Xf, y, tr, va, te, cfg, F, K, device)
         m = {"fold": fi, "n_test": int(len(te)),
              "accuracy": float(accuracy_score(yt, yp)),
@@ -310,6 +307,12 @@ def run_dataset_cv(name: str, data_root: Path, base: RMTConfig, out_dir: Path,
         "accuracy": _ms("accuracy"),
         "macro_f1": _ms("macro_f1"),
         "weighted_f1": _ms("weighted_f1"),
+        # uniform percent key read by build_cv5_table.py (same across all entry points)
+        "cv_macro_f1": {
+            "mean": float(100.0 * _ms("macro_f1")["mean"]),
+            "std":  float(100.0 * _ms("macro_f1")["std"]),
+            "folds": [float(100.0 * m["macro_f1"]) for m in fold_metrics],
+        },
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     with open(out_dir / f"{name}.json", "w") as f:

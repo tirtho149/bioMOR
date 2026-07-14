@@ -1,0 +1,107 @@
+# SMART Teaser — Spatial Plan (one landscape diagram)
+
+**Headline message (one sentence):** *LEARN which genes are markers and LEARN the gene-graph that smooths them, then spend recursion depth adaptively on a single weight-shared block — learned biology, not imposed biology, is the decisive win (+11.7 F1 to 70.8) and it is ~4× cheaper.*
+
+---
+
+## Canvas & global layout
+
+- **Aspect:** landscape, ~16:7 (e.g. 1600×700 units). Coordinate model below uses a 16-col × 7-row grid; `col`/`row` are 0-indexed from top-left.
+- **Two labeled panels, side by side**, occupying the full height:
+  - **Panel A — "Marker Selection"** — left ~58% of width (cols 0–9). Fill pale green `#EAF2EA`, thin rounded border, accent green `#2E7D5B`. Panel label top-left, small-caps, green.
+  - **Panel B — "Biology-Informed Recursive Routing & Classification"** — right ~42% (cols 9.2–16). Fill pale blue `#EAF0FA`, thin rounded border, accent blue `#2F5BAA`. Panel label top-left, small-caps, blue.
+- **No figure title inside the image.**
+- All stage boxes: rounded rectangles, thin grey edge `#6B7280`, white or panel-tinted fill. Stealth arrowheads on all flow arrows.
+- **NOTE on Panel B content:** Panel B is split top/bottom — **top-right = the architecture tail (recursive block → classifier)**, **bottom-right = the punchline results (bar chart + badges)**. This keeps "the method in miniature" (left→top-right) as one continuous flow, and the "so what" (results) as a visually distinct band beneath it.
+
+---
+
+## NODES
+
+### Panel A — Marker Selection (green), left flow, vertically centered around row 3
+
+| id | label text (incl. math) | panel | approx pos (col,row) | style |
+|----|------|-------|------|-------|
+| `n_input` | **Expression vector**  `x ∈ ℝ^N`  (*N genes*) — drawn as a thin tall stack/heat-strip of N cells | A | col 0.6, row 3 | tall thin rounded box, faint green ticks |
+| `n_graph` | **Learned gene–gene graph**  `Ĝ (low-rank, end-to-end)` — small node-link cluster w/ a couple of high-degree hubs emphasized | A | col 2.4, row 1.2 (above the flow) | **HERO**: green nodes/edges, no box or soft green halo box; visually the focal element |
+| `n_smooth` | **Smoothed expression**  `x̃ = Ĝ x` | A | col 2.4, row 3 | rounded box, pale green fill |
+| `n_router` | **Q-Former marker router** — M learnable query slots cross-attend all N genes; temperature-annealed softmax (soft→peaked) | A | col 4.6, row 3 | rounded box, green header strip; small "M queries" row of slots |
+| `n_markers` | **Marker tokens**  `M ≪ N` (*interpretable*) — a short row of ~6 discrete green token chips | A | col 7.3, row 3 | row of small rounded chips |
+
+### Panel B (top) — Recursive routing & classification (blue), flow continues right
+
+| id | label text (incl. math) | panel | approx pos (col,row) | style |
+|----|------|-------|------|-------|
+| `n_block` | **Shared transformer block**  `f_θ` — ONE block | B | col 10.4, row 2.2 | rounded box, blue header; loop arrow wraps it |
+| `n_mor` | **MoR depth router** — per-marker adaptive depth `d_m`; primed by graph `+ β_t·π_m` | B | col 12.4, row 2.2 | rounded box, blue; small bars of differing heights = different depths per marker |
+| `n_pool` | **Mean-pool over markers** | B | col 10.4, row 4.0 | small rounded box |
+| `n_head` | **Linear classifier** | B | col 12.0, row 4.0 | small rounded box |
+| `n_out` | **Cell type / phenotype** | B | col 13.6, row 4.0 | pill/output box, blue outline |
+
+### Panel B (bottom) — Punchline results band
+
+| id | label text (incl. math) | panel | approx pos (col,row) | style |
+|----|------|-------|------|-------|
+| `n_chart` | **Bar chart** — controlled gene-graph study, single-cell macro-F1 (see spec below) | B | cols 10.0–14.0, rows 5.0–6.6 | clean mini bar chart, thin axis |
+| `n_badge1` | **`4× fewer params`** (at K=4) | B | col 14.4, row 5.4 | compact rounded badge, blue outline |
+| `n_badge2` | **`~38% fewer FLOPs`** (matched accuracy) | B | col 14.4, row 6.1 | compact rounded badge, blue outline |
+
+---
+
+## ARROWS
+
+### Left architecture flow (green → into blue)
+
+| id | from → to | label | meaning / style |
+|----|-----------|-------|------|
+| `a1` | `n_input → n_smooth` | — | forward flow; solid green stealth arrow |
+| `a2` (**hero**) | `n_graph → n_smooth` (curved, then feeding back toward `n_router`) | **"smooth x (denoise)"** | **curved DASHED green arrow** — the graph denoises the input feeding the router; this is the focal storytelling element |
+| `a3` | `n_smooth → n_router` | — | solid green |
+| `a4` | `n_router → n_markers` | — | solid green; visually "many N → few M" (funnel/narrowing) |
+| `a5` | `n_markers → n_block` | **crosses A→B boundary** | solid arrow, green fading to blue at panel seam |
+
+### Recursive routing (blue)
+
+| id | from → to | label | meaning / style |
+|----|-----------|-------|------|
+| `a6` (**bold loop**) | `n_block → n_block` (loop-back over the top of the block) | **"weight-shared, ×K"** | bold curved blue loop arrow — same block applied K times |
+| `a7` | `n_block ↔ n_mor` | — | short double/coupled arrow; MoR sets per-marker depth `d_m` each pass |
+| `a8` | `n_graph → n_mor` | **"+ β_t·π_m"** | thin dashed green→blue arrow: graph also **primes the depth router** (secondary; keep subtle so it doesn't compete with `a2`) |
+| `a9` | `n_block → n_pool` | — | solid blue, downward |
+| `a10` | `n_pool → n_head` | — | solid blue |
+| `a11` | `n_head → n_out` | — | solid blue stealth |
+
+---
+
+## RIGHT results bar chart (`n_chart`) — exact spec
+
+- **Title inside chart area (small):** "Gene-graph ablation — single-cell macro-F1"
+- **Y-axis:** macro-F1 (%), range ~50–75.
+- **Four bars, left→right (controlled none / random / fixed / learned study):**
+  1. **none / random** — height **57.5** — neutral grey. Label `57.5`.
+  2. **random graph** (degree-matched control) — height **~57.5** — neutral grey (draw same height as none to show the control baseline). Label `57.5`.
+  3. **fixed biology prior** — height **~57–58**, **flat / no gain** — muted/hollow bar, small tag **"honest negative (no gain over random)"**. Label `≈57`.
+  4. **LEARNED** — height **70.8** — **solid green `#2E7D5B`, highlighted** (only colored bar). Label `70.8`.
+- **Delta annotation:** a green bracket/arrow spanning from the random baseline (57.5) up to the LEARNED bar (70.8) labeled **"+11.7"**.
+- Reading order left→right must visibly rise only at the LEARNED bar; fixed bar stays flat to carry the "imposed biology doesn't help" message.
+
+### Efficiency badges
+
+- `n_badge1`: **"4× fewer params"** (subtext optional: "@ K=4").
+- `n_badge2`: **"~38% fewer FLOPs"** (subtext optional: "matched acc.").
+- Both compact, blue-outlined, stacked to the right of the chart.
+
+---
+
+## Reading path (what the eye should do)
+
+1. **Left, top:** the green **learned gene-graph** (hero) with its curved dashed **"smooth x (denoise)"** arrow → immediately reads as "biology is learned and denoises the input."
+2. **Left, middle:** N genes → smoothed → **Q-Former router** picks **M ≪ N** marker tokens.
+3. **Cross into blue:** markers → **one shared block ×K** (bold loop) with **MoR adaptive depth** per marker → pool → linear head → cell type.
+4. **Bottom-right punchline:** bars flat at ~57.5 (none/random/fixed) then jump to green **70.8 (+11.7)**; two badges say it's also ~4× cheaper.
+
+**Emphasis hierarchy:** (1) hero graph + dashed denoise arrow, (2) the LEARNED green bar with +11.7, (3) the ×K weight-shared loop. Everything else is supporting structure.
+
+---
+
+Want me to also produce a stripped **node/edge adjacency list** (pure `id → id, label` pairs) that a rendering agent can consume directly, or is this spatial plan the handoff you need?

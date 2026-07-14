@@ -1,0 +1,15 @@
+{
+ "dataset": "Tcell",
+ "mode": "learned",
+ "K": 3,
+ "seed": 1,
+ "n_markers": 128,
+ "test_macro_f1": 66.50823115063115,
+ "test_accuracy": 81.47993891434125,
+ "val_macro_f1": 66.48431500287417,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_samples": 24007,
+ "learned_lambda": 0.3270587921142578,
+ "bio_anchor_have": false
+}

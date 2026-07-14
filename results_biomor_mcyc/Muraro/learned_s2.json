@@ -1,0 +1,15 @@
+{
+ "dataset": "Muraro",
+ "mode": "learned",
+ "K": 4,
+ "seed": 2,
+ "n_markers": 128,
+ "test_macro_f1": 74.28011212348244,
+ "test_accuracy": 88.54003139717426,
+ "val_macro_f1": 89.60840609082538,
+ "n_features": 2000,
+ "n_classes": 9,
+ "n_samples": 2122,
+ "learned_lambda": 0.22757555544376373,
+ "bio_anchor_have": false
+}

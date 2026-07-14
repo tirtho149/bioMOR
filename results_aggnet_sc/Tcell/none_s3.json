@@ -1,0 +1,13 @@
+{
+ "dataset": "Tcell",
+ "mode": "none",
+ "K": 4,
+ "seed": 3,
+ "n_markers": 128,
+ "test_macro_f1": 49.672072600282654,
+ "test_accuracy": 65.47271970012496,
+ "val_macro_f1": 50.87531931672663,
+ "n_features": 1089,
+ "n_classes": 7,
+ "n_samples": 24007
+}

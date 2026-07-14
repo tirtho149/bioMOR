@@ -1,0 +1,172 @@
+{
+ "dataset": "segerstolpe",
+ "n_samples": 2127,
+ "n_features": 2000,
+ "n_classes": 11,
+ "n_train": 1264,
+ "n_test": 639,
+ "transformer_params": 75168,
+ "total_params": 300697,
+ "config": {
+  "heads": [
+   "cell_type"
+  ],
+  "cohorts": null,
+  "n_hvg": null,
+  "n_channels": 1,
+  "batch_size": 128,
+  "val_frac": 0.15,
+  "test_frac": 0.15,
+  "d_model": 96,
+  "n_heads": 4,
+  "d_ff": 192,
+  "dropout": 0.1,
+  "n_markers": 128,
+  "marker_mode": "router",
+  "pathway_pool": "mean",
+  "compress_mode": "aggregate",
+  "recursive_marker_refine": true,
+  "peak_init": true,
+  "anneal_markers": true,
+  "recursion_depth": 4,
+  "share_weights": true,
+  "share_strategy": "middle_cycle",
+  "n_unique_blocks": null,
+  "step_cache": false,
+  "adaptive_depth": false,
+  "marker_ffn": false,
+  "recursion_mode": "expert",
+  "router_capacity": null,
+  "router_alpha": 1.0,
+  "router_temp": 1.0,
+  "router_type": "linear",
+  "router_z_coeff": 0.001,
+  "router_balance_coeff": 0.1,
+  "gene_interaction": "none",
+  "interaction_knn": 16,
+  "router_prior_beta": 1.0,
+  "router_prior_anneal": true,
+  "bio_graph_prop": false,
+  "bio_prop_lambda_init": 0.3,
+  "bio_prop_hops": 1,
+  "bio_prior_gate": false,
+  "bio_deconfound_pc": 0,
+  "bio_precision": false,
+  "bio_centrality": "eigcent",
+  "bio_prior_learnable": false,
+  "bio_beta_init": 0.5,
+  "bio_depth_laplacian": 0.0,
+  "bio_learned_graph": false,
+  "bio_learned_rank": 16,
+  "bio_learned_init": "random",
+  "bio_learned_fuse": false,
+  "bio_fuse_source": "coexpr",
+  "aggnet_species": "human",
+  "bio_learned_anchor": false,
+  "bio_anchor_lambda": 0.5,
+  "bio_anchor_floor": 0.0,
+  "bio_anchor_rank": 16,
+  "bio_anchor_source": "coexpr",
+  "bio_init_scale": 0.05,
+  "bio_init_rand": 0.005,
+  "pathway_attn_bias": false,
+  "pathway_attn_lambda": 2.0,
+  "lambda_marker": 0.1,
+  "gamma_diversity": 0.05,
+  "beta_compression": 0.01,
+  "lr": 0.001,
+  "weight_decay": 1e-05,
+  "epochs": 100,
+  "patience": 15,
+  "seed": 1,
+  "device": "cuda"
+ },
+ "heads": {
+  "cell_type": {
+   "accuracy": 0.8466353677621283,
+   "macro_f1": 0.6704295462476049,
+   "weighted_f1": 0.8485467700081823,
+   "per_class": {
+    "0": {
+     "precision": 0.0,
+     "recall": 0.0,
+     "f1-score": 0.0,
+     "support": 2.0
+    },
+    "1": {
+     "precision": 0.7205882352941176,
+     "recall": 0.875,
+     "f1-score": 0.7903225806451613,
+     "support": 56.0
+    },
+    "2": {
+     "precision": 0.9556451612903226,
+     "recall": 0.8909774436090225,
+     "f1-score": 0.9221789883268483,
+     "support": 266.0
+    },
+    "3": {
+     "precision": 0.8888888888888888,
+     "recall": 0.8888888888888888,
+     "f1-score": 0.8888888888888888,
+     "support": 81.0
+    },
+    "4": {
+     "precision": 0.6052631578947368,
+     "recall": 0.6764705882352942,
+     "f1-score": 0.6388888888888888,
+     "support": 34.0
+    },
+    "5": {
+     "precision": 0.8727272727272727,
+     "recall": 0.8275862068965517,
+     "f1-score": 0.8495575221238938,
+     "support": 116.0
+    },
+    "6": {
+     "precision": 0.6666666666666666,
+     "recall": 0.8,
+     "f1-score": 0.7272727272727273,
+     "support": 5.0
+    },
+    "7": {
+     "precision": 1.0,
+     "recall": 0.5,
+     "f1-score": 0.6666666666666666,
+     "support": 2.0
+    },
+    "8": {
+     "precision": 0.6805555555555556,
+     "recall": 0.8305084745762712,
+     "f1-score": 0.7480916030534351,
+     "support": 59.0
+    },
+    "9": {
+     "precision": 0.5,
+     "recall": 0.5,
+     "f1-score": 0.5,
+     "support": 2.0
+    },
+    "10": {
+     "precision": 0.75,
+     "recall": 0.5625,
+     "f1-score": 0.6428571428571429,
+     "support": 16.0
+    },
+    "accuracy": 0.8466353677621283,
+    "macro avg": {
+     "precision": 0.6945759034834146,
+     "recall": 0.6683574183823662,
+     "f1-score": 0.6704295462476049,
+     "support": 639.0
+    },
+    "weighted avg": {
+     "precision": 0.8557996497583603,
+     "recall": 0.8466353677621283,
+     "f1-score": 0.8485467700081823,
+     "support": 639.0
+    }
+   }
+  }
+ }
+}

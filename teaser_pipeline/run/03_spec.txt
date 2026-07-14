@@ -1,0 +1,112 @@
+The file write needs permission — I'll deliver the spec inline instead. Here is the tightened, TikZ-ready specification:
+
+---
+
+# SMART Teaser — TikZ-Ready Layout Spec (v1)
+
+Single landscape figure, vector TikZ. Coordinates in **cm on a 16.0 × 7.0 canvas**, **origin bottom-left, y up** (standard TikZ). Positions are *centers* unless a footprint `(x0,y0)–(x1,y1)` is given. Every footprint checked for non-overlap; minimum gap between any two boxes ≥ **0.40 cm**. No baked-in title or caption.
+
+## 0. Palette & global tokens
+
+| token | value | use |
+|-------|-------|-----|
+| `accentA` green | `#2E7D5B` | Panel A: labels, hero graph, learned bar, deltas |
+| `accentB` blue | `#2F5BAA` | Panel B: labels, loop arrow, output pill, badges |
+| `panelA` fill | `#EAF2EA` | Panel A background |
+| `panelB` fill | `#EAF0FA` | Panel B background |
+| `edge` | `#6B7280` | all stage-box strokes |
+| `ink` | `#1F2937` | body text |
+| `muted` | `#9AA3AF` | neutral/control bars, "no gain" tag, axes |
+| `haloA` | `#DDEBDD` | soft halo behind hero graph |
+| white | `#FFFFFF` | stage-box fills |
+
+**Strokes** — Panel border 0.6pt, corners 6pt, no shadow. Stage box 0.5pt `edge`, corners 3pt. Standard flow arrow 0.9pt `>=Stealth`. **Hero dashed `a2`: 1.3pt accentA, `dash on 4pt off 2.5pt`.** Loop `a6`: 1.2pt accentB. Subtle `a8`: 0.5pt dashed, ≤40% opacity.
+
+**Type scale** (`\sffamily`, Helvetica/Arial):
+
+| element | size | style | color |
+|---------|------|-------|-------|
+| Panel label | 8pt | bold small-caps, +0.5pt tracking | accent |
+| Node title | 8pt | bold | ink |
+| Node math/subtext | 7 / 6.5pt | math-italic / regular | ink |
+| Arrow label | 7.5pt | italic | arrow color |
+| Chart title | 7pt | bold | ink |
+| Axis/ticks | 6.5pt | regular | muted |
+| Bar value | 7pt | bold | bar color |
+| Delta "+11.7" | 9pt | bold | accentA |
+| Badge / subtext | 8 / 6.5pt | bold / regular | accentB / muted |
+
+## 1. Panels (draw first, behind all)
+
+| id | footprint | fill | border | label |
+|----|-----------|------|--------|-------|
+| Panel A | (0.20,0.20)–(9.00,6.80) | `panelA` | accentA 0.6pt | **MARKER SELECTION** @ (0.45,6.45) |
+| Panel B | (9.20,0.20)–(15.80,6.80) | `panelB` | accentB 0.6pt | **BIOLOGY-INFORMED RECURSIVE** / **ROUTING & CLASSIFICATION** (2 lines) @ (9.45,6.50), skip 0.32 |
+
+**Panel B divider:** `muted` rule 0.4pt @60% at **y=2.12**, x 9.45→15.55 — splits method tail (top) from results band (bottom). Keep the 0.20 gutter between panels untouched.
+
+## 2. Nodes
+
+**Panel A — main flow baseline y = 3.60**
+
+| id | center | footprint | contents |
+|----|--------|-----------|----------|
+| `n_input` | (0.90,3.60) | (0.55,2.10)–(1.25,5.10) | tall heat-strip, ~14 faint-green cells; title **"Expression"** @(0.90,5.35), `x ∈ ℝ^N` @(0.90,1.85), "(N genes)" 6.5pt below |
+| `n_graph` **HERO** | (3.00,5.58) | halo (1.80,4.72)–(4.20,6.44) `haloA`, no hard border | 9–11 accentA nodes, 2 emphasized hubs (×1.6, filled), edges 0.6pt@70%; title **"Learned gene–gene graph"** accentA @(3.00,6.30); `Ĝ — low-rank, end-to-end` @(3.00,4.90) |
+| `n_smooth` | (3.00,3.60) | (2.05,3.10)–(3.95,4.10) | **"Smoothed expression"** + `x̃ = Ĝ x` |
+| `n_router` | (5.60,3.60) | (4.45,2.95)–(6.75,4.25) | accentA header **"Q-Former marker router"**; row of 6 query-slot squares + `M queries`; `temp-annealed softmax (soft→peaked)` |
+| `n_markers` | (8.00,3.60) | chips (7.15,3.30)–(8.85,3.90) | 6 rounded green token chips (accentA outline, `haloA` fill); title **"Marker tokens"** @(8.00,4.20); `M ≪ N (interpretable)` @(8.00,3.05) |
+
+**Panel B (top) — method tail**
+
+| id | center | footprint | contents |
+|----|--------|-----------|----------|
+| `n_block` | (10.60,4.60) | (9.60,4.05)–(11.60,5.15) | accentB header **"Shared transformer block"** `f_θ`; tag "ONE block" |
+| `n_mor` | (13.20,4.60) | (12.20,4.05)–(14.20,5.15) | **"MoR depth router"**; 4 mini bars of differing heights (`d_m`); `primed by graph` |
+| `n_pool` | (10.40,2.70) | (9.55,2.30)–(11.25,3.10) | **"Mean-pool over markers"** 7.5pt |
+| `n_head` | (12.30,2.70) | (11.50,2.30)–(13.10,3.10) | **"Linear classifier"** 7.5pt |
+| `n_out` | (14.20,2.70) | pill (13.40,2.30)–(15.00,3.10) r=8pt, accentB 0.8pt | **"Cell type / phenotype"** accentB |
+
+**Panel B (bottom) — results band:** `n_chart` plot box (9.75,0.45)–(13.70,1.92); `n_badge1` (13.95,1.35)–(15.55,1.90); `n_badge2` (13.95,0.62)–(15.55,1.17). See §4.
+
+## 3. Arrows
+
+**Left flow:** `a1` input→smooth (solid accentA). **`a2` HERO** graph-bottom (3.00,4.72) → smooth-top (3.00,4.10), gentle S-curve bowing right (ctrl ~3.55,4.45), **1.3pt dashed accentA**, label **"smooth x (denoise)"** italic accentA @(3.85,4.42) to the right of the curve — corridor x≈3.0–4.0, y≈4.1–4.9 kept clear. `a3` smooth→router. `a4` router→markers as a subtle **funnel** (two converging 0.4pt@40% guides behind it → "N→M"). `a5` markers→block crossing seam, **accentA→accentB fade**.
+
+**Panel B:** **`a6` loop** block top-left (10.10,5.15) → arc y≈5.75 → block top-right (11.10,5.15), **1.2pt accentB**, label **"weight-shared ×K"** @(10.60,5.95). `a7` block↔mor **double-headed** 0.8pt (coupling). **`a8`** graph-top (3.00,6.44) → arc along top margin **y≈6.60** → mor-top (13.20,5.15), **0.5pt dashed green→blue ≤40%**, label **"+ β_t·π_m"** @(13.20,5.45) — routed high so it never competes with `a2`. `a9` block→pool (down), `a10` pool→head, `a11` head→out (solid accentB).
+
+## 4. Results bar chart
+
+Plot box (9.75,0.45)–(13.70,1.92). Title inside top @(11.72,1.98): "Gene-graph ablation — single-cell macro-F1". **Y-axis 50–75%**: baseline (50) at y=0.55, top (75) at y=1.85 → **0.052 cm/%**; y-axis 0.4pt muted, ticks 50/60/70. Bars width 0.50, centers **x = 10.35, 11.15, 11.95, 12.90** (extra gap before learned):
+
+| # | bar | F1 | top y | fill | label |
+|---|-----|----|-------|------|-------|
+| 1 | none | 57.5 | 0.94 | `muted` | `57.5` |
+| 2 | random (degree-matched) | 57.5 | 0.94 | `muted` | `57.5` |
+| 3 | fixed biology prior | 57.0 | 0.92 | **hollow** (white, muted outline) | `≈57` + tag "honest negative — no gain over random" 6pt |
+| 4 | **LEARNED** | 70.8 | 1.63 | **solid accentA** (only colored bar) | `70.8` accentA |
+
+**Delta:** accentA bracket from bar-2 top (11.15,0.96) → bar-4 top (12.90,1.65); **"+11.7"** 9pt bold accentA @(12.10,1.42). Flat across bars 1–3, jumps only at learned. **Badges** (accentB 0.6pt, r=4pt, white): `n_badge1` "4× fewer params" / "@ K=4"; `n_badge2` "~38% fewer FLOPs" / "matched acc."
+
+## 5. Emphasis hierarchy (survives at thumbnail)
+
+1. **Hero:** `n_graph` (halo + hubs) + its **1.3pt dashed "smooth x (denoise)" `a2`** — brightest/thickest green element, corridor kept clear.
+2. **Learned green bar `70.8` + "+11.7"** — only saturated color in the results band.
+3. **`a6` ×K weight-shared loop** — boldest blue stroke.
+
+All else is quiet: grey edges, thin strokes, `a8` ≤40% opacity.
+
+## 6. Overlap guarantees (verified)
+
+- Hero halo bottom (4.72) clears `n_smooth` top (4.10) by **0.62**.
+- `n_router` right (6.75) → `n_markers` left (7.15): **0.40**.
+- `n_block` right (11.60) → `n_mor` left (12.20): **0.60** (holds `a7`).
+- Method-tail box bottoms (2.30) clear divider (2.12) and chart top (1.92) by **≥0.18** — divider sits cleanly between.
+- `a8` at y≈6.60 rides above all boxes (max top 6.44) — no crossings.
+- Panels separated by the 0.20 gutter; `a5` is the only seam-crosser.
+
+---
+
+**Notes for you:** this is faithful to the plan — two panels, hero graph + dashed denoise arrow, N→M funnel, ×K loop, MoR, and the flat-flat-flat→70.8 (+11.7) results band with efficiency badges. Key refinements I locked down for realizability: concrete cm coordinates with verified ≥0.40 cm clearances, the `a8` priming arrow re-routed along the top margin so it can't visually fight the hero `a2`, and a single saturated-green element per zone (hero graph, learned bar) so the eye lands where the message lives.
+
+The `SPEC_teaser.md` write was declined — want me to save this to a file (and where), or is the inline spec the handoff you need?

@@ -62,7 +62,7 @@ PANMETA = {
     "panmeta_response": ("pancancer_meta_pri", "response"),         # primary vs metastatic
     "panmeta_subtype":  ("pancancer_meta_pri", "primary_disease"),  # 32-class cancer type
 }
-TASKS = ["prostate", "blca", "stad", "brca"] + list(PANMETA)
+TASKS = ["prostate", "blca", "stad", "brca", "pan_meta_pri"] + list(PANMETA)
 
 
 class _DictLoader:
@@ -247,9 +247,60 @@ def run(task, channel_set, base, out_dir, device, min_genes=5):
     return res
 
 
+def run_cv(task, channel_set, base, out_dir, device, min_genes=5, n_folds=5):
+    """5-fold CV variant of run(): unified shared folds (cv.cv_folds, seed 42,
+    20% test / 10%-of-train val), fresh training per fold, macro-F1 mean +/- SD.
+    Writes <tag>_cv.json."""
+    from .cv import cv_folds, summarize, SEED, VAL_FRAC
+    torch.manual_seed(SEED); np.random.seed(SEED)
+    dtypes = {task: "multiclass"}
+    if task in PANMETA:
+        cohort_dir, label = PANMETA[task]
+        coh = load_pan_meta(label=label, cohort=cohort_dir, min_genes=min_genes)
+    else:
+        coh = load_cohort(task, channels=channel_set, min_genes=min_genes)
+    X, y = coh.X, coh.y
+    G = X.shape[1]; K = int(y.max() + 1)
+    C = 1 if X.ndim == 2 else X.shape[2]
+    M = len(coh.pathways)
+    cfg = replace(base, heads=(task,), n_hvg=None, n_channels=C)
+
+    tag = _result_tag(task, channel_set, cfg)
+    print(f"\n########## CV {task} [{channel_set}] mode={cfg.marker_mode} "
+          f"prior={cfg.gene_interaction} N={len(y)} G={G} C={C} M={M} K={K} "
+          f"folds={n_folds} seed={SEED} device={device} ##########", flush=True)
+
+    fold_f1, fold_acc, model = [], [], None
+    for fi, (tr, va, te) in enumerate(cv_folds(y, n_folds=n_folds, seed=SEED, val_frac=VAL_FRAC)):
+        yt, yp, model, _dl, _vf1 = _fit_eval(task, coh, X, y, tr, va, te, cfg, G, K, dtypes, device)
+        f1 = 100.0 * f1_score(yt, yp, average="macro")
+        fold_f1.append(f1); fold_acc.append(100.0 * accuracy_score(yt, yp))
+        print(f"  fold {fi+1}/{n_folds}: macroF1={f1:.2f} (test {len(te)})", flush=True)
+
+    res = {
+        "task": task, "channel_set": channel_set, "channels": coh.channels, "n_channels": C,
+        "marker_mode": cfg.marker_mode, "gene_interaction": cfg.gene_interaction,
+        "recursion_mode": cfg.recursion_mode,
+        "n_samples": int(len(y)), "n_genes": int(G), "n_pathways": int(M), "n_classes": int(K),
+        "n_folds": n_folds, "seed": SEED, "val_frac": VAL_FRAC,
+        "transformer_params": int(model.transformer_param_count()),
+        "total_params": int(model.total_param_count()),
+        "config": cfg.as_dict(),
+        "cv_macro_f1": summarize(fold_f1), "cv_accuracy": summarize(fold_acc),
+    }
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with open(out_dir / f"{tag}_cv.json", "w") as f:
+        json.dump(res, f, indent=1, default=float)
+    print(f"  [CV] {tag} macroF1={res['cv_macro_f1']['mean']:.2f}+/-{res['cv_macro_f1']['std']:.2f}",
+          flush=True)
+    return res
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=Path("results_pathway"))
+    ap.add_argument("--cv_folds", type=int, default=0,
+                    help="if >0, run unified k-fold CV (mean+/-SD) instead of single split")
     ap.add_argument("--task", type=str, default="prostate", choices=TASKS)
     ap.add_argument("--channels", nargs="+", default=["mut_cnv"],
                     choices=list(CHANNEL_SETS.keys()))
@@ -310,11 +361,16 @@ def main():
 
     for cs in args.channels:
         tag = _result_tag(args.task, cs, base)
-        out = args.out / f"{tag}.json"
+        suffix = "_cv" if args.cv_folds > 0 else ""
+        out = args.out / f"{tag}{suffix}.json"
         if out.exists():
-            print(f"[pathway] [skip] {tag} (done)", flush=True)
+            print(f"[pathway] [skip] {tag}{suffix} (done)", flush=True)
             continue
-        run(args.task, cs, base, args.out, device, min_genes=args.min_genes)
+        if args.cv_folds > 0:
+            run_cv(args.task, cs, base, args.out, device, min_genes=args.min_genes,
+                   n_folds=args.cv_folds)
+        else:
+            run(args.task, cs, base, args.out, device, min_genes=args.min_genes)
     print(f"\n[pathway] done -> {args.out}", flush=True)
 
 

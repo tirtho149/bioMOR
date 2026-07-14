@@ -68,12 +68,18 @@ def _make_router(router_type: str, d_model: int, out_dim: int) -> nn.Module:
     raise ValueError(f"Unknown router_type: {router_type!r}")
 
 
+import os
+_CAP_FLOOR = float(os.environ.get("RMT_CAP_FLOOR", "0.75"))
+
 def default_capacity(depth: int) -> Tuple[float, ...]:
-    """Funnel schedule: keep all tokens at step 0, then taper to a 0.5 floor
-    (``1.0, 0.75, 0.5, 0.5, ...``). A gentle funnel suits a *pooling* classifier
-    -- the patient vector averages all M markers, so freezing too many tokens too
-    early (an aggressive ``0.5**t`` funnel) starves the pooled representation."""
-    return tuple(max(0.5, 1.0 - 0.25 * t) for t in range(depth))
+    """Funnel schedule: keep all tokens at step 0, then taper to a floor
+    (default ``1.0, 0.75, 0.75, 0.75, ...`` at floor 0.75). A gentle funnel suits a
+    *pooling* classifier -- the patient vector averages all M markers, so freezing too
+    many tokens too early starves the pooled representation. The old 0.5 floor gave
+    ``1.0, 0.75, 0.5, 0.5`` at K=4, whose repeated deep 0.5-step over-pruned the compact
+    marker panel and made K=4 the weakest depth; a 0.75 floor removes that penalty.
+    Override with env RMT_CAP_FLOOR."""
+    return tuple(max(_CAP_FLOOR, 1.0 - 0.25 * t) for t in range(depth))
 
 
 class ExpertChoiceRouter(nn.Module):

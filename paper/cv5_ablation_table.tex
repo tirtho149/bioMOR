@@ -1,0 +1,39 @@
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{l cc cc}
+\toprule
+Condition & SC macro-F1 & $\Delta$SC & MO macro-F1 & $\Delta$MO \\
+\midrule
+\addlinespace[1pt]\multicolumn{5}{l}{\textbf{1. Biological graph source}}\\
+\emph{bioMoR learned (baseline)} & \textbf{74.0{\scriptsize$\pm$2.8}} &  & \textbf{54.9{\scriptsize$\pm$6.5}} &  \\
+\quad none (no graph) & -- & -- & -- & -- \\
+\quad coexpr / curated & -- & -- & -- & -- \\
+\quad random (deg.-matched) & -- & -- & -- & -- \\
+\addlinespace[1pt]\multicolumn{5}{l}{\textbf{2. Routing internals}}\\
+\emph{MoR-general shared (baseline)} & \textbf{63.2{\scriptsize$\pm$5.1}} &  & -- &  \\
+\quad share: sequence & -- & -- & -- & -- \\
+\quad share: middle-cycle & -- & -- & -- & -- \\
+\quad share: middle-seq. & -- & -- & -- & -- \\
+\quad router: MLP & -- & -- & -- & -- \\
+\quad no load-balance loss & -- & -- & -- & -- \\
+\addlinespace[1pt]\multicolumn{5}{l}{\textbf{3. Marker selection / budget}}\\
+\emph{router markers, $M{=}128$ (baseline)} & \textbf{63.2{\scriptsize$\pm$5.1}} &  & -- &  \\
+\quad markers: random & -- & -- & -- & -- \\
+\quad markers: variance & -- & -- & -- & -- \\
+\quad budget $M{=}64$ & -- & -- & -- & -- \\
+\quad budget $M{=}256$ & -- & -- & -- & -- \\
+\addlinespace[1pt]\multicolumn{5}{l}{\textbf{4. Recursion depth}}\\
+\emph{$N_R{=}4$ (baseline)} & \textbf{63.2{\scriptsize$\pm$5.1}} &  & -- &  \\
+\quad $N_R{=}1$ (no recursion) & -- & -- & -- & -- \\
+\quad $N_R{=}6$ & -- & -- & -- & -- \\
+\quad $N_R{=}8$ & -- & -- & -- & -- \\
+\addlinespace[1pt]\multicolumn{5}{l}{\textbf{5. Learned-graph refinement}}\\
+\emph{learned (baseline)} & \textbf{74.0{\scriptsize$\pm$2.8}} &  & -- &  \\
+\quad warm-start from curated & -- & -- & -- & -- \\
+\quad fuse coexpr graph & -- & -- & -- & -- \\
+\quad fuse RANDOM (control) & -- & -- & -- & -- \\
+\addlinespace[1pt]\multicolumn{5}{l}{\textbf{6. Input modality (multi-omics)}}\\
+\emph{mut+CNV (baseline)} & -- &  & \textbf{50.6{\scriptsize$\pm$5.7}} &  \\
+\quad CNV only & -- & -- & -- & -- \\
+\quad mutation only & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}}

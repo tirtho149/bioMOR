@@ -1,0 +1,15 @@
+{
+ "dataset": "Oesophagus",
+ "mode": "learned",
+ "K": 1,
+ "seed": 1,
+ "n_markers": 128,
+ "test_macro_f1": 68.43582754513645,
+ "test_accuracy": 88.49346219442864,
+ "val_macro_f1": 70.1373235915952,
+ "n_features": 1089,
+ "n_classes": 18,
+ "n_samples": 87947,
+ "learned_lambda": 0.6250808835029602,
+ "bio_anchor_have": false
+}

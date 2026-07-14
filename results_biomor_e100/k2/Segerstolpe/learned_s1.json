@@ -1,0 +1,15 @@
+{
+ "dataset": "Segerstolpe",
+ "mode": "learned",
+ "K": 2,
+ "seed": 1,
+ "n_markers": 128,
+ "test_macro_f1": 80.37960348689052,
+ "test_accuracy": 93.58372456964005,
+ "val_macro_f1": 68.09303348594565,
+ "n_features": 2000,
+ "n_classes": 11,
+ "n_samples": 2127,
+ "learned_lambda": 0.22964754700660706,
+ "bio_anchor_have": false
+}

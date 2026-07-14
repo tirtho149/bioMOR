@@ -1,0 +1,28 @@
+>> Retriever
+    [retriever]    9s  999 chars
+>> Planner
+    [planner]   55s  7668 chars
+>> Stylist
+    [stylist]  181s  7993 chars
+>> Visualizer (initial)
+    [visualizer]   73s  12010 chars
+    compiled round0 on attempt 1
+>> Critic round 1
+    [critic-r1]   45s  3378 chars
+    score=6.0  accept=False
+>> Visualizer (revision 1)
+    [visualizer]  339s  12459 chars
+    compiled round1 on attempt 1
+>> Critic round 2
+    [critic-r2]   56s  3533 chars
+    score=7.0  accept=False
+>> Visualizer (revision 2)
+    [visualizer]  419s  13253 chars
+    compiled round2 on attempt 1
+>> Critic round 3
+    [critic-r3]   80s  3213 chars
+    score=8.0  accept=False
+
+DONE. best round=3 score=8.0
+  /work/mech-ai-scratch/tirtho/RecusrsiveQFormer/teaser_pipeline/teaser_smart.pdf
+  /work/mech-ai-scratch/tirtho/RecusrsiveQFormer/teaser_pipeline/teaser_smart.png

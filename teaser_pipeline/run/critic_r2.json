@@ -1,0 +1,12 @@
+{
+  "score": 7.0,
+  "accept": false,
+  "issues": [
+    "Panel B header ('RECURSIVE ROUTING & CLASSIFICATION') overlaps the 'Shared transformer block' box and the \u00d7K loop arrow at the top of the blue panel \u2014 title text and architecture collide.",
+    "Bar-chart top is crowded: chart title 'Gene-graph ablation (macro-F1)' and the numeric labels '57.5 / +11.7 / 70.8' pile onto one line; the +11.7 delta reads as floating text rather than a bracket clearly spanning the random baseline (57.5) up to the LEARNED bar (70.8).",
+    "'~38% fewer FLOPs' badge overlaps the right edge of the bar chart / LEARNED bar instead of sitting cleanly stacked to the right of the chart.",
+    "Fixed-biology bar's 'honest negative (no gain over random)' tag appears dropped or illegible \u2014 the 'imposed biology doesn't help' beat is weakened.",
+    "The four x-axis bar labels (none / random / fixed / LEARNED) are tight and hard to read at this scale."
+  ],
+  "revision_instructions": "1) Move the Panel B title into a clear top-left header band and push the 'Shared transformer block' + \u00d7K loop down ~0.4 row so title text never overlaps the box or the loop arrow; add vertical clearance above f_theta for the '\u00d7K weight-shared' label. 2) Redesign the bar-chart header: put the chart title 'Gene-graph ablation \u2014 single-cell macro-F1' on its own line ABOVE the plot with clear space; place each bar's value label directly above its own bar (57.5, 57.5, \u224857, 70.8) \u2014 do not run them together. 3) Draw the +11.7 as an explicit vertical bracket/arrow on the right side of the chart spanning from y=57.5 to y=70.8 with the '+11.7' label beside the bracket, visually separated from the bar value labels. 4) Move both efficiency badges fully to the right of the chart's plotting area (no overlap with axes or the LEARNED bar); stack them vertically with a small gap. 5) Restore/enlarge the 'honest negative (no gain over random)' tag on the fixed bar so the flat-then-jump reading is unmistakable. 6) Enlarge/space the four x-axis category labels (none, random, fixed, LEARNED) so all are legible; keep only LEARNED colored green."
+}

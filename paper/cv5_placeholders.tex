@@ -1,0 +1,41 @@
+% ============================================================================
+% CV5 RESULTS — NATIVE LaTeX tables under the unified 5-fold cross-validation
+% protocol. The three \input fragments (cv5_{main,scaling,ablation}_table.tex) are
+% regenerated from results_cv5/ by build_cv5_tex.py on every refresh cycle, and the
+% paper is recompiled, so cells fill in real time as folds finish ("run..." = pending).
+% They SUPERSEDE the pre-CV5 tables archived in archive/paper_pre_cv5_2026-07-13/.
+% ============================================================================
+\begin{table*}[t]
+\centering
+\IfFileExists{cv5_main_table.tex}{\input{cv5_main_table.tex}}{\emph{(main-results table renders here as 5-fold CV runs land)}}
+\caption{\textbf{Main results — bioMoR efficiency ladder (5-fold cross-validation).}
+Macro-F1 mean$\pm$SD over 5 identical folds (\textsc{StratifiedKFold}, seed~42; 20\% test /
+80\% train per fold, 10\% of train held out as validation; fresh training at max-epoch~100,
+early-stop patience~15) for every variant across the 8 single-cell datasets and 5 multi-omics
+tasks (Pro/BL/ST core + PM/PC). Folds are identical across all variants (paired); \textbf{bold}
+= best per column; Avg = mean over the 11 core datasets. \emph{Auto-populates from
+\texttt{results\_cv5/}; ``run\ldots'' = fold still training.}}
+\label{tab:main_cv5}\label{tab:learned}\label{tab:ladder}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\IfFileExists{cv5_scaling_table.tex}{\input{cv5_scaling_table.tex}}{\emph{(scaling table renders here as runs land)}}
+\caption{\textbf{Model-size scaling (5-fold cross-validation).} Macro-F1 mean$\pm$SD across a
+width sweep ($d_{\mathrm{model}}\in\{96,136,192,272,352\}$) for Vanilla, MoR-general, and
+bioMoR, on single-cell (mean over 8 datasets) and multi-omics (mean over 3 P-NET cohorts),
+under the identical 5-fold protocol. Vanilla stacks $N_R{=}4$ independent blocks ($4\times$
+parameters); MoR-general and bioMoR reuse one shared block. \emph{Auto-populates as runs land.}}
+\label{fig:scaling_cv5}
+\end{table}
+
+\begin{table}[t]
+\centering
+\IfFileExists{cv5_ablation_table.tex}{\input{cv5_ablation_table.tex}}{\emph{(ablation table renders here as runs land)}}
+\caption{\textbf{Component ablations (5-fold cross-validation).} Six families — (1)~biological
+graph source, (2)~routing internals, (3)~marker selection / token budget, (4)~recursion depth,
+(5)~learned-graph refinement, (6)~input modality — each under the identical 5-fold protocol.
+SC = mean macro-F1 over 8 single-cell datasets, MO = mean over 3 P-NET cohorts; $\Delta$ = change
+vs.\ the italic family baseline (green $+$, red $-$). \emph{Auto-populates as runs land.}}
+\label{tab:ablation_cv5}\label{tab:confound}
+\end{table}

@@ -1,0 +1,7 @@
+Teaser figure for SMART. One punchy landscape figure that conveys the paper's headline at a glance:
+
+LEFT (the architecture, in miniature): a single expression vector of N genes is smoothed by a LEARNED gene-gene graph (the hero element, drawn in green, with a curved dashed "smooth x (denoise)" arrow), then a Q-Former marker router picks M << N interpretable marker tokens (M much smaller than N). Those few marker tokens flow into ONE weight-shared transformer block applied recursively x K (a bold loop-back arrow labelled "weight-shared, xK"), where a Mixture-of-Recursions depth router gives each marker its own adaptive depth. Mean-pool over markers -> linear classifier -> cell type / phenotype.
+
+RIGHT (the punchline): a small clean bar chart of the controlled gene-graph study showing single-cell macro-F1 rising none/random ~57.5 -> LEARNED 70.8 (+11.7), with the LEARNED bar highlighted in green and the fixed-prior bar shown as a flat honest-negative. Plus two compact efficiency badges: "4x fewer params" and "~38% fewer FLOPs".
+
+Message: LEARN which genes matter (markers) and LEARN the gene graph that smooths them; spend recursion depth adaptively on a single shared block. Learned biology — not imposed biology — is the decisive win, and the whole thing is far cheaper. Match the paper's green (Panel A, marker selection) / blue (Panel B, recursive routing) identity. Do NOT include a figure title inside the image.

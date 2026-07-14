@@ -1,0 +1,23 @@
+{
+ "family": "pnet",
+ "cohort": "prostate",
+ "task": "response",
+ "mode": "learned",
+ "K": 4,
+ "seed": 2,
+ "test_macro_f1": 63.41272207316131,
+ "test_accuracy": 64.14473684210526,
+ "n_features": 3000,
+ "n_classes": 2,
+ "n_samples": 1011,
+ "learned_lambda": 0.20126400887966156,
+ "learned_beta": 0.9740769863128662,
+ "graph_diag": {
+  "n_genes": 3000,
+  "n_genes_in_reactome": 3000,
+  "reactome_coverage_frac": 1.0,
+  "mean_degree": 25.716666666666665,
+  "isolated_frac": 0.0,
+  "corr_pi_pc1": 0.22158397734165192
+ }
+}
