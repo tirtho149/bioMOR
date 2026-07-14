@@ -68,3 +68,6 @@ genomap_data/
 
 # ---- archived old results/sbatch/PDFs (~16GB local scratch; not for the repo) ----
 archive/
+
+# ---- Overleaf git-bridge sync clone (contains the Overleaf repo + auth; local only) ----
+.overleaf_sync/
