@@ -34,7 +34,9 @@ log(){ echo "[sync $(date -u +%FT%TZ)] $*"; }
 
 # source-only rsync (checksum => identical content never re-transfers, so no ping-pong)
 push_to_overleaf(){   # paper/ -> Overleaf clone  (do NOT --delete: keep Overleaf-only files)
-  rsync -rlt --checksum \
+  # -L dereferences symlinks: paper/figs/*_cv5.png are symlinks to regenerated
+  # figures on the HPC; Overleaf needs the real image bytes, not a dangling link.
+  rsync -rLt --checksum \
     --include='*/' \
     --include='*.tex' --include='*.bib' --include='*.cls' --include='*.sty' \
     --include='*.bst' --include='*.bbl' \
