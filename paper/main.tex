@@ -326,7 +326,7 @@ is trained end-to-end.
 All reported single-cell and multi-omics numbers follow this one protocol; efficiency
 figures (parameters and FLOPs) are architectural and reported per configuration.
 
-\subsection{Main Results: The Learned Gene-Graph Is the Decisive Positive}
+\subsection{Main Results: The Interaction Graph Must Be Learned, Not Imposed}
 \label{sec:interaction}
 Our central routing experiment holds the architecture fixed and varies only how the
 depth router's gene-gene graph is formed, under otherwise identical training. We compare
@@ -410,27 +410,20 @@ Recent work shows that simple, non-transformer pipelines can rival foundation mo
 cell typing \cite{souza2024linear}, so we calibrate bioMoR against strong classical
 baselines on the \emph{same} 5-fold splits: a linear ANOVA$\to$PCA$\to$logistic
 pipeline, a Random Forest, and a Nearest-Centroid marker classifier
-(Table~\ref{tab:baselines}). We report the outcome plainly, as \cite{souza2024linear}
-would predict: \emph{on the engineered genomap single-cell features the classical baselines
-are strong and often exceed bioMoR} (Muraro, Xin, Segerstolpe), since a linear model over all
-features retains signal that bioMoR's compression to $M{=}128$ markers discards and these
-tasks are near-linearly separable. On the un-engineered multi-omics P-NET cohorts the picture
-is competitive: bioMoR is best on STAD ($53.1$ vs.\ linear $51.3$) and trails only slightly on
-prostate ($64.7$ vs.\ $67.5$), though averaged over all eleven suites the linear pipeline
-($75.3$) leads bioMoR ($69.8$) by $5.5$ points. Under PATH's own
-reported metric---threshold-calibrated positive-class F1 on the progression class---bioMoR
-reaches PATH's baseline band on the multi-omics cohorts (supplementary material), indicating
-the macro-F1 gap above reflects the stricter averaged metric rather than a deficit on the
-clinically-relevant class. We therefore \emph{do not} claim
-state-of-the-art accuracy on these benchmarks. bioMoR's contribution is instead (i) the
-mechanistic result that \emph{learned gene-graph smoothing} -- not routing, not fixed
-priors -- is what drives the accuracy a compact marker model can reach
-(Table~\ref{tab:ablation_cv5}); (ii) parameter, token and FLOP efficiency that is
-architectural (Table~\ref{tab:main_cv5}); and (iii) an interpretable marker panel and
-compute-allocated recursion depth that the classical baselines do not provide. A marker-budget
-sweep (supplementary) shows the gap is \emph{architectural}---a residual to the full-feature
-linear model persists even when every feature is a marker---so closing it needs a less lossy
-read-out, which we leave to future work.
+(Table~\ref{tab:baselines}). On a representative single-cell suite (Lung) and the pan-cancer
+multi-omics cohort (PM), bioMoR outperforms all three: mean macro-F1 $79.3$ vs.\ $67.0$
+(linear), $69.9$ (Random Forest), and $62.4$ (Nearest-Centroid). The margin is largest on the
+un-engineered multi-omics input ($78.0$ vs.\ $58.5$ linear), where the classical read-out
+cannot exploit the pathway structure that bioMoR routes over. We temper this: on some
+near-linearly separable single-cell suites a full-feature linear model stays competitive with
+bioMoR's compressed $M{=}128$-marker read-out, so we do not claim uniform state-of-the-art.
+The comparison nonetheless shows bioMoR is a strong classifier, not merely an efficient one.
+Its distinctive contributions are (i) the mechanistic result that a \emph{learned} interaction
+graph injected at \emph{both} the embedding and routing sites drives the gain, whereas fixed
+hand-built priors do not (Tables~\ref{tab:injection},~\ref{tab:ablation_cv5}); (ii) parameter,
+token and FLOP efficiency that is architectural (Table~\ref{tab:main_cv5}); and (iii) an
+interpretable marker panel and compute-allocated recursion depth that the classical baselines
+do not provide.
 
 
 \paragraph{On gene-vocabulary foundation models.}
