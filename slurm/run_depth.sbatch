@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MoR Table 14 / Fig 5: per-marker recursion-depth export. results_depth/<ds>.json
+# MoR Table 14 / Fig 5: per-marker recursion-depth export. results/depth/<ds>.json
 #SBATCH --job-name=smart-depth
 #SBATCH --account=mech-ai-scavenger
 #SBATCH --qos=scavenger
@@ -17,6 +17,6 @@ cd /work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
 echo "[depth] host=$(hostname) date=$(date)"; nvidia-smi -L || true
-$PY -m recursive_marker_transformer.depth_viz --data data/singlecell --out results_depth \
+$PY -m recursive_marker_transformer.depth_viz --data data/singlecell --out results/depth \
     --datasets tabula_muris pancreas common_class prototype baron segerstolpe lung oesophagus spleen tcell --epochs 60 --d_model 96 --device cuda
 echo "[depth] DONE rc=$? date=$(date)"

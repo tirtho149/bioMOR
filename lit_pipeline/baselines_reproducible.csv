@@ -1,9 +1,0 @@
-rank,method,venue,repo,params,vs_smart,macro_f1_mean,status,how
-1,SMART (ours),this work,-,712457,1x,46.5,reference,your model
-2,scGeneFit,Nat. Commun. 2021,https://github.com/solevillar/scGeneFit-python,non-parametric,n/a,44.0,REPRODUCED (CPU),marker selection + NearestCentroid on your split
-3,scGPT (pan-cancer),Nat. Methods 2024,https://github.com/bowang-lab/scGPT,51330049,72x,pending,pending GPU,fine-tune cls head; ckpt fetched
-4,CellPLM,ICLR 2024,https://github.com/OmicsML/CellPLM,82360031,116x,pending,pending GPU,fine-tune cls head; ckpt fetched
-5,Geneformer (V2-104M),Nature 2023,https://huggingface.co/ctheodoris/Geneformer,104386867,147x,pending,pending GPU,cancer-tuned ckpt fetched; fine-tune classifier
-6,Cell2Sentence (Pythia-410M),ICML 2024,https://github.com/vandijklab/cell2sentence,405334016,569x,pending,pending GPU,cell-sentence + LLM head; ckpt fetched
-7,sciLaMA,ICML 2025,https://github.com/microsoft/sciLaMA,from-scratch,n/a,pending,pending,VAE embedding + linear probe (no weights needed)
-8,scbenchmark (6L/256d),AAAI 2025,https://github.com/simpleshinobu/scbenchmark,from-scratch,n/a,pending,pending,6-layer transformer baseline (no weights needed)

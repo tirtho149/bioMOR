@@ -23,7 +23,7 @@ set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
 cd "$PROJ"; export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
-OUT="$PROJ/results_cv5/biorouter_ablation"
+OUT="$PROJ/results/cv5/biorouter_ablation"
 
 SC_MODES=(none coexpr learned learned_bio)
 MO_MODES=(none curated learned learned_bio)

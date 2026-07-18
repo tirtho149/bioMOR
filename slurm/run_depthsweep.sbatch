@@ -15,7 +15,7 @@
 # =============================================================================
 # Formal recursion-depth selection: sweep fixed depth K in {1..100} and pick K* by a
 # held-out-validation one-standard-error rule (early stopping over depth). One array
-# task per dataset; 2 seeds x 18 depths. results_depthsweep/<dataset>/K<k>_s<seed>.json
+# task per dataset; 2 seeds x 18 depths. results/depthsweep/<dataset>/K<k>_s<seed>.json
 #   sbatch slurm/run_depthsweep.sbatch     # then: python -m ...depth_sweep --report
 # =============================================================================
 set -uo pipefail

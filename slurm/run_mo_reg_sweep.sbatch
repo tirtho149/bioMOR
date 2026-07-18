@@ -20,7 +20,7 @@
 # Only capacity+regularization change (d_model, dropout, weight_decay) -> the
 # split/metric/schedule protocol is untouched.
 # 8 configs x 3 cohorts = 24.  cfg = idx/3 ; cohort = idx%3.
-# Output: results_cv5/mo_reg_sweep/<cfgname>/<tag>_cv.json
+# Output: results/cv5/mo_reg_sweep/<cfgname>/<tag>_cv.json
 # ============================================================================
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
@@ -45,5 +45,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --recursion_mode expert \
     --n_markers 256 --d_model "$dm" --dropout "$do" --weight_decay "$wd" \
     --epochs 100 --lr 3e-4 --patience 15 --batch_size 32 --cv_folds 5 \
-    --device cuda --out "results_cv5/mo_reg_sweep/$NAME"
+    --device cuda --out "results/cv5/mo_reg_sweep/$NAME"
 echo "[reg-sweep] DONE rc=$? cohort=$T cfg=$NAME $(date)"

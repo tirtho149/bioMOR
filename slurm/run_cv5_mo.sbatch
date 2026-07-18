@@ -15,7 +15,7 @@
 # 5-FOLD CV, seed 42, epochs=100 patience=15. Multi-omics GENERAL rows (Pro/BL/ST/PM/PC).
 # 8 variants x 5 tasks = 40. variant = idx/5 ; task = idx%5.
 # tasks: prostate,blca,stad,pan_meta_pri -> mut_cnv ; panmeta_response -> expr.
-# Output: results_cv5/mo/<variant>/<tag>_cv.json
+# Output: results/cv5/mo/<variant>/<tag>_cv.json
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -40,5 +40,5 @@ echo "[cv5-mo] variant=$V task=$T chan=$CH flags='$F' host=$(hostname) $(date)";
 $PY -m recursive_marker_transformer.pathway_tasks \
     --task "$T" --channels "$CH" --marker_mode pathway \
     --n_markers 256 --d_model 128 --epochs 100 --lr 3e-4 --patience 15 \
-    --batch_size 32 --cv_folds 5 --device cuda --out "results_cv5/mo/$V" $F
+    --batch_size 32 --cv_folds 5 --device cuda --out "results/cv5/mo/$V" $F
 echo "[cv5-mo] DONE rc=$? variant=$V task=$T $(date)"

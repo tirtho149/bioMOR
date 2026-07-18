@@ -23,7 +23,7 @@ ARMS=(vanilla vanilla vanilla vanilla biomor biomor biomor biomor)
 DMS=(16 32 64 128 16 32 64 128)
 A=${ARMS[$SLURM_ARRAY_TASK_ID]}; DM=${DMS[$SLURM_ARRAY_TASK_ID]}
 echo "[repro-blca-sz] arm=$A d_model=$DM host=$(hostname) $(date)"; nvidia-smi -L || true
-$PY reproduce_path.py --task blca --arm "$A" --channels mut_cnv \
+$PY scripts/reproduce_path.py --task blca --arm "$A" --channels mut_cnv \
     --pos_class 1 --seeds 42 43 --cv_folds 5 --d_model "$DM" \
-    --epochs 100 --patience 15 --device cuda --out "results_repro/sz_${A}_d${DM}"
+    --epochs 100 --patience 15 --device cuda --out "results/repro/sz_${A}_d${DM}"
 echo "[repro-blca-sz] DONE rc=$? arm=$A d=$DM $(date)"

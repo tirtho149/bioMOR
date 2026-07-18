@@ -19,7 +19,7 @@
 # =expert/shared K4). idx 0 = CURRENT config (d128,do0.1,wd0.01) reference;
 # 1-7 = smaller/more-regularized. If a small config beats the baseline, roll the
 # winner out to ALL cohorts x ALL Table-2 rows.
-# Output: results_cv5/mo_reg_sweep/<cfgname>/<tag>_cv.json
+# Output: results/cv5/mo_reg_sweep/<cfgname>/<tag>_cv.json
 # ============================================================================
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
@@ -42,5 +42,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --recursion_mode expert \
     --n_markers 256 --d_model "$dm" --dropout "$do" --weight_decay "$wd" \
     --epochs 100 --lr 3e-4 --patience 15 --batch_size 32 --cv_folds 5 \
-    --device cuda --out "results_cv5/mo_reg_sweep/$NAME"
+    --device cuda --out "results/cv5/mo_reg_sweep/$NAME"
 echo "[blca-proof] DONE rc=$? cfg=$NAME $(date)"

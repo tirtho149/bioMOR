@@ -18,7 +18,7 @@
 # primary). load_cohort now selects `response` per data.md. Re-run pan_meta_pri
 # (mut+cnv) across ALL 10 Table-2 variants under the IDENTICAL 5-fold CV
 # protocol (seed 42, epochs=100, patience=15) so the PM cells are apple-to-apple
-# with every other cell. Output: results_cv5/mo/<variant>/<tag>_cv.json
+# with every other cell. Output: results/cv5/mo/<variant>/<tag>_cv.json
 # ============================================================================
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
@@ -47,5 +47,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --task pan_meta_pri --channels mut_cnv --marker_mode pathway \
     --gene_interaction reactome \
     --n_markers 256 --d_model 128 --epochs 100 --lr 3e-4 --patience 15 \
-    --batch_size 32 --cv_folds 5 --device cuda --out "results_cv5/mo/$V" $F
+    --batch_size 32 --cv_folds 5 --device cuda --out "results/cv5/mo/$V" $F
 echo "[panmeta-fix] DONE rc=$? variant=$V $(date)"

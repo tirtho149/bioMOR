@@ -21,5 +21,5 @@ MODE=${MODES[$SLURM_ARRAY_TASK_ID]}
 echo "[biorouter-pro] mode=$MODE $(date)"; nvidia-smi -L || true
 "$PY" -m recursive_marker_transformer.bio_redesign_curated --family pnet --cohort prostate \
    --task response --modes "$MODE" --cv_folds 5 --K 4 --epochs 100 --patience 15 \
-   --cap_genes 3000 --device cuda --out "$PROJ/results_cv5/biorouter_ablation"
+   --cap_genes 3000 --device cuda --out "$PROJ/results/cv5/biorouter_ablation"
 echo "[biorouter-pro] DONE rc=$? $(date)"

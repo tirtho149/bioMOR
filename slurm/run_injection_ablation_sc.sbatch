@@ -28,5 +28,5 @@ echo "[inject-sc] dataset=$D host=$(hostname) $(date)"; nvidia-smi -L || true
 # graph-conv router) / learned_bio (embedding-only). bio_both (=both) from the canonical job.
 $PY -m recursive_marker_transformer.bio_learned_genomap --dataset "$D" \
     --modes none learned_bio route_graph bio_both --cv_folds 5 --K 4 --epochs 100 --patience 15 \
-    --n_markers 128 --device cuda --out "results_cv5/biomor_canonical"
+    --n_markers 128 --device cuda --out "results/cv5/biomor_canonical"
 echo "[inject-sc] DONE dataset=$D rc=$? $(date)"

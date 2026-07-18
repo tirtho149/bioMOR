@@ -20,7 +20,7 @@ set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
 cd "$PROJ"; export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
-OUT="$PROJ/results_cv5/biorouter_ablation"
+OUT="$PROJ/results/cv5/biorouter_ablation"
 echo "[baron-inject] host=$(hostname) $(date)"; nvidia-smi -L || true
 
 "$PY" -m recursive_marker_transformer.bio_learned_genomap --dataset Baron \

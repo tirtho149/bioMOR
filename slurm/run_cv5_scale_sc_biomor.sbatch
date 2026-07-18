@@ -14,7 +14,7 @@
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-scale-sc-bio-%A_%a.out
 # 5-FOLD CV model-SIZE sweep (seed 42, 100/15). Single-cell bioMoR (learned graph, K=4).
 # 5 widths x 8 datasets = 40. w=idx/8 ; ds=idx%8.
-# Output: results_cv5/scaling_sc_biomor/d<w>/<Dataset>/learned_cv.json
+# Output: results/cv5/scaling_sc_biomor/d<w>/<Dataset>/learned_cv.json
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -27,5 +27,5 @@ echo "[cv5-scale-sc-bio] ds=$DS d=$W $(date) host=$(hostname)"; nvidia-smi -L ||
 $PY -m recursive_marker_transformer.bio_learned_genomap \
     --dataset "$DS" --modes learned --cv_folds 5 --K 4 \
     --epochs 100 --patience 15 --d_model "$W" --n_markers 128 --device cuda \
-    --out "$PROJ/results_cv5/scaling_sc_biomor/d${W}"
+    --out "$PROJ/results/cv5/scaling_sc_biomor/d${W}"
 echo "[cv5-scale-sc-bio] DONE rc=$? $(date) ds=$DS d=$W"

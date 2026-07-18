@@ -15,7 +15,7 @@
 # Fill the MISSING PM/PC (pancan) cells of Table 2's bioMoR ladder. The main
 # ladder-MO run (run_biomorboth_ladder_mo.sbatch) only covered the P-NET cohorts
 # (prostate/blca/stad/brca); the two pancan cohorts were never run at K=2,3, so
-# build_cv5_tex.py renders them as 'run...'. K=4 already exists via inject_mo/both.
+# scripts/build_cv5_tex.py renders them as 'run...'. K=4 already exists via inject_mo/both.
 # 2 cohorts x 4 (K,routing) configs = 8 tasks. Same protocol as run_biomorboth_ladder_mo.
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
@@ -37,5 +37,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --recursion_depth "$K" --gene_interaction none \
     --pathway_learned_graph --pathway_learned_fuse --bio_graph_router --pathway_pool sum \
     --n_markers 256 --d_model 128 --epochs 100 --patience 15 --batch_size 32 --lr 3e-4 \
-    --cv_folds 5 --device cuda --out "results_cv5/biomor_ladder_mo/$N"
+    --cv_folds 5 --device cuda --out "results/cv5/biomor_ladder_mo/$N"
 echo "[bmboth-mo-pancan] DONE coh=$coh cfg=$N rc=$? $(date)"

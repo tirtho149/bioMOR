@@ -15,7 +15,7 @@
 # Canonical bioMoR (bio_both) across the ladder for Table 2, multi-omics, using the
 # PROVIDED Reactome graph (adjacency_matrix.csv) in pathway space. 5 (K,routing) x 4 cohorts.
 # Identical protocol (pathway, m256, d128, batch32, lr3e-4, e100, p15, sum), CV5 seed42.
-# expert_k4 = run_injection_mo cond=both (results_cv5/inject_mo/both).
+# expert_k4 = run_injection_mo cond=both (results/cv5/inject_mo/both).
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -35,5 +35,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --recursion_depth "$K" --gene_interaction none \
     --pathway_learned_graph --pathway_learned_fuse --bio_graph_router --pathway_pool sum \
     --n_markers 256 --d_model 128 --epochs 100 --patience 15 --batch_size 32 --lr 3e-4 \
-    --cv_folds 5 --device cuda --out "results_cv5/biomor_ladder_mo/$N"
+    --cv_folds 5 --device cuda --out "results/cv5/biomor_ladder_mo/$N"
 echo "[bmboth-mo] DONE coh=$coh cfg=$N rc=$? $(date)"

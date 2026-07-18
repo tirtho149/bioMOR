@@ -11,7 +11,7 @@
 #SBATCH --output=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-base-%A_%a.out
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-base-%A_%a.out
 # 5-fold CV classical baselines (Linear / RandomForest / NearestCentroid), same folds
-# as bioMoR. 11 datasets, one per array task. -> results_cv5/baselines/<ds>/<m>_cv.json
+# as bioMoR. 11 datasets, one per array task. -> results/cv5/baselines/<ds>/<m>_cv.json
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -19,5 +19,5 @@ cd "$PROJ"; export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=$SLURM_CPUS_PER_TA
 DS=(Baron Lung Muraro Oesophagus Segerstolpe Spleen Tcell Xin prostate blca stad)
 D=${DS[$SLURM_ARRAY_TASK_ID]}
 echo "[cv5-base] ds=$D $(date) host=$(hostname)"
-$PY -m recursive_marker_transformer.baselines11 --datasets "$D" --cv_folds 5 --out results_cv5/baselines
+$PY -m recursive_marker_transformer.baselines11 --datasets "$D" --cv_folds 5 --out results/cv5/baselines
 echo "[cv5-base] DONE rc=$? ds=$D $(date)"

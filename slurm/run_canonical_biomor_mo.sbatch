@@ -34,5 +34,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --pathway_learned_graph --pathway_learned_fuse --pathway_attn_bias \
     --pathway_pool sum --recursion_mode token \
     --n_markers 256 --d_model 128 --epochs 100 --patience 15 \
-    --batch_size 32 --cv_folds 5 --device cuda --out "results_cv5/biomor_canonical_mo"
+    --batch_size 32 --cv_folds 5 --device cuda --out "results/cv5/biomor_canonical_mo"
 echo "[canon-mo] DONE cohort=$coh rc=$? $(date)"

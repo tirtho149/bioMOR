@@ -25,7 +25,7 @@ POS=(1 1 1 1 1 1 1 1 1 1 0 0)
 i=$SLURM_ARRAY_TASK_ID
 t=${TASK[$i]}; ch=${CHAN[$i]}; a=${ARM[$i]}; p=${POS[$i]}
 echo "[repro-all] task=$t chan=$ch arm=$a pos=$p (Table-2 protocol) $(date)"; nvidia-smi -L || true
-$PY reproduce_path.py --task "$t" --arm "$a" --channels "$ch" \
+$PY scripts/reproduce_path.py --task "$t" --arm "$a" --channels "$ch" \
     --pos_class "$p" --select macro --seeds 42 43 --cv_folds 5 --d_model 128 \
-    --epochs 100 --patience 15 --device cuda --out "results_repro/all_${t}_${a}"
+    --epochs 100 --patience 15 --device cuda --out "results/repro/all_${t}_${a}"
 echo "[repro-all] DONE rc=$? task=$t arm=$a $(date)"

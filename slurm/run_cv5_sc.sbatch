@@ -14,7 +14,7 @@
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-sc-%A_%a.out
 # 5-FOLD CV, seed 42, 20% test / 10%-of-train val, epochs=100 patience=15.
 # Single-cell GENERAL rows (Vanilla / Recursive / MoR). 8 variants x 8 datasets = 64 tasks.
-# variant = idx/8 ; dataset = idx%8.  Output: results_cv5/sc/<variant>/<ds>.json
+# variant = idx/8 ; dataset = idx%8.  Output: results/cv5/sc/<variant>/<ds>.json
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -37,7 +37,7 @@ V=${VARIANTS[$(( IDX / 8 ))]}; F="${FLAGS[$(( IDX / 8 ))]}"
 DS=${DATASETS[$(( IDX % 8 ))]}
 echo "[cv5-sc] variant=$V ds=$DS flags='$F' host=$(hostname) $(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.singlecell \
-    --data data/singlecell --out "results_cv5/sc/$V" \
+    --data data/singlecell --out "results/cv5/sc/$V" \
     --datasets "$DS" --cv_folds 5 --seed 42 \
     --epochs 100 --d_model 96 --n_markers 128 --batch_size 128 \
     --lr 0.001 --weight_decay 0.00001 --patience 15 --device cuda $F

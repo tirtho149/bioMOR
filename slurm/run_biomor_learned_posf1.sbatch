@@ -25,5 +25,5 @@ echo "[biomor-lrn] cohort=$c cfg=$D K=$K $(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.bio_redesign_curated --family pnet --cohort "$c" \
     --task response --modes learned --cv_folds 5 --K "$K" $M \
     --epochs 100 --patience 15 --cap_genes 3000 --device cuda \
-    --out "results_repro/biomor_learned/$D"
+    --out "results/repro/biomor_learned/$D"
 echo "[biomor-lrn] DONE rc=$? cohort=$c cfg=$D $(date)"

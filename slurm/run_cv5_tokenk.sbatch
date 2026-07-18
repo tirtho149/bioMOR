@@ -35,7 +35,7 @@ if   [ "$i" -lt 16 ]; then
   k=${KS[$(( i / 8 ))]}; ds=${SC_DS[$(( i % 8 ))]}
   echo "MoR-gen SC token k=$k ds=$ds"
   "$PY" -m recursive_marker_transformer.singlecell --data data/singlecell \
-     --out "results_cv5/sc/token_k${k}" --datasets "$ds" --cv_folds 5 --seed 42 \
+     --out "results/cv5/sc/token_k${k}" --datasets "$ds" --cv_folds 5 --seed 42 \
      --epochs 100 --d_model 96 --n_markers 128 --batch_size 128 --lr 0.001 \
      --weight_decay 0.00001 --patience 15 --device cuda \
      --recursion_mode token --recursion_depth "${k}"
@@ -45,7 +45,7 @@ elif [ "$i" -lt 26 ]; then
   "$PY" -m recursive_marker_transformer.pathway_tasks --task "$t" --channels "$ch" \
      --marker_mode pathway --n_markers 256 --d_model 128 --epochs 100 --lr 3e-4 \
      --patience 15 --batch_size 32 --cv_folds 5 --device cuda \
-     --out "results_cv5/mo/token_k${k}" --gene_interaction reactome \
+     --out "results/cv5/mo/token_k${k}" --gene_interaction reactome \
      --recursion_mode token --recursion_depth "${k}"
 elif [ "$i" -lt 42 ]; then
   j=$(( i - 26 )); k=${KS[$(( j / 8 ))]}; ds=${BIO_DS[$(( j % 8 ))]}
@@ -53,13 +53,13 @@ elif [ "$i" -lt 42 ]; then
   "$PY" -m recursive_marker_transformer.bio_learned_genomap --dataset "$ds" \
      --modes learned --cv_folds 5 --K "${k}" --epochs 100 --patience 15 \
      --n_markers 128 --device cuda --recursion_mode token \
-     --out "results_cv5/biomor_sc_token_k${k}"
+     --out "results/cv5/biomor_sc_token_k${k}"
 else
   j=$(( i - 42 )); k=${KS[$(( j / 3 ))]}; c=${PNC[$(( j % 3 ))]}
   echo "bioMoR MO token k=$k cohort=$c"
   "$PY" -m recursive_marker_transformer.bio_redesign_curated --family pnet --cohort "$c" \
      --task response --modes learned --cv_folds 5 --K "${k}" --epochs 100 --patience 15 \
      --cap_genes 3000 --device cuda --recursion_mode token \
-     --out "results_cv5/biomor_mo_token_k${k}"
+     --out "results/cv5/biomor_mo_token_k${k}"
 fi
 echo "[tokenk] DONE idx=$i rc=$? $(date)"

@@ -22,10 +22,10 @@ DATASETS=(Baron Lung Muraro Oesophagus Segerstolpe Spleen Tcell Xin)
 IDX=$SLURM_ARRAY_TASK_ID
 CFG=$(( IDX / 8 )); DS="${DATASETS[$(( IDX % 8 ))]}"
 case $CFG in
-  0) K=2; OUT="$PROJ/results_cv5/biomor_sc/k2"; EXTRA="" ;;
-  1) K=3; OUT="$PROJ/results_cv5/biomor_sc/k3"; EXTRA="" ;;
-  2) K=4; OUT="$PROJ/results_cv5/biomor_sc/k4"; EXTRA="" ;;
-  3) K=4; OUT="$PROJ/results_cv5/biomor_sc_token"; EXTRA="--recursion_mode token" ;;
+  0) K=2; OUT="$PROJ/results/cv5/biomor_sc/k2"; EXTRA="" ;;
+  1) K=3; OUT="$PROJ/results/cv5/biomor_sc/k3"; EXTRA="" ;;
+  2) K=4; OUT="$PROJ/results/cv5/biomor_sc/k4"; EXTRA="" ;;
+  3) K=4; OUT="$PROJ/results/cv5/biomor_sc_token"; EXTRA="--recursion_mode token" ;;
 esac
 echo "[cv5-biomor-sc] $(date) ds=$DS K=$K cfg=$CFG out=$OUT host=$(hostname)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.bio_learned_genomap \

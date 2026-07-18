@@ -31,5 +31,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --recursion_depth "$K" --gene_interaction none \
     --pathway_learned_graph --pathway_learned_fuse --bio_graph_router --pathway_pool sum \
     --n_markers 256 --d_model 128 --epochs 100 --patience 15 --batch_size 32 --lr 3e-4 \
-    --cv_folds 5 --device cuda --out "results_cv5/biomor_ladder_mo/$N"
+    --cv_folds 5 --device cuda --out "results/cv5/biomor_ladder_mo/$N"
 echo "[bmboth-mo-pancan-nova] DONE coh=$coh cfg=$N rc=$? $(date)"

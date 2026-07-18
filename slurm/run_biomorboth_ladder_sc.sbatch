@@ -14,7 +14,7 @@
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/bmboth-ladder-sc-%A_%a.out
 # Canonical bioMoR (bio_both) across the efficiency ladder for Table 2, single-cell.
 # 5 (K,routing) configs x 8 datasets; identical protocol (d96,e100,p15,m128), CV5 seed42.
-# expert_k4 headline = run_canonical_biomor_sc (results_cv5/biomor_canonical).
+# expert_k4 headline = run_canonical_biomor_sc (results/cv5/biomor_canonical).
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -29,5 +29,5 @@ echo "[bmboth-sc] D=$D cfg=$N host=$(hostname) $(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.bio_learned_genomap --dataset "$D" \
     --modes bio_both --cv_folds 5 --K "$K" --recursion_mode "$R" \
     --epochs 100 --patience 15 --n_markers 128 --device cuda \
-    --out "results_cv5/biomor_ladder/$N"
+    --out "results/cv5/biomor_ladder/$N"
 echo "[bmboth-sc] DONE D=$D cfg=$N rc=$? $(date)"

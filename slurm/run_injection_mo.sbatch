@@ -20,7 +20,7 @@
 #   cond 1 router: reactome centrality prior on the depth router (router site)
 #   cond 2 embed : learned pathway graph warm-start+prop+fuse from adjacency_matrix.csv (embedding site)
 #   cond 3 both  : router + embed  (= canonical bioMoR, Table-2 MO)
-# idx = cohort*4 + cond. Each cond writes to its own subdir (results_cv5/inject_mo/<cond>).
+# idx = cohort*4 + cond. Each cond writes to its own subdir (results/cv5/inject_mo/<cond>).
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -47,5 +47,5 @@ case $cond in
 esac
 echo "[inject-mo] coh=$coh cond=$NAME host=$(hostname) $(date)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.pathway_tasks $COMMON $FLAGS \
-    --out "results_cv5/inject_mo/$NAME"
+    --out "results/cv5/inject_mo/$NAME"
 echo "[inject-mo] DONE coh=$coh cond=$NAME rc=$? $(date)"

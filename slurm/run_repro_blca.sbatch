@@ -22,7 +22,7 @@ export PYTHONUNBUFFERED=1; export PYTHONPATH="$PROJ"; export OMP_NUM_THREADS=${S
 ARMS=(vanilla biomor)
 A=${ARMS[$SLURM_ARRAY_TASK_ID]}
 echo "[repro-blca] arm=$A host=$(hostname) $(date)"; nvidia-smi -L || true
-$PY reproduce_path.py --task blca --arm "$A" --channels mut_cnv \
+$PY scripts/reproduce_path.py --task blca --arm "$A" --channels mut_cnv \
     --pos_class 1 --seeds 42 43 --cv_folds 5 --d_model 128 \
-    --epochs 100 --patience 15 --device cuda --out results_repro
+    --epochs 100 --patience 15 --device cuda --out results/repro
 echo "[repro-blca] DONE rc=$? arm=$A $(date)"

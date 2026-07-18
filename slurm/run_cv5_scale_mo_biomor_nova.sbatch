@@ -13,7 +13,7 @@
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-scale-mo-bio-%A_%a.out
 # 5-FOLD CV model-SIZE sweep (seed 42, 100/15). Multi-omics bioMoR (P-NET, learned graph, K=4).
 # 5 widths x 3 cohorts = 15. w=idx/3 ; coh=idx%3.
-# Output: results_cv5/scaling_mo_biomor/d<w>/pnet/<coh>__response/learned_cv.json
+# Output: results/cv5/scaling_mo_biomor/d<w>/pnet/<coh>__response/learned_cv.json
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -26,5 +26,5 @@ echo "[cv5-scale-mo-bio] coh=$COH d=$W $(date) host=$(hostname)"; nvidia-smi -L 
 $PY -m recursive_marker_transformer.bio_redesign_curated --family pnet --cohort "$COH" \
     --task response --modes learned --cv_folds 5 --K 4 --epochs 100 --patience 15 \
     --cap_genes 3000 --d_model "$W" --device cuda \
-    --out "$PROJ/results_cv5/scaling_mo_biomor/d${W}"
+    --out "$PROJ/results/cv5/scaling_mo_biomor/d${W}"
 echo "[cv5-scale-mo-bio] DONE rc=$? $(date) coh=$COH d=$W"

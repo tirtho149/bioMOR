@@ -175,6 +175,29 @@ class RMTConfig:
     pathway_learned_init: str = "bio"            # "bio": warm-start from adjacency_matrix.csv
                                                  # eigenmodes | "random"
     pathway_learned_fuse: bool = False           # also fuse the fixed provided adjacency
+    # MONOTONE-SAFE MERGE (exploratory): inject the embedding-site pathway biology as a
+    # LayerScale-style ZERO-INIT residual (cluster += gamma * prop, gamma init 0) instead of
+    # the convex-mix (1-lam)cluster+lam*prop that REPLACES 20% of the clean signal at init
+    # (lam init 0.2) and corrupts cohorts where smoothing hurts (e.g. prostate 73.6->56.2).
+    # With gamma=0 at init, "both" == router-only exactly and biology can only ADD -> the
+    # merged embedding+router is monotone-safe and can win-or-tie, never collapse.
+    pathway_prop_residual: bool = False
+    # L2 penalty pulling the embedding-residual scale gamma toward 0, so the embedding site
+    # stays OFF unless it earns generalization benefit (prevents gamma drifting into harm on
+    # cohorts where smoothing hurts, e.g. prostate). 0 = off; ~1-5 enforces monotone-safety.
+    pathway_prop_gamma_reg: float = 0.0
+    # COMPLEMENTARY embedding residual (exploratory): instead of pure low-pass smoothing
+    # (which over-smooths and hurts, e.g. prostate), inject a learnable ZERO-INIT residual
+    # over [neighbour-mean, high-freq contrast] = cluster += MLP([prop, cluster-prop]) with
+    # the output layer zero-initialised. Router adjusts DEPTH; this adds a complementary
+    # biological feature on token VALUES -> 'both' can strictly beat router, not just tie.
+    pathway_prop_complement: bool = False
+    # USE THE PROVIDED ADJACENCY DIRECTLY: drive BOTH the router and the embedding residual
+    # from the fixed GCN-normalised Reactome operator (adjacency_matrix.csv) instead of the
+    # learnable low-rank cosine graph. Removes the shared-parameter drift that let the
+    # embedding objective corrupt the router's graph (the prostate coupling). Combine with
+    # --pathway_learned_graph (to build/install the operator) + --pathway_prop_residual.
+    pathway_fixed_graph: bool = False
     # REDESIGNED bio-router: zero-init graph-conv residual on the depth-router logits so
     # routing depth can depend on a token's biological neighbourhood (learned, bounded,
     # starts as a no-op). Replaces the harmful static centrality prior as router-site biology.

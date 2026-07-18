@@ -14,7 +14,7 @@
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-scale-sc-gen-%A_%a.out
 # 5-FOLD CV model-SIZE sweep (seed 42, 100/15). Single-cell Vanilla + MoR-general.
 # 2 models x 5 widths x 8 datasets = 80. model=idx/40 ; w=(idx%40)/8 ; ds=(idx%40)%8.
-# Output: results_cv5/scaling_sc/<model>_d<w>/<ds>.json
+# Output: results/cv5/scaling_sc/<model>_d<w>/<ds>.json
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -26,7 +26,7 @@ if [ $(( IDX / 40 )) -eq 0 ]; then MODEL=vanilla; SHARE="--no_share_weights"; el
 REM=$(( IDX % 40 )); W=${WIDTHS[$(( REM / 8 ))]}; DS=${DATASETS[$(( REM % 8 ))]}
 echo "[cv5-scale-sc-gen] model=$MODEL d=$W ds=$DS $(date) host=$(hostname)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.singlecell \
-    --data data/singlecell --out "results_cv5/scaling_sc/${MODEL}_d${W}" \
+    --data data/singlecell --out "results/cv5/scaling_sc/${MODEL}_d${W}" \
     --datasets "$DS" --cv_folds 5 --seed 42 \
     --epochs 100 --d_model "$W" --n_markers 128 --batch_size 128 \
     --lr 0.001 --weight_decay 0.00001 --patience 15 --device cuda \

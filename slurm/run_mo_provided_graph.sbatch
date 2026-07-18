@@ -43,5 +43,5 @@ $PY -m recursive_marker_transformer.pathway_tasks \
     --task "$coh" --channels "$CH" --marker_mode pathway --gene_interaction reactome \
     --recursion_mode expert --pathway_pool "$POOL" $ATTN \
     --n_markers 256 --d_model 128 --epochs 100 --lr 3e-4 --patience 15 \
-    --batch_size 32 --cv_folds 5 --device cuda --out "results_cv5/mo_provided_graph"
+    --batch_size 32 --cv_folds 5 --device cuda --out "results/cv5/mo_provided_graph"
 echo "[provgraph] DONE idx=$i rc=$? $(date)"

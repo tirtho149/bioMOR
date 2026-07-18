@@ -180,6 +180,19 @@ class RecursiveMarkerTransformer(nn.Module):
             self._pw_fuse = bool(getattr(cfg, "pathway_learned_fuse", False))
             if self._pw_fuse:
                 self.pathway_fuse_gate = nn.Parameter(torch.tensor([-1.0]))
+            # USE PROVIDED ADJACENCY DIRECTLY: fixed GCN-normalised operator for both sites.
+            self._pw_fixed_graph = bool(getattr(cfg, "pathway_fixed_graph", False))
+            # MONOTONE-SAFE MERGE: LayerScale-style zero-init residual for the embedding site.
+            self._pw_prop_residual = bool(getattr(cfg, "pathway_prop_residual", False))
+            self._pw_prop_complement = bool(getattr(cfg, "pathway_prop_complement", False))
+            if self._pw_prop_residual:
+                self.pathway_prop_gamma = nn.Parameter(torch.zeros(1))   # gamma=0 -> no-op at init
+            if self._pw_prop_complement:
+                _d = int(cfg.d_model)
+                self.pathway_prop_mlp = nn.Sequential(
+                    nn.Linear(2 * _d, _d), nn.GELU(), nn.Linear(_d, _d))
+                nn.init.zeros_(self.pathway_prop_mlp[-1].weight)         # zero-init output -> no-op
+                nn.init.zeros_(self.pathway_prop_mlp[-1].bias)
 
         # REDESIGNED bio-router: zero-init graph-conv residual on the depth-router logits
         # (router.py). The router message-passes over the (M,M) biological token graph so
@@ -474,9 +487,13 @@ class RecursiveMarkerTransformer(nn.Module):
         if (getattr(self, "_pw_learned", False) and getattr(self, "_pw_have_graph", False)
                 and self._pw_learned_prop):
             lam = torch.sigmoid(self.pathway_prop_logit)
-            En = nn.functional.normalize(self.pathway_embed, dim=1)   # (M, r)
-            z = torch.einsum("mr,bmd->brd", En, cluster)             # E^T cluster
-            prop = torch.einsum("mr,brd->bmd", En, z)                # (E E^T) cluster
+            if getattr(self, "_pw_fixed_graph", False):
+                # provided GCN-normalised Reactome operator, used DIRECTLY (no learned graph)
+                prop = torch.einsum("mn,bnd->bmd", self.pathway_operator, cluster)
+            else:
+                En = nn.functional.normalize(self.pathway_embed, dim=1)   # (M, r)
+                z = torch.einsum("mr,bmd->brd", En, cluster)             # E^T cluster
+                prop = torch.einsum("mr,brd->bmd", En, z)                # (E E^T) cluster
             prop = prop * (cluster.norm(dim=(1, 2), keepdim=True)
                            / (prop.norm(dim=(1, 2), keepdim=True) + 1e-6))
             if getattr(self, "_pw_fuse", False):
@@ -485,7 +502,18 @@ class RecursiveMarkerTransformer(nn.Module):
                 pf = pf * (cluster.norm(dim=(1, 2), keepdim=True)
                            / (pf.norm(dim=(1, 2), keepdim=True) + 1e-6))
                 prop = (1.0 - g) * prop + g * pf
-            cluster = (1.0 - lam) * cluster + lam * prop
+            if getattr(self, "_pw_prop_complement", False):
+                # COMPLEMENTARY residual: learnable zero-init MLP over [neighbour-mean,
+                # high-freq contrast]. No-op at init (output layer zeroed) so 'both' starts
+                # == router-only, but can add complementary biological signal -> strict win.
+                feat = self.pathway_prop_mlp(torch.cat([prop, cluster - prop], dim=-1))
+                cluster = cluster + feat
+            elif getattr(self, "_pw_prop_residual", False):
+                # LayerScale-style ZERO-INIT residual: cluster unchanged at init (gamma=0),
+                # so "both" starts == router-only and the embedding biology can only ADD.
+                cluster = cluster + self.pathway_prop_gamma * prop
+            else:
+                cluster = (1.0 - lam) * cluster + lam * prop
 
         # Marker-sufficiency aux loss: probe whether the (pre-recursion) marker
         # tokens alone are task-sufficient, which trains selection toward
@@ -518,7 +546,11 @@ class RecursiveMarkerTransformer(nn.Module):
         token_graph = None
         if getattr(self, "_bio_graph_router", False):
             A = None
-            if getattr(self, "_pw_learned", False):
+            if getattr(self, "_pw_fixed_graph", False) and getattr(self, "_pw_have_graph", False):
+                # provided Reactome operator directly -> router graph cannot be corrupted by
+                # the embedding objective (decouples the two sites; fixes prostate coupling)
+                A = self.pathway_operator
+            elif getattr(self, "_pw_learned", False):
                 Ep = nn.functional.normalize(self.pathway_embed, dim=1)
                 A = Ep @ Ep.t()
             elif getattr(self, "_pw_have_graph", False):

@@ -13,7 +13,7 @@
 #SBATCH --output=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/depthcoh-%A_%a.out
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/depthcoh-%A_%a.out
 # Depth sweep (K=1..100) on the P-NET cohorts, so Table 2 reports every dataset.
-# One array task per cohort; 2 seeds x the depth grid. results_depthsweep/<cohort>/.
+# One array task per cohort; 2 seeds x the depth grid. results/depthsweep/<cohort>/.
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python

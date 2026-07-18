@@ -12,13 +12,13 @@
 #SBATCH --array=0-14%8
 #SBATCH --output=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/3m-cv5-a2a-scav-%A_%a.out
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/3m-cv5-a2a-scav-%A_%a.out
-# Make Table 2's 3M column apple-to-apple. The old 3M numbers came from reproduce_path.py
-# with --seeds 42 43 (=> 10 folds) in results_repro/, a DIFFERENT protocol than the rest of
+# Make Table 2's 3M column apple-to-apple. The old 3M numbers came from scripts/reproduce_path.py
+# with --seeds 42 43 (=> 10 folds) in results/repro/, a DIFFERENT protocol than the rest of
 # the table (unified 5-fold, seed 42, 10% val, pathway_tasks). This re-runs 3M
 # (pan_meta_pri_3modal, mut+CNV+expr) as a NORMAL cohort through pathway_tasks at 5-fold/seed42:
-#   idx 0-9  = baseline ladder arms  -> results_cv5/mo/<variant>   (mirrors run_cv5_mo)
-#   idx 10-14= bioMoR-both ladder arms -> results_cv5/biomor_ladder_mo/<N> (mirrors run_biomorboth_ladder_mo)
-# K=4 expert bioMoR-both 3M already exists (results_cv5/inject_mo/both). NOVA: --account=mech-ai --qos=normal.
+#   idx 0-9  = baseline ladder arms  -> results/cv5/mo/<variant>   (mirrors run_cv5_mo)
+#   idx 10-14= bioMoR-both ladder arms -> results/cv5/biomor_ladder_mo/<N> (mirrors run_biomorboth_ladder_mo)
+# K=4 expert bioMoR-both 3M already exists (results/cv5/inject_mo/both). NOVA: --account=mech-ai --qos=normal.
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
@@ -51,11 +51,11 @@ MFLAG[2]="--recursion_mode token  --recursion_depth 2"
 MFLAG[3]="--recursion_mode token  --recursion_depth 3"
 MFLAG[4]="--recursion_mode token  --recursion_depth 4"
 if [ "$i" -lt 10 ]; then
-  V=${BVAR[$i]}; F="${BFLAG[$i]}"; OUT="results_cv5/mo/$V"
+  V=${BVAR[$i]}; F="${BFLAG[$i]}"; OUT="results/cv5/mo/$V"
   echo "[3m-a2a] BASELINE variant=$V flags='$F' host=$(hostname) $(date)"; nvidia-smi -L || true
   $PY -m recursive_marker_transformer.pathway_tasks $COMMON $F --out "$OUT"
 else
-  j=$(( i - 10 )); V=${MVAR[$j]}; F="${MFLAG[$j]}"; OUT="results_cv5/biomor_ladder_mo/$V"
+  j=$(( i - 10 )); V=${MVAR[$j]}; F="${MFLAG[$j]}"; OUT="results/cv5/biomor_ladder_mo/$V"
   echo "[3m-a2a] BIOMOR arm=$V flags='$BIO $F' host=$(hostname) $(date)"; nvidia-smi -L || true
   $PY -m recursive_marker_transformer.pathway_tasks $COMMON $BIO $F --out "$OUT"
 fi

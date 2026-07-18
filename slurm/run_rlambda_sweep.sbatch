@@ -28,13 +28,13 @@ COMMON="--modes learned --cv_folds 5 --K 4 --epochs 100 --patience 15 --n_marker
 i=$SLURM_ARRAY_TASK_ID
 if [ "$i" -lt 15 ]; then
   R=${RANK[$((i/3))]}; DS=${DATA[$((i%3))]}
-  OUT="$PROJ/results_cv5/sensitivity/rank_r${R}"
+  OUT="$PROJ/results/cv5/sensitivity/rank_r${R}"
   echo "[rlambda] rank sweep r=$R ds=$DS"
   "$PY" -m recursive_marker_transformer.bio_learned_genomap --dataset "$DS" \
         --learned_rank "$R" $COMMON --out "$OUT"
 else
   j=$((i-15)); L=${LAM[$((j/3))]}; DS=${DATA[$((j%3))]}
-  OUT="$PROJ/results_cv5/sensitivity/lambda_l${L}"
+  OUT="$PROJ/results/cv5/sensitivity/lambda_l${L}"
   echo "[rlambda] lambda sweep l=$L ds=$DS"
   "$PY" -m recursive_marker_transformer.bio_learned_genomap --dataset "$DS" \
         --prop_lambda_init "$L" $COMMON --out "$OUT"

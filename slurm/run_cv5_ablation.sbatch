@@ -13,11 +13,11 @@
 #SBATCH --output=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-abl-%A_%a.out
 #SBATCH --error=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer/logs/cv5-abl-%A_%a.out
 # Six ablation families (1->6), SAME 5-fold CV protocol (seed 42, 100/15). Array index
-# = one (condition x dataset); ablate_cv5.py dispatches to the right --cv_folds 5 CLI.
+# = one (condition x dataset); scripts/ablate_cv5.py dispatches to the right --cv_folds 5 CLI.
 set -uo pipefail
 PROJ=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 PY=/work/mech-ai-scratch/tirtho/.venv/bin/python
 cd "$PROJ"; export PYTHONUNBUFFERED=1; export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 echo "[cv5-abl] idx=$SLURM_ARRAY_TASK_ID host=$(hostname) $(date)"; nvidia-smi -L || true
-$PY ablate_cv5.py --index "$SLURM_ARRAY_TASK_ID"
+$PY scripts/ablate_cv5.py --index "$SLURM_ARRAY_TASK_ID"
 echo "[cv5-abl] DONE rc=$? idx=$SLURM_ARRAY_TASK_ID $(date)"

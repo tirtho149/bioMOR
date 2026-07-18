@@ -21,7 +21,7 @@ export PYTHONUNBUFFERED=1; export PYTHONPATH="$PROJ"; export OMP_NUM_THREADS=${S
 ARMS=(biomor biomor vanilla vanilla); DMS=(32 128 32 128)
 A=${ARMS[$SLURM_ARRAY_TASK_ID]}; DM=${DMS[$SLURM_ARRAY_TASK_ID]}
 echo "[repro-blca-sel] arm=$A d=$DM select=pos $(date)"; nvidia-smi -L || true
-$PY reproduce_path.py --task blca --arm "$A" --channels mut_cnv \
+$PY scripts/reproduce_path.py --task blca --arm "$A" --channels mut_cnv \
     --pos_class 1 --select pos --seeds 42 43 --cv_folds 5 --d_model "$DM" \
-    --epochs 100 --patience 15 --device cuda --out "results_repro/sel_${A}_d${DM}"
+    --epochs 100 --patience 15 --device cuda --out "results/repro/sel_${A}_d${DM}"
 echo "[repro-blca-sel] DONE rc=$? $(date)"

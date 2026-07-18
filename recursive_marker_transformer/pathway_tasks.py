@@ -185,6 +185,9 @@ def _fit_eval(task, coh, X, y, tr, va, te, cfg, G, K, dtypes, device, init_block
             xb = xb.to(device)
             yb = {h: v.to(device) for h, v in yb.items()}
             loss = criterion(model(xb), yb)["total"]
+            _greg = float(getattr(cfg, "pathway_prop_gamma_reg", 0.0))
+            if _greg > 0 and hasattr(model, "pathway_prop_gamma"):
+                loss = loss + _greg * model.pathway_prop_gamma.pow(2).sum()
             opt.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -373,6 +376,19 @@ def main():
                          "depth-router logits over the pathway graph (learns to help, cannot collapse)")
     ap.add_argument("--no_pathway_prop", dest="pathway_learned_prop", action="store_false",
                     default=True, help="turn OFF pathway-token smoothing (router-only condition)")
+    ap.add_argument("--pathway_prop_residual", action="store_true",
+                    help="MONOTONE-SAFE MERGE: embedding-site biology as a zero-init LayerScale "
+                         "residual (cluster += gamma*prop, gamma init 0) so 'both' starts == "
+                         "router-only and can only add -- never collapses (e.g. prostate).")
+    ap.add_argument("--pathway_prop_gamma_reg", type=float, default=0.0,
+                    help="L2 penalty pulling the residual scale gamma toward 0 (monotone-safety).")
+    ap.add_argument("--pathway_prop_complement", action="store_true",
+                    help="COMPLEMENTARY embedding residual: zero-init MLP over [neighbour-mean, "
+                         "high-freq contrast] on token values -> 'both' can strictly beat router.")
+    ap.add_argument("--pathway_fixed_graph", action="store_true",
+                    help="Use the provided adjacency_matrix.csv (GCN-normalised) DIRECTLY as the "
+                         "graph for router+propagation, instead of the learnable cosine graph "
+                         "(no drift -> the embedding site can't corrupt the router's graph).")
     # ---- 14-table mechanisms (mirror singlecell.py) ----
     ap.add_argument("--recursion_depth", type=int, default=4)
     ap.add_argument("--no_share_weights", dest="share_weights", action="store_false",
@@ -425,6 +441,10 @@ def main():
         pathway_learned_fuse=args.pathway_learned_fuse,
         bio_graph_router=args.bio_graph_router,
         pathway_learned_prop=args.pathway_learned_prop,
+        pathway_prop_residual=args.pathway_prop_residual,
+        pathway_prop_gamma_reg=args.pathway_prop_gamma_reg,
+        pathway_prop_complement=args.pathway_prop_complement,
+        pathway_fixed_graph=args.pathway_fixed_graph,
     )
 
     for cs in args.channels:

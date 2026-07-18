@@ -22,10 +22,10 @@ COHORTS=(prostate blca stad)
 IDX=$SLURM_ARRAY_TASK_ID
 CFG=$(( IDX / 3 )); COHORT="${COHORTS[$(( IDX % 3 ))]}"
 case $CFG in
-  0) K=2; OUT="$PROJ/results_cv5/biomor_mo/k2"; EXTRA="" ;;
-  1) K=3; OUT="$PROJ/results_cv5/biomor_mo/k3"; EXTRA="" ;;
-  2) K=4; OUT="$PROJ/results_cv5/biomor_mo/k4"; EXTRA="" ;;
-  3) K=4; OUT="$PROJ/results_cv5/biomor_mo_token"; EXTRA="--recursion_mode token" ;;
+  0) K=2; OUT="$PROJ/results/cv5/biomor_mo/k2"; EXTRA="" ;;
+  1) K=3; OUT="$PROJ/results/cv5/biomor_mo/k3"; EXTRA="" ;;
+  2) K=4; OUT="$PROJ/results/cv5/biomor_mo/k4"; EXTRA="" ;;
+  3) K=4; OUT="$PROJ/results/cv5/biomor_mo_token"; EXTRA="--recursion_mode token" ;;
 esac
 echo "[cv5-biomor-mo] $(date) coh=$COHORT K=$K cfg=$CFG out=$OUT host=$(hostname)"; nvidia-smi -L || true
 $PY -m recursive_marker_transformer.bio_redesign_curated \

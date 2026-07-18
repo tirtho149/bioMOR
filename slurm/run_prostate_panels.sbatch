@@ -13,5 +13,5 @@ set -uo pipefail
 cd /work/mech-ai-scratch/tirtho/RecusrsiveQFormer
 source /work/mech-ai-scratch/tirtho/.venv/bin/activate 2>/dev/null || true
 export PYTHONPATH=/work/mech-ai-scratch/tirtho/RecusrsiveQFormer PYTHONUNBUFFERED=1
-/work/mech-ai-scratch/tirtho/.venv/bin/python prostate_depth_panels.py
+/work/mech-ai-scratch/tirtho/.venv/bin/python scripts/prostate_depth_panels.py
 echo "rc=$?"

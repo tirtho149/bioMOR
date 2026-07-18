@@ -23,7 +23,7 @@ i=$SLURM_ARRAY_TASK_ID
 c=$(( i / 10 )); a=$(( i % 10 ))
 t=${COH[$c]}; ch=${CH[$c]}; arm=${ARM[$a]}
 echo "[ladder] task=$t chan=$ch arm=$arm host=$(hostname) $(date)"; nvidia-smi -L || true
-$PY reproduce_path.py --task "$t" --arm "$arm" --channels "$ch" \
+$PY scripts/reproduce_path.py --task "$t" --arm "$arm" --channels "$ch" \
     --pos_class 1 --path_protocol --seeds 42 43 --cv_folds 5 --d_model 128 \
-    --epochs 100 --patience 15 --device cuda --out "results_repro/ladder/${t}_${arm}"
+    --epochs 100 --patience 15 --device cuda --out "results/repro/ladder/${t}_${arm}"
 echo "[ladder] DONE rc=$? task=$t arm=$arm $(date)"

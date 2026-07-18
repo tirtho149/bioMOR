@@ -29,5 +29,5 @@ case $SLURM_ARRAY_TASK_ID in
   3) NAME=both;   FLAGS="--gene_interaction none --pathway_learned_graph --pathway_learned_fuse --bio_graph_router" ;;
 esac
 echo "[inject-3m] cond=$NAME host=$(hostname) $(date)"; nvidia-smi -L || true
-$PY -m recursive_marker_transformer.pathway_tasks $COMMON $FLAGS --out "results_cv5/inject_mo/$NAME"
+$PY -m recursive_marker_transformer.pathway_tasks $COMMON $FLAGS --out "results/cv5/inject_mo/$NAME"
 echo "[inject-3m] DONE cond=$NAME rc=$? $(date)"
