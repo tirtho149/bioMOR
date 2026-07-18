@@ -53,7 +53,10 @@ def mo_3m(kind, variant, mode, K):
     mo_gen); bioMoR rows -> inject_mo/both (K4) + biomor_ladder_mo/<mode>_k<K> (like mo_bio)."""
     C = 'pan_meta_pri_3modal'
     if kind and kind.startswith('biomor'):
-        if K == 4: return _read(f"results_cv5/inject_mo/both/{C}__*_cv.json")
+        # mirror mo_bio/mo_biotok: only the EXPERT-K4 headline reuses inject_mo/both
+        # (which is the expert depth-4 run). The token-K4 row must read its own token_k4
+        # arm, NOT inject_mo/both -- else the two K=4 rows print an identical 3M cell.
+        if kind == 'biomor_head': return _read(f"results_cv5/inject_mo/both/{C}__*_cv.json")
         return _read(f"results_cv5/biomor_ladder_mo/{mode}_k{K}/{C}__*_cv.json")
     return _read(f"results_cv5/mo/{variant}/{C}__*_cv.json")
 
