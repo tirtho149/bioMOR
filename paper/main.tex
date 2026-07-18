@@ -380,14 +380,13 @@ end-to-end training already recovers (supplementary material).
 
 \subsection{Smoothing, Routing, or Both? A Confound Factorial}
 \label{sec:confound}
-The gene graph enters bioMoR in two distinct ways: it \emph{smooths} the input expression
-before marker selection ($x\leftarrow(1-\lambda)x+\lambda\,\text{(graph)}\,x$, a
-denoising operation), and it \emph{primes} the depth router through an additive centrality
-prior (Eq.~\ref{eq:biorouter}). A fair reading of the learned-graph win must say which
-mechanism drives it. We therefore run a factorial that applies the graph as
-\emph{smoothing only} (with a random, a fixed-biology, or the learned graph) and as a
-\emph{routing prior only} (fixed or random), each with no other graph signal
-(supplementary material).
+The interaction graph enters bioMoR at two sites: it \emph{smooths} the token embedding
+before recursion ($\mathbf{c}\leftarrow(1-\lambda)\mathbf{c}+\lambda\,\text{(graph)}\,\mathbf{c}$,
+a denoising operation), and it \emph{steers} the depth router (Eq.~\ref{eq:biorouter}). A fair
+reading of the learned-graph win must say which site drives it, so we run a factorial that
+isolates each: the graph as \emph{embedding-smoothing only}, as \emph{router-only}, and---at
+the router---a fixed centrality prior versus our learned zero-initialised graph-convolution
+residual, each with a random and a fixed-biology control (supplementary material).
 
 Two findings emerge. \textbf{First, a rigid prior does not belong in the router:} a
 fixed-centrality routing prior sits at or below the no-graph baseline (mirroring the
