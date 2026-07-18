@@ -153,7 +153,7 @@ fixed biological one, corroborate that view within an adaptive-recursion setting
 not run PATH or scBiGNN head-to-head here---a limitation we return to in the discussion---but
 position bioMoR against them along these axes.
 
-\section{Method}
+\section{Method and Experiments}
 
 \paragraph{Token interface (markers and pathways).}
 bioMoR turns the input into $M\ll N$ interpretable tokens before any quadratic
@@ -294,9 +294,8 @@ construction). Unless noted $\lambda{=}0.1$, $\gamma{=}0.05$, $\zeta{=}10^{-3}$,
 $\eta{=}0.1$; $\tau$ anneals geometrically from $1$ to $0.1$ and each router query is
 peak-initialised.
 
-\section{Experiments}
 \input{cv5_placeholders}
-\subsection{Setup}
+\subsection{Experimental Setup}
 We evaluate on fourteen datasets (eight single-cell, six multi-omics). The $8$ \textbf{genomap single-cell}
 suites \cite{islam2023cartography} -- Baron, Lung, Muraro, Oesophagus, Segerstolpe,
 Spleen, T-cell and Xin -- span an easy-to-hard range of scRNA-seq cell-recognition
