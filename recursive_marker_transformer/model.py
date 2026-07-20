@@ -199,6 +199,12 @@ class RecursiveMarkerTransformer(nn.Module):
         # routing depth can depend on a token's neighbourhood -- learned, bounded, starts
         # as a no-op. Replaces the harmful static centrality prior as the router-site biology.
         self._bio_graph_router = bool(getattr(cfg, "bio_graph_router", False))
+        # single-cell attention-bias (analogue of pathway_attn_bias for marker_mode!='pathway'):
+        # bias marker self-attention along the learned gene sub-graph over selected markers.
+        self._gene_attn = (bool(getattr(cfg, "gene_attn_bias", False))
+                           and cfg.marker_mode != "pathway")
+        self._gene_attn_lambda = float(getattr(cfg, "gene_attn_lambda", 2.0))
+        self._gene_attn_topk = int(getattr(cfg, "gene_attn_topk", 15))
         # site decoupling: keep the warm-started graph but optionally skip its input smoothing
         self._bio_learned_prop = bool(getattr(cfg, "bio_learned_prop", True))
         self._pw_learned_prop = bool(getattr(cfg, "pathway_learned_prop", True))
@@ -539,6 +545,20 @@ class RecursiveMarkerTransformer(nn.Module):
 
         refine_fn = self.marker.refine_gate if self.cfg.recursive_marker_refine else None
         attn_bias = self.pathway_attn if self._use_attn_bias else None
+        # SINGLE-CELL attention bias: additive (M,M) bias on marker self-attention along the
+        # learned gene sub-graph (top-k biological neighbours per marker). Analogue of the
+        # pathway attention bias, but the graph is the LEARNED gene graph over selected markers
+        # (single-cell has no provided Reactome graph). Requires the learned gene graph.
+        if getattr(self, "_gene_attn", False) and self._bio_learned and hasattr(self, "gene_embed"):
+            Eg = nn.functional.normalize(self.gene_embed[marker_idx], dim=1)   # (M, r)
+            S = (Eg @ Eg.t())                                                  # (M, M) cosine
+            M_ = S.shape[0]
+            kk = min(self._gene_attn_topk, M_ - 1)
+            S = S - torch.eye(M_, device=S.device) * 2.0                       # drop self
+            nbr = S.topk(kk, dim=1).indices
+            B = torch.zeros(M_, M_, device=S.device)
+            B.scatter_(1, nbr, 1.0)
+            attn_bias = self._gene_attn_lambda * B                             # (M, M) additive
         # REDESIGNED bio-router: build the (M,M) row-normalised token graph so the depth
         # router can message-pass over the biological neighbourhood (zero-init residual in
         # router.py, so it can only learn to help). Source: the learned pathway graph

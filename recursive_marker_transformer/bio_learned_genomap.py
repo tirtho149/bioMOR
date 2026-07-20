@@ -104,7 +104,20 @@ def _cfg(mode: str, K: int, seed: int, epochs: int, n_markers: int = 128) -> RMT
         gene_interaction=(mode if mode in ("coexpr", "random", "aggnet") else "none"),
     )
     cfg = RMTConfig(**base)
-    if mode in ("coexpr", "random"):
+    if mode and set(mode) <= set("ERA"):
+        # 7-COMBINATION biology ablation over three binary mechanisms on a SHARED learned gene
+        # graph (warm-started from co-expression): E = embedding-site smoothing, R = router-site
+        # graph-conv, A = attention bias (the mechanism un-gated for single-cell, see
+        # BIOLOGY_SC_VS_PATHWAY.md). All combos run in token mode because the attention bias
+        # requires recursion_mode='token' (recursion.py), so E/R/A are the only varying factors.
+        cfg.recursion_mode = "token"
+        cfg.bio_learned_graph = True; cfg.bio_learned_rank = 16
+        cfg.bio_learned_init = "bio"; cfg.bio_init_scale = 0.01; cfg.bio_init_rand = 0.01
+        cfg.bio_prop_lambda_init = 0.2; cfg.gene_interaction = "none"
+        cfg.bio_learned_prop = ("E" in mode)     # embedding-site smoothing
+        cfg.bio_graph_router = ("R" in mode)     # router-site graph-conv
+        cfg.gene_attn_bias   = ("A" in mode)     # attention bias (un-gated for single-cell)
+    elif mode in ("coexpr", "random"):
         cfg.bio_graph_prop = True; cfg.bio_prop_lambda_init = 0.3; cfg.bio_prop_hops = 1
         cfg.bio_prior_gate = True; cfg.bio_prior_learnable = True; cfg.bio_beta_init = 0.5
         cfg.bio_depth_laplacian = 0.01; cfg.bio_centrality = "ppr"

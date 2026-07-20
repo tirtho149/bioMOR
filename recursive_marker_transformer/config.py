@@ -162,6 +162,13 @@ class RMTConfig:
                                                  # recursion_mode in {fixed, token})
     pathway_attn_lambda: float = 2.0             # additive bias on attention logits
                                                  # for hierarchy-adjacent pathway pairs
+    # SINGLE-CELL analogue of pathway_attn_bias: bias marker-token self-attention along the
+    # LEARNED gene sub-graph over the selected markers (Eg[markers] Eg[markers]^T), so a marker
+    # attends to its biological neighbours. Un-gates the attention-bias mechanism for
+    # marker_mode!='pathway' (which has no provided Reactome graph). Requires bio_learned_graph.
+    gene_attn_bias: bool = False
+    gene_attn_lambda: float = 2.0                # additive bias magnitude on marker attention
+    gene_attn_topk: int = 15                     # keep top-k biological neighbours per marker
     # ---- PATHWAY-SPACE learned graph (multi-omics analogue of the single-cell
     # gene learned graph). The interaction graph is the PROVIDED Reactome
     # pathway->pathway adjacency_matrix.csv -- NEVER a co-expression graph computed

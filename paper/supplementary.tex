@@ -33,7 +33,19 @@ main paper. Unless stated otherwise, the auxiliary empirical tables here use a $
 held-out protocol; the $5$-fold cross-validation results reported in the main paper are the
 authoritative numbers, and we include these analyses for completeness and transparency.
 
-% Training-dynamics section removed; the Baron loss/F1 figure now lives in the main paper.
+\section{Baron Training-Cost Curves}
+\label{app:curves}
+\begin{figure}[h]
+\centering
+\IfFileExists{figs/baron_loss.pdf}{\includegraphics[width=0.49\columnwidth]{figs/baron_loss.pdf}}{}\hfill
+\IfFileExists{figs/baron_val_f1.pdf}{\includegraphics[width=0.49\columnwidth]{figs/baron_val_f1.pdf}}{}%
+\caption{\textbf{Full training-cost curves on Baron (pancreas; 5-fold CV).} Training loss (left) and
+validation macro-F1 (right) vs.\ measured A100 GPU cost, for all four architectures; lines are the
+mean over the same 5 folds as the main table, shaded bands $\pm1$ SD. bioMoR reaches its accuracy
+plateau at lower cumulative training cost than the vanilla transformer. The main paper summarises
+these curves as an accuracy-vs-cost point diagram (best-loss and best-accuracy operating points).}
+\label{fig:baron_curves_full}
+\end{figure}
 
 \section{PATH-Comparable Positive-Class F1}
 \label{app:posf1}
