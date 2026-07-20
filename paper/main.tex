@@ -534,8 +534,7 @@ both routings appear in the supplementary material.
 \centering
 \IfFileExists{figs/baron_pointdiagram.pdf}{\includegraphics[width=0.66\columnwidth]{figs/baron_pointdiagram.pdf}}{\emph{(accuracy-vs-cost point diagram renders here)}}
 \caption{\textbf{Accuracy vs.\ training cost on Baron (5-fold CV).} Per architecture, the best-loss
-($\circ$) and best-accuracy ($\star$) checkpoints, as macro-F1 vs.\ cumulative A100 GPU cost (log
-scale). bioMoR reaches the highest accuracy at the lowest cost (top-left); vanilla needs the most
+($\circ$) and best-accuracy ($\star$) checkpoints, as test macro-F1 vs.\ cumulative A100 GPU cost. bioMoR reaches the highest accuracy at the lowest cost (top-left); vanilla needs the most
 compute. Legend gives final test macro-F1; full training curves are in the supplement.}
 \label{fig:baron_curves}
 \end{figure}
