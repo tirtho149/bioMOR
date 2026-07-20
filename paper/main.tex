@@ -345,13 +345,14 @@ peak-initialised.
 
 \section{Theoretical Analysis}
 \label{sec:theory}
-We show the two graph-injection sites are principled rather than heuristic: the embedding-site graph
+We show the graph-injection mechanisms are principled rather than heuristic: the embedding-site graph
 is a \emph{provably optimal denoiser} (Thm.~1), the router-site graph is \emph{monotone-safe}
-(Thm.~2), and combining them dominates either alone (Cor.~1) --- the population-risk statement
-of the empirical ordering in Fig.~\ref{fig:injection}. The attention bias (A) is a third,
-fixed-strength mechanism validated empirically in the same ablation; the analysis here covers the
-two sites that admit a no-op initialisation. Full proofs are in the supplementary
-material.
+(Thm.~2), and the full combination---embedding, router, and attention bias (ERA)---dominates every
+sub-combination (Cor.~1), the population-risk statement of the empirical ordering in
+Fig.~\ref{fig:injection}. The attention bias enters Cor.~1 through the same no-op containment
+($\lambda_{\mathrm{attn}}{=}0$); unlike the zero-initialised router it is deployed at fixed strength,
+so it shares Cor.~1's population-optimum guarantee but not Thm.~2's zero-init training-trajectory one.
+Full proofs are in the supplementary material.
 
 \begin{table*}[!b]
 \centering
@@ -416,15 +417,17 @@ stays off this regime by \emph{learning} a bounded $\lambda$ (init $0.3$, keepin
 by propagating over $M{\ll}N$ tokens rather than cells; the spectral and rare-cell analysis is in the
 supplementary material.
 
-\paragraph{Corollary~1 (Both sites are best).}
-\emph{With $R^\star_{\mathrm{both}},R^\star_{\mathrm{emb}},R^\star_{\mathrm{rt}},R^\star_{\mathrm{none}}$
-the optima of the joint, embedding-only, router-only, and no-biology families,}
+\paragraph{Corollary~1 (All three mechanisms are best).}
+\emph{With $R^\star_{\mathrm{all}},R^\star_{\mathrm{emb}},R^\star_{\mathrm{rt}},R^\star_{\mathrm{attn}},R^\star_{\mathrm{none}}$
+the optima of the joint (ERA), embedding-only, router-only, attention-bias-only, and no-biology families,}
 \begin{equation*}
-R^\star_{\mathrm{both}}\;\le\;\min\{R^\star_{\mathrm{emb}},\,R^\star_{\mathrm{rt}}\}\;\le\;R^\star_{\mathrm{none}}.
+R^\star_{\mathrm{all}}\;\le\;\min\{R^\star_{\mathrm{emb}},\,R^\star_{\mathrm{rt}},\,R^\star_{\mathrm{attn}}\}\;\le\;R^\star_{\mathrm{none}}.
 \end{equation*}
-Setting either site to its no-op ($\Phi{=}0$ or $\lambda{=}0$) recovers the corresponding
-single-site family, so the joint optimum dominates both --- the population-risk form of
-\emph{embedding helps, router helps, both best} observed in Fig.~\ref{fig:injection}.
+Each mechanism admits a no-op---embedding $\lambda{=}0$, router $\Phi{=}0$, attention bias
+$\lambda_{\mathrm{attn}}{=}0$---so switching any subset off recovers the corresponding restricted
+family. The joint (ERA) family therefore contains every sub-family and its optimum dominates all of
+them --- the population-risk form of the \emph{embedding, router, and attention bias combine (ERA
+best)} ordering in Fig.~\ref{fig:injection}.
 
 \section{Results}
 

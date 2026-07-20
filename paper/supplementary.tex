@@ -442,9 +442,10 @@ router attains loss $\le$ the baseline. Strictness: a baseline router is $\sigma
 and cannot separate two tokens with equal $h_m$ but different neighbourhoods $(AH)_m$, incurring a
 fixed excess $\delta>0$ that a suitable $\Phi$ removes. $\square$
 
-\paragraph{Corollary~1 (Both sites best).} The joint family contains embedding-only ($\Phi{=}0$)
-and router-only ($\lambda{=}0$) as no-op restrictions, so
-$R^\star_{\mathrm{both}}\le\min\{R^\star_{\mathrm{emb}},R^\star_{\mathrm{rt}}\}\le R^\star_{\mathrm{none}}$
+\paragraph{Corollary~1 (All three mechanisms best).} The joint (ERA) family contains embedding-only
+($\Phi{=}0,\lambda_{\mathrm{attn}}{=}0$), router-only ($\lambda{=}0,\lambda_{\mathrm{attn}}{=}0$), and
+attention-bias-only ($\lambda{=}0,\Phi{=}0$) as no-op restrictions, so
+$R^\star_{\mathrm{all}}\le\min\{R^\star_{\mathrm{emb}},R^\star_{\mathrm{rt}},R^\star_{\mathrm{attn}}\}\le R^\star_{\mathrm{none}}$
 by monotonicity of the min over set inclusion. $\square$
 
 \section{Low-Rank Propagation, Over-Smoothing, and Rare Cells}
