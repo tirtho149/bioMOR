@@ -25,40 +25,46 @@ def main():
         print(f"[pointdiagram] {SRC} not found"); return
     d = json.load(open(SRC))
 
-    fig, ax = plt.subplots(figsize=(3.4, 2.9))
+    # label placement offsets (dx in seconds, dy in F1 pts, ha) tuned so text clears the markers
+    LAB = {"Vanilla": (1.2, 1.6, "left"), "Recursive": (-1.2, -2.6, "right"),
+           "MoR": (1.4, -2.4, "left"), "bioMoR": (1.4, 1.4, "left")}
+
+    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+    xs, ys = [], []
     for name in ORDER:
         if name not in d:
             continue
         agg = [e for e in d[name]["agg"] if e.get("sec_mean") is not None]
         if not agg:
             continue
-        # best-loss checkpoint (min training loss) and best-accuracy checkpoint (max val F1)
-        bl = min(agg, key=lambda e: e["loss_mean"])
-        ba = max(agg, key=lambda e: e["val_f1_mean"])
+        bl = min(agg, key=lambda e: e["loss_mean"])       # best training loss checkpoint
+        ba = max(agg, key=lambda e: e["val_f1_mean"])     # best val macro-F1 checkpoint
         test = d[name].get("test_f1_mean")
         c = COLOR[name]
-        # connector between the two operating points of this architecture
-        ax.plot([bl["sec_mean"], ba["sec_mean"]], [bl["val_f1_mean"], ba["val_f1_mean"]],
-                color=c, lw=0.9, alpha=0.55, zorder=1)
-        ax.scatter(bl["sec_mean"], bl["val_f1_mean"], facecolors="none", edgecolors=c,
-                   s=52, lw=1.6, marker="o", zorder=3)
-        ax.scatter(ba["sec_mean"], ba["val_f1_mean"], color=c, s=90, marker="*", zorder=3,
-                   label=f"{name} (test {test:.1f})" if test is not None else name)
+        xb, yb = bl["sec_mean"], bl["val_f1_mean"]
+        xa, ya = ba["sec_mean"], ba["val_f1_mean"]
+        xs += [xb, xa]; ys += [yb, ya]
+        ax.plot([xb, xa], [yb, ya], color=c, lw=1.1, alpha=0.5, zorder=1)
+        ax.scatter(xb, yb, facecolors="white", edgecolors=c, s=46, lw=1.7, marker="o", zorder=3)
+        ax.scatter(xa, ya, color=c, s=115, marker="*", edgecolors="white", lw=0.5, zorder=4)
+        dx, dy, ha = LAB.get(name, (1.2, 1.4, "left"))
+        ax.annotate(f"{name} ({test:.1f})", (xa, ya), (xa + dx, ya + dy), ha=ha, va="center",
+                    fontsize=7.4, fontweight="bold", color=c, zorder=5)
 
-    # marker legend (best-loss vs best-accuracy), separate from the colour/arch legend
+    # single compact marker-shape key placed in the empty upper-right; NOT over any point
     from matplotlib.lines import Line2D
-    shape_leg = [Line2D([0], [0], marker="o", mfc="none", mec="#333", ls="none", ms=7, label="best loss"),
-                 Line2D([0], [0], marker="*", color="#333", ls="none", ms=10, label="best accuracy")]
-    leg1 = ax.legend(loc="lower right", fontsize=6.6, frameon=True, title_fontsize=7)
-    ax.add_artist(leg1)
-    ax.legend(handles=shape_leg, loc="upper left", fontsize=6.8, frameon=True)
+    key = [Line2D([0], [0], marker="o", mfc="white", mec="#444", ls="none", ms=6.5, label="best loss"),
+           Line2D([0], [0], marker="*", color="#444", ls="none", ms=10, label="best accuracy")]
+    ax.legend(handles=key, loc="upper right", fontsize=7, frameon=True, handletextpad=0.3,
+              borderpad=0.4, labelspacing=0.3)
 
     ax.set_xlabel("cumulative A100 GPU cost (s)", fontsize=8.5)
     ax.set_ylabel("macro-F1", fontsize=8.5)
-    ax.set_xscale("log")
-    ax.margins(y=0.14)                       # headroom so the top (bioMoR) star isn't clipped
+    xlo, xhi = min(xs), max(xs); ylo, yhi = min(ys), max(ys)
+    ax.set_xlim(xlo - 0.06 * (xhi - xlo), xhi + 0.12 * (xhi - xlo))
+    ax.set_ylim(ylo - 0.10 * (yhi - ylo), yhi + 0.16 * (yhi - ylo))   # headroom for top star
     ax.tick_params(labelsize=7.5)
-    ax.grid(True, which="both", ls=":", lw=0.4, alpha=0.5)
+    ax.grid(True, ls=":", lw=0.4, alpha=0.5)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     fig.tight_layout()
