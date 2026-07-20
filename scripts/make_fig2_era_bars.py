@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SC_FLOOR = 50   # single-cell all sit 59-85 -> 50-cut zooms nicely
-MO_FLOOR = 25   # multi-omics Bladder is 38-43 -> lower floor so its bars are visible
+SC_FLOOR = 40   # y-axis cut at 40 on both rows so small ERA differences are easy to see
+MO_FLOOR = 40   # (bars below 40 -- a few Bladder cells -- are annotated in red at the baseline)
 CONDS = ["N", "E", "R", "A", "ERA"]
 CLABEL = {"N": "None", "E": "E (embed)", "R": "R (router)", "A": "A (attn-bias)", "ERA": "ERA (full)"}
 COLORS = {"N": "#9e9e9e", "E": "#4c9be8", "R": "#f0a848", "A": "#8e6fcf", "ERA": "#2ca25f"}
@@ -91,13 +91,13 @@ def main():
     handles = [Patch(facecolor=COLORS[c], edgecolor="black", label=CLABEL[c]) for c in CONDS]
     ax1.legend(handles=handles, ncol=5, loc="upper center",
                bbox_to_anchor=(0.5, 1.28), frameon=False, fontsize=9)
-    fig.suptitle("Figure 2 — Biology ablation (None → E → R → A → ERA); y cut at 50 (SC) / 25 (MO)",
+    fig.suptitle("Figure 2 — Biology ablation (None → E → R → A → ERA); y-axis cut at 40",
                  y=1.0, fontsize=12)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     out = os.path.join(ROOT, "paper", "figs")   # paper/figs is the tree the Overleaf bridge syncs
     os.makedirs(out, exist_ok=True)
     for ext in ("pdf", "png"):
-        fig.savefig(os.path.join(out, f"fig2_era_bars.{ext}"), dpi=200, bbox_inches="tight")
+        fig.savefig(os.path.join(out, f"fig2_era_bars.{ext}"), dpi=600, bbox_inches="tight")
     print("wrote figs/fig2_era_bars.{pdf,png}")
     # report clipped (below-floor) cells
     for name, d, order, floor in [("SC", sc, SC_ORDER, SC_FLOOR), ("MO", mo, MO_ORDER, MO_FLOOR)]:

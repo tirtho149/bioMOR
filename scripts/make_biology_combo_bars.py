@@ -119,6 +119,7 @@ def main():
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     ax.tick_params(labelsize=8)
+    ax.set_ylim(bottom=40)   # cut y-axis at 40 so the per-condition differences are visible
     fig.tight_layout()
 
     figs = ROOT / "paper" / "figs"; figs.mkdir(parents=True, exist_ok=True)
