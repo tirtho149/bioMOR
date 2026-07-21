@@ -1,0 +1,103 @@
+data:
+  id: PAN_BRCA_MOLSUBTYPE
+  params:
+    data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/pan_brca_molsubtype
+    labels_filename: patient_labels.csv
+    num_classes: 5
+    random_state: 42
+    selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+    test_size: 0.1
+    val_size: 0.1111111111111111
+    zscore_cnv: true
+  type: brca_multiclass
+models:
+  id: P-net_PAN_BRCA_MOLSUBTYPE
+  params:
+    build_fn: !!python/name:model.builders.prostate_models_multiclass.build_pnet2_multiclass ''
+    feature_importance: null
+    fitting_params:
+      batch_size: 16
+      class_weight: auto
+      debug: false
+      early_stop: false
+      epoch: 200
+      lr: 0.0001
+      max_f1: false
+      monitor: val_loss
+      n_outputs: 6
+      prediction_output: average
+      reduce_lr: false
+      reduce_lr_after_nepochs:
+        drop: 0.25
+        epochs_drop: 50
+      samples_per_epoch: 10
+      save_gradient: false
+      save_name: pnet
+      select_best_model: false
+      shuffle: true
+      verbose: 2
+    model_params:
+      activation: tanh
+      add_unk_genes: false
+      attention: false
+      data_params:
+        id: PAN_BRCA_MOLSUBTYPE
+        params:
+          data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/pan_brca_molsubtype
+          labels_filename: patient_labels.csv
+          num_classes: 5
+          random_state: 42
+          selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+          test_size: 0.1
+          val_size: 0.1111111111111111
+          zscore_cnv: true
+        type: brca_multiclass
+      dropout:
+      - 0.2
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      dropout_testing: false
+      kernel_initializer: lecun_uniform
+      loss: sparse_categorical_crossentropy
+      loss_weights:
+      - 2
+      - 7
+      - 20
+      - 54
+      - 148
+      - 400
+      n_hidden_layers: 5
+      num_classes: 5
+      optimizer: Adam
+      shuffle_genes: false
+      use_bias: true
+      w_reg:
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      w_reg_outcomes:
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+  type: nn
+pipeline:
+  params:
+    n_splits: 10
+    save_train: true
+  type: crossvalidation
+pre:
+  type: null
+scores: '{"accuracy":{"0":0.661971831,"1":0.5915492958,"2":0.6901408451,"3":0.661971831,"4":0.8,"5":0.7285714286,"6":0.6857142857,"7":0.6714285714,"8":0.5714285714,"9":0.5714285714},"precision":{"0":0.56,"1":0.5350537634,"2":0.5173245614,"3":0.641025641,"4":0.7861904762,"5":0.6355844156,"6":0.5644537815,"7":0.6151515152,"8":0.5177713092,"9":0.4807070707},"auc":{"0":0.8693931969,"1":0.8880549721,"2":0.8584945847,"3":0.8490238492,"4":0.9225166863,"5":0.876737077,"6":0.8713924719,"7":0.8630371015,"8":0.8136174079,"9":0.8362245058},"f1":{"0":0.682024439,"1":0.6107919313,"2":0.6789866536,"3":0.6845771461,"4":0.8046434518,"5":0.734686319,"6":0.7082985075,"7":0.6809177489,"8":0.6023878132,"9":0.6079127044},"f1_macro":{"0":0.5756810818,"1":0.539077291,"2":0.5111568501,"3":0.6136651584,"4":0.7397469197,"5":0.6602116402,"6":0.5651940299,"7":0.5853939394,"8":0.4967651608,"9":0.4677095695},"aupr":{"0":0.5795746363,"1":0.7039913824,"2":0.6087878562,"3":0.5741476867,"4":0.725796385,"5":0.6261370342,"6":0.6307397474,"7":0.7072149556,"8":0.5260863148,"9":0.5269197514},"recall":{"0":0.6253915454,"1":0.6197089397,"2":0.5203880804,"3":0.7066112266,"4":0.7505613306,"5":0.7215869716,"6":0.5895356895,"7":0.6094871795,"8":0.5094871795,"9":0.4778516979}}'
+scores_mean: '{"accuracy":0.6634205231,"precision":0.5853262534,"auc":0.8648491853,"f1":0.6795226715,"f1_macro":0.5754601641,"aupr":0.620939575,"recall":0.6130609841}'
+scores_std: '{"accuracy":0.0717003172,"precision":0.0885699744,"auc":0.029452423,"f1":0.0626826353,"f1_macro":0.0810338876,"aupr":0.0725290157,"recall":0.0929729255}'

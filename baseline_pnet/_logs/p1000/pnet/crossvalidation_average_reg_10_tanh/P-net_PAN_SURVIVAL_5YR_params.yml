@@ -1,0 +1,99 @@
+data:
+  id: PAN_SURVIVAL_5YR
+  params:
+    data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/pan_survival_5yr
+    labels_filename: patient_labels.csv
+    random_state: 42
+    selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+    test_size: 0.2
+    val_size: 0.1
+    zscore_cnv: true
+  type: brca
+models:
+  id: P-net_PAN_SURVIVAL_5YR
+  params:
+    build_fn: !!python/name:model.builders.prostate_models.build_pnet2 ''
+    feature_importance: null
+    fitting_params:
+      batch_size: 16
+      class_weight: auto
+      debug: false
+      early_stop: false
+      epoch: 200
+      lr: 0.0001
+      max_f1: true
+      monitor: val_o6_f1
+      n_outputs: 6
+      prediction_output: average
+      reduce_lr: false
+      reduce_lr_after_nepochs:
+        drop: 0.25
+        epochs_drop: 50
+      samples_per_epoch: 10
+      save_gradient: false
+      save_name: pnet
+      select_best_model: false
+      shuffle: true
+      verbose: 2
+    model_params:
+      activation: tanh
+      add_unk_genes: false
+      attention: false
+      data_params:
+        id: PAN_SURVIVAL_5YR
+        params:
+          data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/pan_survival_5yr
+          labels_filename: patient_labels.csv
+          random_state: 42
+          selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+          test_size: 0.2
+          val_size: 0.1
+          zscore_cnv: true
+        type: brca
+      dropout:
+      - 0.2
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      dropout_testing: false
+      kernel_initializer: lecun_uniform
+      loss_weights:
+      - 2
+      - 7
+      - 20
+      - 54
+      - 148
+      - 400
+      n_hidden_layers: 5
+      optimizer: Adam
+      shuffle_genes: false
+      use_bias: true
+      w_reg:
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      w_reg_outcomes:
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+  type: nn
+pipeline:
+  params:
+    n_splits: 5
+    save_train: true
+  type: crossvalidation
+pre:
+  type: null
+scores: '{"accuracy":{"0":0.6806020067,"1":0.6505016722,"2":0.6588628763,"3":0.6633165829,"4":0.6800670017},"precision":{"0":0.702764977,"1":0.6599190283,"2":0.6856492027,"3":0.6701030928,"4":0.6898047722},"auc":{"0":0.6843719405,"1":0.69829081,"2":0.6738856058,"3":0.7019374069,"4":0.7104298252},"f1":{"0":0.7615480649,"1":0.7572590012,"2":0.746898263,"3":0.7638072855,"4":0.76904474},"f1_macro":{"0":0.6390018806,"1":0.5666892021,"2":0.61191067,"3":0.5889007273,"4":0.6243043864},"aupr":{"0":0.7576444532,"1":0.7713684211,"2":0.7441281696,"3":0.7798310989,"4":0.7695402818},"recall":{"0":0.8310626703,"1":0.8882833787,"2":0.8201634877,"3":0.8879781421,"4":0.868852459}}'
+scores_mean: '{"accuracy":0.666670028,"precision":0.6816482146,"auc":0.6937831177,"f1":0.7597114709,"f1_macro":0.6061613733,"aupr":0.7645024849,"recall":0.8592680276}'
+scores_std: '{"accuracy":0.0132965397,"precision":0.0168367334,"auc":0.0145637034,"f1":0.0083284391,"f1_macro":0.0287084676,"aupr":0.0138711229,"recall":0.0319481213}'

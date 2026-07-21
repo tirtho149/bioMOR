@@ -1,0 +1,102 @@
+data_params:
+  id: PANCANCER_PRI_MET
+  params:
+    data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/pan_meta_pri
+    labels_filename: patient_labels.csv
+    random_state: 42
+    selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+    test_size: 0.1
+    val_size: 0.1111111111111111
+    zscore_cnv: true
+  type: brca
+exp_name: /lustre/hdd/LAS/weile-lab/howlader/GraphPath_baselines/baseline_pnet/_logs/p1000/./pnet/onsplit_average_reg_10_tanh_large_testing
+features_params: {}
+model_params:
+  id: P-net_PANCANCER_PRI_MET
+  params:
+    build_fn: !!python/name:model.builders.prostate_models.build_pnet2 ''
+    feature_importance: null
+    fitting_params:
+      batch_size: 16
+      class_weight: auto
+      debug: false
+      early_stop: true
+      epoch: 200
+      lr: 0.0001
+      max_f1: true
+      monitor: val_o6_f1
+      n_outputs: 6
+      prediction_output: average
+      reduce_lr: false
+      reduce_lr_after_nepochs:
+        drop: 0.25
+        epochs_drop: 50
+      samples_per_epoch: 10
+      save_gradient: false
+      save_name: pnet
+      select_best_model: true
+      shuffle: true
+      verbose: 2
+    model_params:
+      activation: tanh
+      add_unk_genes: false
+      attention: false
+      data_params:
+        id: PANCANCER_PRI_MET
+        params:
+          data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/pan_meta_pri
+          labels_filename: patient_labels.csv
+          random_state: 42
+          selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+          test_size: 0.1
+          val_size: 0.1111111111111111
+          zscore_cnv: true
+        type: brca
+      dropout:
+      - 0.2
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      dropout_testing: false
+      kernel_initializer: lecun_uniform
+      loss_weights:
+      - 2
+      - 7
+      - 20
+      - 54
+      - 148
+      - 400
+      n_hidden_layers: 5
+      optimizer: Adam
+      shuffle_genes: false
+      use_bias: true
+      w_reg:
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      w_reg_outcomes:
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+  type: nn
+pipeline_params:
+  params:
+    eval_dataset: test
+    save_train: true
+  type: one_split
+pre_params:
+  type: null
+score: '{''accuracy'': 0.9640449438202248, ''precision'': 0.5444444444444444, ''auc'':
+  0.9507952771272444, ''f1'': 0.6049382716049383, ''f1_macro'': 0.793051831505824,
+  ''aupr'': 0.6095484613533063, ''recall'': 0.6805555555555556}'
+task: classification_binary

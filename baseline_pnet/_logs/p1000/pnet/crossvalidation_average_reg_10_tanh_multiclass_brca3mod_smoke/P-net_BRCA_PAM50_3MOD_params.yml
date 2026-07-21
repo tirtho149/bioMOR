@@ -1,0 +1,111 @@
+data:
+  id: BRCA_PAM50_3MOD
+  params:
+    cnv_filename: cnv_data.csv
+    data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/brca
+    expression_filename: expression_data.csv
+    labels_filename: patient_labels_pam50.csv
+    mutation_filename: mutation_data.csv
+    num_classes: 5
+    random_state: 42
+    selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+    test_size: 0.1
+    val_size: 0.1111111111111111
+    zscore_cnv: true
+    zscore_expression: true
+  type: brca_multiclass_3mod
+models:
+  id: P-net_BRCA_PAM50_3MOD
+  params:
+    build_fn: !!python/name:model.builders.prostate_models_multiclass.build_pnet2_multiclass ''
+    feature_importance: null
+    fitting_params:
+      batch_size: 16
+      class_weight: auto
+      debug: false
+      early_stop: false
+      epoch: 2
+      lr: 0.0001
+      max_f1: false
+      monitor: val_loss
+      n_outputs: 6
+      prediction_output: average
+      reduce_lr: false
+      reduce_lr_after_nepochs:
+        drop: 0.25
+        epochs_drop: 50
+      samples_per_epoch: 10
+      save_gradient: false
+      save_name: pnet
+      select_best_model: false
+      shuffle: true
+      verbose: 2
+    model_params:
+      activation: tanh
+      add_unk_genes: false
+      attention: false
+      data_params:
+        id: BRCA_PAM50_3MOD
+        params:
+          cnv_filename: cnv_data.csv
+          data_dir: /lustre/hdd/LAS/weile-lab/howlader/Graph_Transformer/data_tcga/brca
+          expression_filename: expression_data.csv
+          labels_filename: patient_labels_pam50.csv
+          mutation_filename: mutation_data.csv
+          num_classes: 5
+          random_state: 42
+          selected_genes_filename: /lustre/hdd/LAS/weile-lab/howlader/GraphPath/p_net_data/tcga_prostate_expressed_genes_and_cancer_genes.csv
+          test_size: 0.1
+          val_size: 0.1111111111111111
+          zscore_cnv: true
+          zscore_expression: true
+        type: brca_multiclass_3mod
+      dropout:
+      - 0.2
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      - 0.1
+      dropout_testing: false
+      kernel_initializer: lecun_uniform
+      loss: sparse_categorical_crossentropy
+      loss_weights:
+      - 2
+      - 7
+      - 20
+      - 54
+      - 148
+      - 400
+      n_hidden_layers: 5
+      num_classes: 5
+      optimizer: Adam
+      shuffle_genes: false
+      use_bias: true
+      w_reg:
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      - 0.001
+      w_reg_outcomes:
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+      - 0.01
+  type: nn
+pipeline:
+  params:
+    n_splits: 2
+    save_train: true
+  type: crossvalidation
+pre:
+  type: null
+scores: '{"accuracy":{"0":0.2532188841,"1":0.4163090129},"precision":{"0":0.5459359359,"1":0.5113180216},"auc":{"0":0.9020219106,"1":0.89024851},"f1":{"0":0.2436850293,"1":0.4934339672},"f1_macro":{"0":0.2788061339,"1":0.3796522915},"aupr":{"0":0.6815551027,"1":0.6366345205},"recall":{"0":0.5115700517,"1":0.469143805}}'
+scores_mean: '{"accuracy":0.3347639485,"precision":0.5286269788,"auc":0.8961352103,"f1":0.3685594982,"f1_macro":0.3292292127,"aupr":0.6590948116,"recall":0.4903569284}'
+scores_std: '{"accuracy":0.115322136,"precision":0.024478562,"auc":0.0083250515,"f1":0.1765991676,"f1_macro":0.0713090019,"aupr":0.0317636483,"recall":0.0299998868}'

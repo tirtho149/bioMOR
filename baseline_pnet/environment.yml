@@ -1,0 +1,30 @@
+name: pnet
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # TF 2.16-2.19 ship wheels for Python 3.10–3.12. Pinning to 3.11 for a sweet
+  # spot of broad wheel availability across deps (lifelines, scikit-learn, etc.)
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - h5py
+  - pyyaml
+  - matplotlib
+  - seaborn
+  - networkx
+  - tqdm
+  - openpyxl
+  - xlrd
+  - pip:
+      # tensorflow-cpu wheel is small + reliable; use 'tensorflow' for auto-GPU
+      # or 'tensorflow[and-cuda]' for bundled CUDA libs (large download).
+      - tensorflow>=2.16,<2.20
+      - lifelines
+      - psutil
+      - pyvis
+      - requests
+      - upsetplot
